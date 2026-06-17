@@ -10,9 +10,8 @@ export interface Customer {
   name: string;
   phone: string;
   dob?: string;
-  totalSpend: number;
-  visitCount: number;
-  lastServiceDate?: string;
+  services_taken?: string[];
+  staff_served?: string[];
   createdAt: string;
 }
 

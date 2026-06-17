@@ -226,11 +226,15 @@ export default function Customers() {
         commission_amount: commissionAmount
       }]);
 
-      // Update Customer lifetime stats
+      // Update Customer arrays (services_taken, staff_served)
+      const currentServices = customerForVisit.services_taken || [];
+      const currentStaff = customerForVisit.staff_served || [];
+      const newServices = [...new Set([...currentServices, ...vServicesData.map(vs => vs.service_name)])];
+      const newStaffList = [...new Set([...currentStaff, staff.find(s => s.id === visitStaffId)?.name || ''])].filter(Boolean);
+
       await customerService.updateCustomer(customerForVisit.id, {
-        totalSpend: (customerForVisit.totalSpend || 0) + grandTotal,
-        visitCount: (customerForVisit.visitCount || 0) + 1,
-        lastServiceDate: new Date().toISOString()
+        services_taken: newServices,
+        staff_served: newStaffList
       });
 
       toast.success('Visit recorded successfully!');
@@ -251,9 +255,18 @@ export default function Customers() {
 
   const totalCustomers = customers.length;
   const newThisMonth = customers.filter(c => isThisMonth(new Date(c.createdAt))).length;
-  const totalRevenue = customers.reduce((sum, c) => sum + (c.totalSpend || 0), 0);
+  
+  // Compute totals from visits
+  const totalRevenue = visits.reduce((sum, v) => sum + (v.grand_total || 0), 0);
   const avgSpend = totalCustomers > 0 ? totalRevenue / totalCustomers : 0;
   const selectedCustomer = customers.find(c => c.id === selectedCustomerForHistory);
+
+  const getCustomerTotalSpend = (customerId: number) => {
+    return visits.filter(v => v.customer_id === customerId).reduce((sum, v) => sum + (v.grand_total || 0), 0);
+  };
+  const getCustomerVisitCount = (customerId: number) => {
+    return visits.filter(v => v.customer_id === customerId).length;
+  };
 
   return (
     <div className="space-y-8 relative max-w-7xl mx-auto">
@@ -393,12 +406,12 @@ export default function Customers() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="font-light text-white text-lg">
-                          ₹{(customer.totalSpend || 0).toLocaleString()}
+                          ₹{getCustomerTotalSpend(customer.id).toLocaleString()}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white border border-white/10">
-                          {customer.visitCount || 0} visits
+                          {getCustomerVisitCount(customer.id)} visits
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
@@ -632,12 +645,12 @@ export default function Customers() {
                 </div>
                 <div className="bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
                   <p className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Lifetime Spend</p>
-                  <p className="text-3xl font-light text-white mt-2">₹{selectedCustomer.totalSpend?.toLocaleString() || '0'}</p>
+                  <p className="text-3xl font-light text-white mt-2">₹{getCustomerTotalSpend(selectedCustomer.id).toLocaleString()}</p>
                 </div>
                 <div className="bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
                   <p className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Average Spend</p>
                   <p className="text-3xl font-light text-white mt-2">
-                    ₹{selectedHistory.length > 0 ? Math.round(selectedCustomer.totalSpend / selectedHistory.length).toLocaleString() : '0'}
+                    ₹{selectedHistory.length > 0 ? Math.round(getCustomerTotalSpend(selectedCustomer.id) / selectedHistory.length).toLocaleString() : '0'}
                   </p>
                 </div>
               </div>

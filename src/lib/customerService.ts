@@ -1,12 +1,8 @@
 import { supabase } from './supabase';
 import type { Customer } from '../types';
 
-export type CustomerInsert = Omit<Customer, 'id' | 'createdAt' | 'totalSpend' | 'visitCount'>;
-export type CustomerUpdate = Partial<CustomerInsert> & {
-  totalSpend?: number;
-  visitCount?: number;
-  lastServiceDate?: string;
-};
+export type CustomerInsert = Omit<Customer, 'id' | 'createdAt'>;
+export type CustomerUpdate = Partial<CustomerInsert>;
 
 export const customerService = {
   /**
@@ -29,9 +25,8 @@ export const customerService = {
       name: String(d.name || 'Unknown'),
       phone: String(d.phone || ''),
       dob: d.dob ? String(d.dob) : undefined,
-      totalSpend: Number(d.total_spent || 0),
-      visitCount: Number(d.visit_count || 0),
-      lastServiceDate: d.last_service_date ? String(d.last_service_date) : undefined,
+      services_taken: d.services_taken || [],
+      staff_served: d.staff_served || [],
       createdAt: String(d.created_at || new Date().toISOString())
     }));
 
@@ -59,6 +54,8 @@ export const customerService = {
         name: customerData.name,
         phone: customerData.phone,
         dob: customerData.dob || null,
+        services_taken: customerData.services_taken || [],
+        staff_served: customerData.staff_served || []
       })
       .select()
       .single();
@@ -73,9 +70,8 @@ export const customerService = {
       name: String(data.name || 'Unknown'),
       phone: String(data.phone || ''),
       dob: data.dob ? String(data.dob) : undefined,
-      totalSpend: Number(data.total_spent || 0),
-      visitCount: Number(data.visit_count || 0),
-      lastServiceDate: data.last_service_date ? String(data.last_service_date) : undefined,
+      services_taken: data.services_taken || [],
+      staff_served: data.staff_served || [],
       createdAt: String(data.created_at || new Date().toISOString())
     } as Customer;
   },
@@ -88,9 +84,8 @@ export const customerService = {
     if (updates.name !== undefined) payload.name = updates.name;
     if (updates.phone !== undefined) payload.phone = updates.phone;
     if (updates.dob !== undefined) payload.dob = updates.dob || null;
-    if (updates.totalSpend !== undefined) payload.total_spent = updates.totalSpend;
-    if (updates.visitCount !== undefined) payload.visit_count = updates.visitCount;
-    if (updates.lastServiceDate !== undefined) payload.last_service_date = updates.lastServiceDate;
+    if (updates.services_taken !== undefined) payload.services_taken = updates.services_taken;
+    if (updates.staff_served !== undefined) payload.staff_served = updates.staff_served;
 
     const { data, error } = await supabase
       .from('customers')
@@ -109,9 +104,8 @@ export const customerService = {
       name: String(data.name || 'Unknown'),
       phone: String(data.phone || ''),
       dob: data.dob ? String(data.dob) : undefined,
-      totalSpend: Number(data.total_spent || 0),
-      visitCount: Number(data.visit_count || 0),
-      lastServiceDate: data.last_service_date ? String(data.last_service_date) : undefined,
+      services_taken: data.services_taken || [],
+      staff_served: data.staff_served || [],
       createdAt: String(data.created_at || new Date().toISOString())
     } as Customer;
   },
