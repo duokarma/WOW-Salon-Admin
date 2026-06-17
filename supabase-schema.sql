@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS public.visit_services (
 CREATE TABLE IF NOT EXISTS public.visit_products (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     visit_id UUID REFERENCES public.customer_visits(id) ON DELETE CASCADE,
-    product_id BIGINT REFERENCES public.products(id) ON DELETE SET NULL,
+    product_id TEXT,
     product_name TEXT NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 1,
     price NUMERIC NOT NULL DEFAULT 0
