@@ -18,7 +18,9 @@ import type { SalonService } from '../lib/serviceService';
 const customerSchema = z.object({
   name: z.string().min(2, "Name is required"),
   phone: z.string().min(10, "Valid phone number is required"),
-  dob: z.string().optional(),
+  dobDay: z.string().optional(),
+  dobMonth: z.string().optional(),
+  dobYear: z.string().optional(),
   services_taken: z.string().optional(),
   amountPaid: z.string().optional()
 });
@@ -104,16 +106,19 @@ export default function Customers() {
 
   const openAddModal = () => {
     setCustomerToEdit(null);
-    reset({ name: '', phone: '', dob: '', services_taken: '', amountPaid: '' });
+    reset({ name: '', phone: '', dobDay: '', dobMonth: '', dobYear: '', services_taken: '', amountPaid: '' });
     setIsCustomerModalOpen(true);
   };
 
   const openEditModal = (customer: Customer) => {
     setCustomerToEdit(customer);
+    const dateObj = customer.dob ? new Date(customer.dob) : null;
     reset({
       name: customer.name,
       phone: customer.phone,
-      dob: customer.dob || '',
+      dobDay: dateObj ? format(dateObj, 'dd') : '',
+      dobMonth: dateObj ? format(dateObj, 'MM') : '',
+      dobYear: dateObj ? format(dateObj, 'yyyy') : '',
       services_taken: customer.services_taken ? customer.services_taken.join(', ') : '',
       amountPaid: customer.amountPaid ? customer.amountPaid.toString() : ''
     });
@@ -122,10 +127,14 @@ export default function Customers() {
 
   const onSubmitCustomer = async (data: CustomerFormData) => {
     try {
+      const parsedDob = (data.dobYear && data.dobMonth && data.dobDay) 
+        ? `${data.dobYear}-${data.dobMonth}-${data.dobDay}` 
+        : undefined;
+
       const parsedData = {
         name: data.name,
         phone: data.phone,
-        dob: data.dob,
+        dob: parsedDob,
         services_taken: data.services_taken ? data.services_taken.split(',').map(s => s.trim()).filter(Boolean) : [],
         amountPaid: data.amountPaid ? Number(data.amountPaid) : 0
       };
@@ -478,7 +487,28 @@ export default function Customers() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Date of Birth</label>
-                  <input type="date" {...register("dob")} className="glass-input w-full px-4 py-3" />
+                  <div className="grid grid-cols-3 gap-3">
+                    <select {...register("dobDay")} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer">
+                      <option value="" className="bg-black text-white/50">Day</option>
+                      {Array.from({length: 31}, (_, i) => i + 1).map(d => (
+                        <option key={d} value={d.toString().padStart(2, '0')} className="bg-black text-white">{d}</option>
+                      ))}
+                    </select>
+                    <select {...register("dobMonth")} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer">
+                      <option value="" className="bg-black text-white/50">Month</option>
+                      {Array.from({length: 12}, (_, i) => i + 1).map(m => (
+                        <option key={m} value={m.toString().padStart(2, '0')} className="bg-black text-white">
+                          {format(new Date(2000, m - 1, 1), 'MMM')}
+                        </option>
+                      ))}
+                    </select>
+                    <select {...register("dobYear")} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer">
+                      <option value="" className="bg-black text-white/50">Year</option>
+                      {Array.from({length: 100}, (_, i) => new Date().getFullYear() - i).map(y => (
+                        <option key={y} value={y} className="bg-black text-white">{y}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Services Taken</label>
