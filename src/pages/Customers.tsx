@@ -11,6 +11,9 @@ import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { supabase } from '../lib/supabase';
+import { serviceService } from '../lib/serviceService';
+import type { SalonService } from '../lib/serviceService';
 
 const customerSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -23,9 +26,11 @@ type CustomerFormData = z.infer<typeof customerSchema>;
 
 export default function Customers() {
   const store = useStore();
-  const invoices = store.invoices;
-  const services = store.services;
-  const staff = store.staff;
+  
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [services, setServices] = useState<SalonService[]>([]);
+  const [staff, setStaff] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<any[]>([]);
 
   const groupedServices = services.reduce((acc, service) => {
     const category = service.category || 'Other';
@@ -34,7 +39,6 @@ export default function Customers() {
     return acc;
   }, {} as Record<string, typeof services>);
 
-  const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,22 +53,30 @@ export default function Customers() {
     resolver: zodResolver(customerSchema)
   });
 
-  const loadCustomers = async () => {
+  const loadData = async () => {
     try {
       setIsLoading(true);
-      const data = await customerService.getCustomers();
-      setCustomers(data);
+      const [custData, srvData, stfRes, billsRes] = await Promise.all([
+        customerService.getCustomers(),
+        serviceService.getServices(),
+        supabase.from('staff').select('*'),
+        supabase.from('bills').select('*')
+      ]);
+      setCustomers(custData);
+      setServices(srvData);
+      if (stfRes.data) setStaff(stfRes.data);
+      if (billsRes.data) setInvoices(billsRes.data);
       setError(null);
     } catch (err: any) {
-      setError(err.message || 'Failed to load customers');
-      toast.error('Failed to load customers');
+      setError(err.message || 'Failed to load data');
+      toast.error('Failed to load data');
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    loadCustomers();
+    loadData();
   }, []);
 
   const openAddModal = () => {
@@ -118,31 +130,27 @@ export default function Customers() {
           lastServiceDate: new Date().toISOString()
         });
 
-        const newInvoice = {
-          id: `inv_${Date.now()}`,
-          customerId: custId,
-          customerName: data.name,
-          customerPhone: data.phone,
-          customerDob: data.dob,
+        // Insert into bills table in Supabase
+        await supabase.from('bills').insert([{
+          customer_id: custId,
+          customer_name: data.name,
+          customer_phone: data.phone,
           date: new Date().toISOString(),
           services: [{
             id: selectedService.id,
-            name: selectedService.name,
+            name: selectedService.service_name,
             price: selectedService.price,
             quantity: 1
           }],
-          soldProducts: [],
-          consumedProducts: [],
-          staffId: selectedStaff.id,
-          staffName: selectedStaff.name,
-          grandTotal: selectedService.price
-        };
-        store.addInvoice(newInvoice);
+          staff_id: selectedStaff.id,
+          staff_name: selectedStaff.name || selectedStaff.staff_name,
+          grand_total: selectedService.price
+        }]);
         toast.success('Bill generated automatically');
       }
 
       setIsCustomerModalOpen(false);
-      loadCustomers();
+      loadData();
     } catch (err: any) {
       toast.error(err.message || 'Failed to save customer');
     }
@@ -154,7 +162,7 @@ export default function Customers() {
       await customerService.deleteCustomer(id);
       store.deleteCustomer(id);
       toast.success('Customer deleted successfully');
-      loadCustomers();
+      loadData();
     } catch (err: any) {
       toast.error('Failed to delete customer');
     }
@@ -173,7 +181,7 @@ export default function Customers() {
   const avgSpend = totalCustomers > 0 ? totalRevenue / totalCustomers : 0;
 
   const getCustomerHistory = (customerId: number) => {
-    return invoices.filter(inv => inv.customerId === customerId).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return invoices.filter(inv => inv.customer_id === customerId || inv.customerId === customerId).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   };
 
   const selectedCustomer = customers.find(c => c.id === selectedCustomerForHistory);
@@ -281,7 +289,7 @@ export default function Customers() {
         ) : error ? (
           <div className="p-12 text-center text-red-500">
             <p>{error}</p>
-            <button onClick={loadCustomers} className="mt-4 text-sm font-semibold underline">Try Again</button>
+            <button onClick={loadData} className="mt-4 text-sm font-semibold underline">Try Again</button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -427,7 +435,7 @@ export default function Customers() {
                       <option value="">-- No Service --</option>
                       {Object.entries(groupedServices).map(([category, items]) => (
                         <optgroup key={category} label={category} className="text-gray-500 font-semibold bg-gray-50">
-                          {items.map(s => <option key={s.id} value={s.id} className="text-gray-900">{s.name} - ₹{s.price}</option>)}
+                          {items.map(s => <option key={s.id} value={s.id} className="text-gray-900">{s.service_name} - ₹{s.price}</option>)}
                         </optgroup>
                       ))}
                     </select>
@@ -439,7 +447,7 @@ export default function Customers() {
                       className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 text-gray-900 text-sm transition-all"
                     >
                       <option value="">-- No Staff --</option>
-                      {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      {staff.map(s => <option key={s.id} value={s.id}>{s.name || s.staff_name}</option>)}
                     </select>
                   </div>
                 </div>
@@ -526,22 +534,22 @@ export default function Customers() {
                         <div className="flex justify-between items-start mb-4">
                           <div>
                             <p className="font-bold text-gray-900">Visit on {format(new Date(inv.date), 'dd MMM yyyy, hh:mm a')}</p>
-                            <p className="text-sm text-gray-500 mt-0.5">Served by {inv.staffName}</p>
+                            <p className="text-sm text-gray-500 mt-0.5">Served by {inv.staff_name || inv.staffName}</p>
                           </div>
-                          <span className="font-bold text-gray-900 text-lg bg-gray-100 px-3 py-1 rounded-lg">₹{inv.grandTotal.toLocaleString()}</span>
+                          <span className="font-bold text-gray-900 text-lg bg-gray-100 px-3 py-1 rounded-lg">₹{(inv.grand_total || inv.grandTotal || 0).toLocaleString()}</span>
                         </div>
                         
                         <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2 border border-gray-100">
                           {inv.services?.length > 0 && (
                             <div className="flex justify-between">
                               <span className="text-gray-600 font-medium flex items-center"><Scissors className="w-4 h-4 mr-2 text-gray-400"/> Services:</span> 
-                              <span className="text-gray-900">{inv.services.map(s => s.name).join(', ')}</span>
+                              <span className="text-gray-900">{inv.services.map((s: any) => s.name).join(', ')}</span>
                             </div>
                           )}
                           {inv.soldProducts?.length > 0 && (
                             <div className="flex justify-between">
                               <span className="text-gray-600 font-medium flex items-center"><Package className="w-4 h-4 mr-2 text-gray-400"/> Retail:</span> 
-                              <span className="text-gray-900">{inv.soldProducts.map(p => `${p.name} (x${p.quantity})`).join(', ')}</span>
+                              <span className="text-gray-900">{inv.soldProducts.map((p: any) => `${p.name} (x${p.quantity})`).join(', ')}</span>
                             </div>
                           )}
                         </div>

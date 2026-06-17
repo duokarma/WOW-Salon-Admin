@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTheme } from '../../hooks/useTheme';
-import { Sun, Moon, Search, Bell, Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
+import { Sun, Moon, Search, Calendar as CalendarIcon } from 'lucide-react';
 
 export default function Header() {
   const { theme, toggleTheme } = useTheme();
@@ -54,25 +54,9 @@ export default function Header() {
           </div>
         </button>
 
-        {/* Notifications */}
-        <button className="relative p-2.5 bg-card border border-border rounded-full shadow-sm hover:shadow-md transition-all text-muted-foreground hover:text-text">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-2 right-2.5 h-2 w-2 bg-danger rounded-full ring-2 ring-card"></span>
-        </button>
 
-        {/* Admin Profile */}
-        <div className="flex items-center gap-3 pl-2 cursor-pointer group">
-          <div className="h-10 w-10 rounded-full bg-gray-200 p-[2px] shadow-sm">
-            <div className="h-full w-full rounded-full border-2 border-card overflow-hidden bg-card flex items-center justify-center">
-              <span className="text-sm font-bold text-primary">AD</span>
-            </div>
-          </div>
-          <div className="hidden md:block">
-            <p className="text-sm font-semibold text-text group-hover:text-primary transition-colors">Admin User</p>
-            <p className="text-xs text-muted-foreground">Store Manager</p>
-          </div>
-          <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-text transition-colors hidden md:block" />
-        </div>
+
+
 
       </div>
     </header>

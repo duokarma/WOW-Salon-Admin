@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { 
   LayoutDashboard, Users, Package, Calendar, 
   Receipt, FileText, PieChart, Scissors,
-  LogOut, User as UserIcon
+  LogOut, User as UserIcon, List
 } from 'lucide-react';
  import { cn } from '../../lib/utils';
 import { useStore } from '../../store/useStore';
@@ -13,6 +13,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Calendar', href: '/calendar', icon: Calendar },
   { name: 'Customer Management', href: '/customers', icon: Users },
+  { name: 'Services', href: '/services', icon: List },
   { name: 'Billing', href: '/billing', icon: Receipt },
   { name: 'Inventory', href: '/inventory', icon: Package },
   { name: 'Staff', href: '/staff', icon: Users },

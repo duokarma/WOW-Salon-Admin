@@ -30,6 +30,7 @@ export default function Login() {
       
       if (success) {
         toast.success('Login successful! Redirecting...', {
+          duration: 1000,
           style: {
             background: '#C8A46B',
             color: '#fff',

@@ -4,6 +4,7 @@ import ProtectedRoute from './components/layout/ProtectedRoute';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
+import Services from './pages/Services';
 import Calendar from './pages/Calendar';
 import Inventory from './pages/Inventory';
 import Billing from './pages/Billing';
@@ -36,6 +37,7 @@ function App() {
               <Route index element={<Dashboard />} />
               <Route path="calendar" element={<Calendar />} />
               <Route path="customers" element={<Customers />} />
+              <Route path="services" element={<Services />} />
               <Route path="inventory" element={<Inventory />} />
               <Route path="billing" element={<Billing />} />
               <Route path="staff" element={<Staff />} />
