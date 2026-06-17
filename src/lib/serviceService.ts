@@ -3,11 +3,7 @@ import { supabase } from './supabase';
 export interface SalonService {
   id: string;
   service_name: string;
-  category: string;
-  description?: string;
   price: number;
-  duration: number;
-  status: 'Active' | 'Inactive';
   created_at?: string;
 }
 

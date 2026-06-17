@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { serviceService } from '../lib/serviceService';
 import type { SalonService } from '../lib/serviceService';
 import { 
-  Search, Plus, Scissors, Trash2, Edit2, X, 
-  Settings, Activity, AlertCircle 
+  Search, Plus, Scissors, Trash2, Edit2, X, AlertCircle 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
@@ -12,11 +11,7 @@ import { z } from 'zod';
 
 const serviceSchema = z.object({
   service_name: z.string().min(2, "Name is required"),
-  category: z.string().min(2, "Category is required"),
-  description: z.string().optional(),
-  price: z.number().min(0, "Price must be positive"),
-  duration: z.number().min(1, "Duration must be positive"),
-  status: z.enum(['Active', 'Inactive'])
+  price: z.coerce.number({ invalid_type_error: "Price is required" }).min(0, "Price must be positive")
 });
 
 type ServiceFormData = z.infer<typeof serviceSchema>;
@@ -27,7 +22,6 @@ export default function Services() {
   const [error, setError] = useState<string | null>(null);
   
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'All' | 'Active' | 'Inactive'>('All');
   
   // Modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -57,7 +51,7 @@ export default function Services() {
 
   const openAddModal = () => {
     setServiceToEdit(null);
-    reset({ service_name: '', category: '', description: '', price: 0, duration: 30, status: 'Active' });
+    reset({ service_name: '', price: '' as any });
     setIsModalOpen(true);
   };
 
@@ -65,11 +59,7 @@ export default function Services() {
     setServiceToEdit(service);
     reset({
       service_name: service.service_name,
-      category: service.category,
-      description: service.description || '',
-      price: service.price,
-      duration: service.duration,
-      status: service.status
+      price: service.price
     });
     setIsModalOpen(true);
   };
@@ -102,13 +92,8 @@ export default function Services() {
   };
 
   const filteredServices = services.filter((s) => {
-    const matchesSearch = s.service_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          s.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'All' || s.status === filterStatus;
-    return matchesSearch && matchesStatus;
+    return s.service_name.toLowerCase().includes(searchTerm.toLowerCase());
   });
-
-  const categories = Array.from(new Set(services.map(s => s.category)));
 
   return (
     <div className="space-y-8 relative max-w-7xl mx-auto">
@@ -126,7 +111,7 @@ export default function Services() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-1">
         <div className="glass-card p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0 bg-white/10 p-3 rounded-2xl border border-white/20">
@@ -136,32 +121,6 @@ export default function Services() {
               <dl>
                 <dt className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Total Services</dt>
                 <dd className="text-3xl font-light text-white mt-1">{services.length}</dd>
-              </dl>
-            </div>
-          </div>
-        </div>
-        <div className="glass-card p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 bg-white/10 p-3 rounded-2xl border border-white/20">
-              <Activity className="h-6 w-6 text-white" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Active Services</dt>
-                <dd className="text-3xl font-light text-white mt-1">{services.filter(s => s.status === 'Active').length}</dd>
-              </dl>
-            </div>
-          </div>
-        </div>
-        <div className="glass-card p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 bg-white/10 p-3 rounded-2xl border border-white/20">
-              <Settings className="h-6 w-6 text-white" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Categories</dt>
-                <dd className="text-3xl font-light text-white mt-1">{categories.length}</dd>
               </dl>
             </div>
           </div>
@@ -179,15 +138,6 @@ export default function Services() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value as any)}
-          className="glass-input px-4 py-3 appearance-none min-w-[200px]"
-        >
-          <option value="All" className="bg-black">All Statuses</option>
-          <option value="Active" className="bg-black">Active Only</option>
-          <option value="Inactive" className="bg-black">Inactive Only</option>
-        </select>
       </div>
 
       <div className="glass-card overflow-hidden">
@@ -208,16 +158,14 @@ export default function Services() {
               <thead className="bg-white/5 text-white/50 text-xs uppercase font-bold tracking-wider border-b border-white/10">
                 <tr>
                   <th className="px-6 py-5">Service Name</th>
-                  <th className="px-6 py-5">Category</th>
-                  <th className="px-6 py-5">Price & Duration</th>
-                  <th className="px-6 py-5">Status</th>
+                  <th className="px-6 py-5">Price</th>
                   <th className="px-6 py-5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {filteredServices.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="text-center py-16 text-white/50">
+                    <td colSpan={3} className="text-center py-16 text-white/50">
                       <Scissors className="h-10 w-10 mx-auto mb-4 text-white/30" />
                       <p className="text-base font-light tracking-wide text-white">No services found</p>
                     </td>
@@ -227,19 +175,9 @@ export default function Services() {
                   <tr key={service.id} className="hover:bg-white/5 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="font-medium text-white text-base">{service.service_name}</div>
-                      {service.description && <div className="text-xs text-white/50 mt-1 truncate max-w-[200px]">{service.description}</div>}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-white/70 font-light">
-                      <span className="bg-white/10 text-white border border-white/10 px-3 py-1.5 rounded-lg text-xs tracking-wider uppercase">{service.category}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-light text-white text-lg">₹{service.price.toLocaleString()}</div>
-                      <div className="text-xs text-white/50 mt-1 uppercase tracking-wide">{service.duration} mins</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold border ${service.status === 'Active' ? 'bg-success/10 text-success border-success/20' : 'bg-white/5 text-white/50 border-white/10'}`}>
-                        {service.status}
-                      </span>
                     </td>
                     <td className="px-6 py-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -277,32 +215,9 @@ export default function Services() {
                   {errors.service_name && <p className="text-danger text-xs mt-1.5">{errors.service_name.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Category *</label>
-                  <input type="text" {...register("category")} className="glass-input w-full px-4 py-3" placeholder="e.g. Hair Care" />
-                  {errors.category && <p className="text-danger text-xs mt-1.5">{errors.category.message}</p>}
-                </div>
-                <div className="grid grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Price (₹) *</label>
-                    <input type="number" {...register("price", { valueAsNumber: true })} className="glass-input w-full px-4 py-3" />
-                    {errors.price && <p className="text-danger text-xs mt-1.5">{errors.price.message}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Duration (mins) *</label>
-                    <input type="number" {...register("duration", { valueAsNumber: true })} className="glass-input w-full px-4 py-3" />
-                    {errors.duration && <p className="text-danger text-xs mt-1.5">{errors.duration.message}</p>}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Status</label>
-                  <select {...register("status")} className="glass-input w-full px-4 py-3 appearance-none">
-                    <option value="Active" className="bg-black">Active</option>
-                    <option value="Inactive" className="bg-black">Inactive</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Description (Optional)</label>
-                  <textarea {...register("description")} rows={2} className="glass-input w-full px-4 py-3" placeholder="Details about the service..."></textarea>
+                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Price (₹) *</label>
+                  <input type="number" {...register("price")} className="glass-input w-full px-4 py-3" placeholder="Enter price..." />
+                  {errors.price && <p className="text-danger text-xs mt-1.5">{errors.price.message}</p>}
                 </div>
               </div>
 
