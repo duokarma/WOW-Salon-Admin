@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* BODY Background */
+    --background: 249, 250, 251; /* #F9FAFB */
+    /* SIDEBAR */
+    --sidebar: 255, 255, 255; /* #FFFFFF */
+    --sidebar-border: 229, 231, 235; /* #E5E7EB */
+    
+    /* CARDS */
+    --card: 255, 255, 255; /* #FFFFFF */
+    --border: 229, 231, 235; /* #E5E7EB */
+    
+    /* Text */
+    --text: 17, 24, 39; /* #111827 */
+    /* Secondary Text */
+    --secondary-foreground: 107, 114, 128; /* #6B7280 */
+    
+    /* Secondary Background */
+    --secondary: 243, 244, 246; /* #F3F4F6 */
+    
+    /* Accent (Black) */
+    --primary: 0, 0, 0; /* #000000 */
+    --primary-foreground: 255, 255, 255; /* #FFFFFF */
+    --primary-hover: 55, 65, 81; /* #374151 */
+    
+    /* Secondary Accent (Grey) */
+    --secondary-accent: 75, 85, 99; /* #4B5563 */
+    
+    --accent: 243, 244, 246; /* #F3F4F6 */
+    --accent-foreground: 17, 24, 39; /* #111827 */
+    --muted: 243, 244, 246; /* #F3F4F6 */
+    --muted-foreground: 107, 114, 128; /* #6B7280 */
+    
+    /* Semantic Colors */
+    --success: 16, 185, 129; /* #10B981 */
+    --warning: 245, 158, 11; /* #F59E0B */
+    --danger: 239, 68, 68; /* #EF4444 */
+  }
+
+  .dark {
+    /* The app currently forces one theme, we'll map dark to the same light variables to ensure consistency */
+    --background: 249, 250, 251;
+    --sidebar: 255, 255, 255;
+    --sidebar-border: 229, 231, 235;
+    --card: 255, 255, 255;
+    --border: 229, 231, 235;
+    --text: 17, 24, 39;
+    --secondary-foreground: 107, 114, 128;
+    --secondary: 243, 244, 246;
+    --primary: 0, 0, 0;
+    --primary-foreground: 255, 255, 255;
+    --primary-hover: 55, 65, 81;
+    --secondary-accent: 75, 85, 99;
+    --accent: 243, 244, 246;
+    --accent-foreground: 17, 24, 39;
+    --muted: 243, 244, 246;
+    --muted-foreground: 107, 114, 128;
+    --success: 16, 185, 129;
+    --warning: 245, 158, 11;
+    --danger: 239, 68, 68;
+  }
+
+  body {
+    @apply text-text font-sans antialiased bg-background;
+    background-color: rgba(var(--background), 1);
+    color: rgba(var(--text), 1);
+  }
+
+  /* Custom Scrollbar for a premium feel */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(var(--border), 1);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--primary), 1);
+  }
+}
+
+@layer utilities {
+  /* Minimalist Card */
+  .glass-card {
+    @apply bg-card border border-border rounded-xl shadow-sm overflow-hidden;
+  }
+  
+  .glass-card-hover {
+    @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md hover:border-primary/20;
+  }
+  
+  .premium-gradient-text {
+    @apply text-primary;
+  }
+}
