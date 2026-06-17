@@ -256,15 +256,15 @@ export default function Customers() {
   const selectedCustomer = customers.find(c => c.id === selectedCustomerForHistory);
 
   return (
-    <div className="space-y-8 relative">
+    <div className="space-y-8 relative max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">Customers</h2>
-          <p className="text-gray-500 mt-1">Manage your client relationships and view their history.</p>
+          <h2 className="text-4xl font-light tracking-tight text-white">Customers</h2>
+          <p className="text-white/50 mt-2 font-light tracking-wide">Manage your client relationships and view their history.</p>
         </div>
         <button 
           onClick={openAddModal}
-          className="inline-flex items-center justify-center rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 transition-all"
+          className="btn-primary"
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Customer
@@ -272,55 +272,55 @@ export default function Customers() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="bg-white overflow-hidden rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-shadow">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="glass-card p-6">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-blue-50 p-3 rounded-xl">
-              <Users className="h-6 w-6 text-blue-600" />
+            <div className="flex-shrink-0 bg-white/10 p-3 rounded-2xl border border-white/20">
+              <Users className="h-6 w-6 text-white" />
             </div>
             <div className="ml-5 w-0 flex-1">
               <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">Total Customers</dt>
-                <dd className="text-2xl font-bold text-gray-900">{totalCustomers}</dd>
+                <dt className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Total Customers</dt>
+                <dd className="text-3xl font-light text-white mt-1">{totalCustomers}</dd>
               </dl>
             </div>
           </div>
         </div>
-        <div className="bg-white overflow-hidden rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-shadow">
+        <div className="glass-card p-6">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-emerald-50 p-3 rounded-xl">
-              <UserPlus className="h-6 w-6 text-emerald-600" />
+            <div className="flex-shrink-0 bg-white/10 p-3 rounded-2xl border border-white/20">
+              <UserPlus className="h-6 w-6 text-white" />
             </div>
             <div className="ml-5 w-0 flex-1">
               <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">New This Month</dt>
-                <dd className="text-2xl font-bold text-gray-900">{newThisMonth}</dd>
+                <dt className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">New This Month</dt>
+                <dd className="text-3xl font-light text-white mt-1">{newThisMonth}</dd>
               </dl>
             </div>
           </div>
         </div>
-        <div className="bg-white overflow-hidden rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-shadow">
+        <div className="glass-card p-6">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-indigo-50 p-3 rounded-xl">
-              <IndianRupee className="h-6 w-6 text-indigo-600" />
+            <div className="flex-shrink-0 bg-white/10 p-3 rounded-2xl border border-white/20">
+              <IndianRupee className="h-6 w-6 text-white" />
             </div>
             <div className="ml-5 w-0 flex-1">
               <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">Lifetime Revenue</dt>
-                <dd className="text-2xl font-bold text-gray-900">₹{totalRevenue.toLocaleString()}</dd>
+                <dt className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Lifetime Revenue</dt>
+                <dd className="text-3xl font-light text-white mt-1">₹{totalRevenue.toLocaleString()}</dd>
               </dl>
             </div>
           </div>
         </div>
-        <div className="bg-white overflow-hidden rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-shadow">
+        <div className="glass-card p-6">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-purple-50 p-3 rounded-xl">
-              <TrendingUp className="h-6 w-6 text-purple-600" />
+            <div className="flex-shrink-0 bg-white/10 p-3 rounded-2xl border border-white/20">
+              <TrendingUp className="h-6 w-6 text-white" />
             </div>
             <div className="ml-5 w-0 flex-1">
               <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">Average Spend</dt>
-                <dd className="text-2xl font-bold text-gray-900">₹{Math.round(avgSpend).toLocaleString()}</dd>
+                <dt className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Average Spend</dt>
+                <dd className="text-3xl font-light text-white mt-1">₹{Math.round(avgSpend).toLocaleString()}</dd>
               </dl>
             </div>
           </div>
@@ -328,47 +328,47 @@ export default function Customers() {
       </div>
 
       {/* Search Bar */}
-      <div className="flex items-center w-full max-w-md bg-white rounded-xl px-4 py-3 shadow-sm border border-gray-200 focus-within:ring-2 focus-within:ring-gray-900 transition-all">
-        <Search className="h-5 w-5 text-gray-400 mr-3" />
+      <div className="flex items-center w-full max-w-md glass-panel px-4 py-3 focus-within:ring-1 focus-within:ring-white/30 transition-all">
+        <Search className="h-5 w-5 text-white/40 mr-3" />
         <input
           type="text"
           placeholder="Search by name or phone..."
-          className="bg-transparent outline-none w-full text-sm text-gray-900 placeholder-gray-400"
+          className="bg-transparent outline-none w-full text-sm text-white placeholder-white/40"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+      <div className="glass-card overflow-hidden">
         {isLoading ? (
-          <div className="p-12 text-center text-gray-500">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <div className="p-12 text-center text-white/50">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
             Loading customers...
           </div>
         ) : error ? (
-          <div className="p-12 text-center text-red-500">
+          <div className="p-12 text-center text-danger">
             <p>{error}</p>
-            <button onClick={loadData} className="mt-4 text-sm font-semibold underline">Try Again</button>
+            <button onClick={loadData} className="mt-4 text-sm font-semibold underline text-white">Try Again</button>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50/50 text-gray-500 text-xs uppercase font-semibold border-b border-gray-200">
+            <table className="w-full text-sm text-left text-white">
+              <thead className="bg-white/5 text-white/50 text-xs uppercase font-bold tracking-wider border-b border-white/10">
                 <tr>
-                  <th className="px-6 py-4">Customer</th>
-                  <th className="px-6 py-4">Contact</th>
-                  <th className="px-6 py-4">Lifetime Spend</th>
-                  <th className="px-6 py-4">Visits</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-6 py-5">Customer</th>
+                  <th className="px-6 py-5">Contact</th>
+                  <th className="px-6 py-5">Lifetime Spend</th>
+                  <th className="px-6 py-5">Visits</th>
+                  <th className="px-6 py-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-white/5">
                 {filteredCustomers.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="text-center py-16 text-gray-500">
-                      <User className="h-10 w-10 mx-auto mb-4 text-gray-300" />
-                      <p className="text-base font-medium text-gray-900">No customers found</p>
+                    <td colSpan={5} className="text-center py-16 text-white/50">
+                      <User className="h-10 w-10 mx-auto mb-4 text-white/30" />
+                      <p className="text-base font-light tracking-wide text-white">No customers found</p>
                     </td>
                   </tr>
                 )}
@@ -376,28 +376,28 @@ export default function Customers() {
                   const initials = customer.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
                   
                   return (
-                    <tr key={customer.id} className="hover:bg-gray-50/80 transition-colors group bg-white">
+                    <tr key={customer.id} className="hover:bg-white/5 transition-colors group">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 font-bold text-sm shrink-0">
+                          <div className="h-11 w-11 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-sm shrink-0">
                             {initials}
                           </div>
                           <div>
-                            <div className="font-semibold text-gray-900">{customer.name}</div>
-                            {customer.dob && <div className="text-xs text-gray-500 mt-0.5">DOB: {format(new Date(customer.dob), 'dd MMM yyyy')}</div>}
+                            <div className="font-medium text-white text-base">{customer.name}</div>
+                            {customer.dob && <div className="text-xs text-white/50 mt-1 uppercase tracking-wide">DOB: {format(new Date(customer.dob), 'dd MMM yyyy')}</div>}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600 font-medium">
+                      <td className="px-6 py-4 whitespace-nowrap text-white/70 font-light">
                         {customer.phone}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="font-semibold text-gray-900">
+                        <span className="font-light text-white text-lg">
                           ₹{(customer.totalSpend || 0).toLocaleString()}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white border border-white/10">
                           {customer.visitCount || 0} visits
                         </span>
                       </td>
@@ -405,17 +405,17 @@ export default function Customers() {
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button 
                             onClick={() => openVisitModal(customer)}
-                            className="px-3 py-1.5 text-xs font-bold bg-gray-900 text-white hover:bg-gray-800 rounded-lg transition-colors flex items-center shadow-sm"
+                            className="px-4 py-2 text-xs font-bold bg-white text-black hover:bg-gray-200 rounded-xl transition-colors flex items-center shadow-[0_0_15px_rgba(255,255,255,0.2)]"
                           >
-                            <Plus className="w-3 h-3 mr-1" /> Record Visit
+                            <Plus className="w-3 h-3 mr-1.5" /> Record Visit
                           </button>
-                          <button onClick={() => setSelectedCustomerForHistory(customer.id)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          <button onClick={() => setSelectedCustomerForHistory(customer.id)} className="p-2 text-white hover:bg-white/10 rounded-xl transition-colors">
                             <CalendarIcon className="w-4 h-4" />
                           </button>
-                          <button onClick={() => openEditModal(customer)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                          <button onClick={() => openEditModal(customer)} className="p-2 text-white/70 hover:bg-white/10 hover:text-white rounded-xl transition-colors">
                             <Edit2 className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleDelete(customer.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                          <button onClick={() => handleDelete(customer.id)} className="p-2 text-danger hover:bg-danger/10 rounded-xl transition-colors">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -431,34 +431,34 @@ export default function Customers() {
 
       {/* Add/Edit Customer Modal (No Billing) */}
       {isCustomerModalOpen && (
-        <div className="fixed inset-0 z-50 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h3 className="text-xl font-bold text-gray-900">{customerToEdit ? 'Edit Customer' : 'Add New Customer'}</h3>
-              <button onClick={() => setIsCustomerModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-panel w-full max-w-md flex flex-col animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-white/10">
+              <h3 className="text-xl font-light tracking-tight text-white">{customerToEdit ? 'Edit Customer' : 'Add New Customer'}</h3>
+              <button onClick={() => setIsCustomerModalOpen(false)} className="p-2 hover:bg-white/10 rounded-full text-white/50 transition-colors">
                 <X className="w-5 h-5"/>
               </button>
             </div>
             <form onSubmit={handleSubmit(onSubmitCustomer)} className="flex flex-col flex-1">
               <div className="p-6 space-y-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full Name *</label>
-                  <input type="text" {...register("name")} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-gray-900" placeholder="e.g. Jane Doe" />
-                  {errors.name && <p className="text-red-500 text-xs mt-1.5">{errors.name.message}</p>}
+                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Full Name *</label>
+                  <input type="text" {...register("name")} className="glass-input w-full px-4 py-3" placeholder="e.g. Jane Doe" />
+                  {errors.name && <p className="text-danger text-xs mt-1.5">{errors.name.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number *</label>
-                  <input type="tel" {...register("phone")} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-gray-900" placeholder="e.g. 9876543210" />
-                  {errors.phone && <p className="text-red-500 text-xs mt-1.5">{errors.phone.message}</p>}
+                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Phone Number *</label>
+                  <input type="tel" {...register("phone")} className="glass-input w-full px-4 py-3" placeholder="e.g. 9876543210" />
+                  {errors.phone && <p className="text-danger text-xs mt-1.5">{errors.phone.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Date of Birth</label>
-                  <input type="date" {...register("dob")} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-gray-900" />
+                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Date of Birth</label>
+                  <input type="date" {...register("dob")} className="glass-input w-full px-4 py-3" />
                 </div>
               </div>
-              <div className="p-6 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl flex justify-end gap-3">
-                <button type="button" onClick={() => setIsCustomerModalOpen(false)} className="px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-200 bg-gray-100 rounded-xl">Cancel</button>
-                <button type="submit" disabled={isSubmitting} className="px-5 py-2.5 text-sm font-semibold text-white bg-gray-900 hover:bg-black rounded-xl disabled:opacity-50 flex items-center">
+              <div className="p-6 border-t border-white/10 bg-black/20 rounded-b-2xl flex justify-end gap-3">
+                <button type="button" onClick={() => setIsCustomerModalOpen(false)} className="btn-secondary">Cancel</button>
+                <button type="submit" disabled={isSubmitting} className="btn-primary disabled:opacity-50">
                   {customerToEdit ? 'Save Changes' : 'Add Customer'}
                 </button>
               </div>
@@ -469,42 +469,42 @@ export default function Customers() {
 
       {/* Record Visit Modal */}
       {isVisitModalOpen && customerForVisit && (
-        <div className="fixed inset-0 z-50 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-panel w-full max-w-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0 bg-black/20 rounded-t-2xl">
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Record Visit</h3>
-                <p className="text-sm text-gray-500 mt-1">for {customerForVisit.name}</p>
+                <h3 className="text-2xl font-light tracking-tight text-white">Record Visit</h3>
+                <p className="text-sm font-light text-white/50 mt-1 tracking-wide">for {customerForVisit.name}</p>
               </div>
-              <button onClick={() => setIsVisitModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400">
-                <X className="w-5 h-5"/>
+              <button onClick={() => setIsVisitModalOpen(false)} className="p-2 hover:bg-white/10 rounded-full text-white/50 transition-colors">
+                <X className="w-6 h-6"/>
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto space-y-6 flex-1">
+            <div className="p-6 overflow-y-auto space-y-8 flex-1 custom-scrollbar">
               {/* Staff Selection */}
               <div>
-                <label className="block text-sm font-bold text-gray-900 mb-2">Select Staff Member *</label>
+                <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-3">Select Staff Member *</label>
                 <select 
                   value={visitStaffId} 
                   onChange={(e) => setVisitStaffId(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-gray-900 bg-gray-50"
+                  className="glass-input w-full px-4 py-3.5 appearance-none"
                 >
-                  <option value="">-- Choose Staff --</option>
-                  {staff.map(s => <option key={s.id} value={s.id}>{s.name || s.staff_name}</option>)}
+                  <option value="" className="bg-black">-- Choose Staff --</option>
+                  {staff.map(s => <option key={s.id} value={s.id} className="bg-black">{s.name || s.staff_name}</option>)}
                 </select>
               </div>
 
               {/* Services Selection */}
               <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-bold text-gray-900">Services Taken *</label>
-                  <button onClick={() => setVisitServices([...visitServices, {serviceId: ''}])} className="text-xs font-bold text-gray-900 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-md">
+                <div className="flex justify-between items-center mb-3">
+                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase">Services Taken *</label>
+                  <button onClick={() => setVisitServices([...visitServices, {serviceId: ''}])} className="text-xs font-bold text-white bg-white/10 hover:bg-white/20 border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
                     + Add Service
                   </button>
                 </div>
                 {visitServices.length === 0 ? (
-                  <div className="text-sm text-gray-500 italic p-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">No services added. Click above to add.</div>
+                  <div className="text-sm text-white/30 font-light italic p-6 bg-white/5 rounded-2xl border border-dashed border-white/20 text-center">No services added. Click above to add.</div>
                 ) : (
                   <div className="space-y-3">
                     {visitServices.map((vs, idx) => (
@@ -516,16 +516,16 @@ export default function Customers() {
                             newSvcs[idx].serviceId = e.target.value;
                             setVisitServices(newSvcs);
                           }}
-                          className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+                          className="glass-input flex-1 px-4 py-3 appearance-none"
                         >
-                          <option value="">-- Select Service --</option>
+                          <option value="" className="bg-black">-- Select Service --</option>
                           {Object.entries(groupedServices).map(([category, items]) => (
-                            <optgroup key={category} label={category}>
-                              {items.map(s => <option key={s.id} value={s.id}>{s.service_name} - ₹{s.price}</option>)}
+                            <optgroup key={category} label={category} className="bg-black text-white/50">
+                              {items.map(s => <option key={s.id} value={s.id} className="text-white bg-black">{s.service_name} - ₹{s.price}</option>)}
                             </optgroup>
                           ))}
                         </select>
-                        <button onClick={() => setVisitServices(visitServices.filter((_, i) => i !== idx))} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
+                        <button onClick={() => setVisitServices(visitServices.filter((_, i) => i !== idx))} className="p-3 text-danger hover:bg-danger/20 rounded-xl bg-danger/10 border border-danger/20 transition-colors">
                           <Trash2 className="w-5 h-5" />
                         </button>
                       </div>
@@ -536,9 +536,9 @@ export default function Customers() {
 
               {/* Products Selection */}
               <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-bold text-gray-900">Products Purchased (Optional)</label>
-                  <button onClick={() => setVisitProducts([...visitProducts, {productId: '', quantity: 1}])} className="text-xs font-bold text-gray-900 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-md">
+                <div className="flex justify-between items-center mb-3">
+                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase">Products Purchased</label>
+                  <button onClick={() => setVisitProducts([...visitProducts, {productId: '', quantity: 1}])} className="text-xs font-bold text-white bg-white/10 hover:bg-white/20 border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
                     + Add Product
                   </button>
                 </div>
@@ -553,10 +553,10 @@ export default function Customers() {
                             newProds[idx].productId = e.target.value;
                             setVisitProducts(newProds);
                           }}
-                          className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+                          className="glass-input flex-1 px-4 py-3 appearance-none"
                         >
-                          <option value="">-- Select Product --</option>
-                          {products.map(p => <option key={p.id} value={p.id}>{p.name} - ₹{p.selling_price || p.sellingPrice || 0}</option>)}
+                          <option value="" className="bg-black">-- Select Product --</option>
+                          {products.map(p => <option key={p.id} value={p.id} className="bg-black">{(p.name || '').substring(0,40)} - ₹{p.selling_price || p.sellingPrice || 0}</option>)}
                         </select>
                         <input 
                           type="number" 
@@ -567,9 +567,9 @@ export default function Customers() {
                             newProds[idx].quantity = parseInt(e.target.value) || 1;
                             setVisitProducts(newProds);
                           }}
-                          className="w-20 border border-gray-200 rounded-xl px-3 py-2.5 text-center outline-none focus:ring-2 focus:ring-gray-900"
+                          className="glass-input w-24 px-3 py-3 text-center"
                         />
-                        <button onClick={() => setVisitProducts(visitProducts.filter((_, i) => i !== idx))} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
+                        <button onClick={() => setVisitProducts(visitProducts.filter((_, i) => i !== idx))} className="p-3 text-danger hover:bg-danger/20 rounded-xl bg-danger/10 border border-danger/20 transition-colors">
                           <Trash2 className="w-5 h-5" />
                         </button>
                       </div>
@@ -579,10 +579,11 @@ export default function Customers() {
               </div>
               
               {/* Summary */}
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <div className="flex justify-between items-center text-sm font-bold text-gray-900">
-                  <span>Grand Total (Auto-calculated)</span>
-                  <span className="text-lg">
+              <div className="bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-md relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                <div className="flex justify-between items-center text-sm font-bold text-white relative z-10">
+                  <span className="tracking-wide uppercase text-white/70">Grand Total</span>
+                  <span className="text-3xl font-light tracking-tight">
                     ₹{
                       visitServices.reduce((sum, vs) => sum + Number(services.find(s => s.id === vs.serviceId)?.price || 0), 0) +
                       visitProducts.reduce((sum, vp) => sum + (Number(products.find(p => p.id === vp.productId)?.selling_price || products.find(p => p.id === vp.productId)?.sellingPrice || 0) * vp.quantity), 0)
@@ -592,9 +593,9 @@ export default function Customers() {
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl flex justify-end gap-3 shrink-0">
-              <button onClick={() => setIsVisitModalOpen(false)} className="px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-200 bg-gray-100 rounded-xl">Cancel</button>
-              <button onClick={submitVisit} className="px-5 py-2.5 text-sm font-semibold text-white bg-gray-900 hover:bg-black rounded-xl">Save Visit</button>
+            <div className="p-6 border-t border-white/10 bg-black/40 rounded-b-2xl flex justify-end gap-3 shrink-0">
+              <button onClick={() => setIsVisitModalOpen(false)} className="btn-secondary">Cancel</button>
+              <button onClick={submitVisit} className="btn-primary">Save Visit</button>
             </div>
           </div>
         </div>
@@ -602,78 +603,78 @@ export default function Customers() {
 
       {/* View Profile History Modal */}
       {selectedCustomerForHistory && selectedCustomer && (
-        <div className="fixed inset-0 z-50 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-3xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-200">
-            <div className="flex items-start justify-between p-8 border-b border-gray-100 bg-white shrink-0">
-              <div className="flex items-center gap-5">
-                <div className="h-16 w-16 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 font-bold text-xl shrink-0">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-panel w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-start justify-between p-8 border-b border-white/10 bg-black/20 shrink-0">
+              <div className="flex items-center gap-6">
+                <div className="h-16 w-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-xl shrink-0 shadow-[0_0_20px_rgba(255,255,255,0.1)]">
                   {selectedCustomer.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">{selectedCustomer.name}</h3>
-                  <div className="flex flex-wrap gap-x-6 gap-y-1 mt-1.5 text-sm text-gray-500">
-                    <span className="flex items-center"><User className="w-4 h-4 mr-1.5"/> {selectedCustomer.phone}</span>
+                  <h3 className="text-3xl font-light tracking-tight text-white">{selectedCustomer.name}</h3>
+                  <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-white/50 tracking-wide uppercase">
+                    <span className="flex items-center"><User className="w-4 h-4 mr-2"/> {selectedCustomer.phone}</span>
                     {selectedCustomer.dob && <span>DOB: {format(new Date(selectedCustomer.dob), 'dd MMM yyyy')}</span>}
                     <span>Joined {format(new Date(selectedCustomer.createdAt), 'MMM yyyy')}</span>
                   </div>
                 </div>
               </div>
-              <button onClick={() => setSelectedCustomerForHistory(null)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400">
+              <button onClick={() => setSelectedCustomerForHistory(null)} className="p-2 hover:bg-white/10 rounded-full text-white/50 transition-colors">
                 <X className="w-6 h-6"/>
               </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-8 bg-gray-50/50 custom-scrollbar">
-              <div className="grid md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-                  <p className="text-sm font-medium text-gray-500">Total Visits</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{selectedHistory.length}</p>
+            <div className="flex-1 overflow-y-auto p-8 bg-transparent custom-scrollbar">
+              <div className="grid md:grid-cols-3 gap-6 mb-10">
+                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
+                  <p className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Total Visits</p>
+                  <p className="text-3xl font-light text-white mt-2">{selectedHistory.length}</p>
                 </div>
-                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-                  <p className="text-sm font-medium text-gray-500">Lifetime Spend</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">₹{selectedCustomer.totalSpend?.toLocaleString() || '0'}</p>
+                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
+                  <p className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Lifetime Spend</p>
+                  <p className="text-3xl font-light text-white mt-2">₹{selectedCustomer.totalSpend?.toLocaleString() || '0'}</p>
                 </div>
-                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-                  <p className="text-sm font-medium text-gray-500">Average Spend</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
+                  <p className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Average Spend</p>
+                  <p className="text-3xl font-light text-white mt-2">
                     ₹{selectedHistory.length > 0 ? Math.round(selectedCustomer.totalSpend / selectedHistory.length).toLocaleString() : '0'}
                   </p>
                 </div>
               </div>
 
               <div>
-                <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                  <Receipt className="w-5 h-5 mr-2 text-gray-400"/> Visit History
+                <h4 className="text-xl font-light tracking-tight text-white mb-6 flex items-center">
+                  <Receipt className="w-5 h-5 mr-3 text-white/50"/> Visit History
                 </h4>
                 {selectedHistory.length === 0 ? (
-                  <div className="bg-white border border-gray-200 rounded-xl p-8 text-center text-gray-500">
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-10 text-center text-white/50 font-light">
                     No visits recorded yet.
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {selectedHistory.map(v => (
-                      <div key={v.id} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-gray-300 transition-colors">
-                        <div className="flex justify-between items-start mb-4">
+                      <div key={v.id} className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-all duration-300">
+                        <div className="flex justify-between items-start mb-5">
                           <div>
-                            <p className="font-bold text-gray-900">Visit on {format(new Date(v.visit_date), 'dd MMM yyyy, hh:mm a')}</p>
-                            <p className="text-sm text-gray-500 mt-0.5">
+                            <p className="text-lg font-medium text-white">Visit on {format(new Date(v.visit_date), 'dd MMM yyyy, hh:mm a')}</p>
+                            <p className="text-sm font-light text-white/50 mt-1 tracking-wide">
                               Served by {staff.find(s => s.id === v.staff_id)?.name || staff.find(s => s.id === v.staff_id)?.staff_name || 'Unknown'}
                             </p>
                           </div>
-                          <span className="font-bold text-gray-900 text-lg bg-gray-100 px-3 py-1 rounded-lg">₹{(v.grand_total || 0).toLocaleString()}</span>
+                          <span className="font-light text-white text-2xl bg-white/10 border border-white/10 px-4 py-1.5 rounded-xl">₹{(v.grand_total || 0).toLocaleString()}</span>
                         </div>
                         
-                        <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-2 border border-gray-100">
+                        <div className="bg-black/20 rounded-xl p-5 text-sm space-y-3 border border-white/5">
                           {v.visit_services?.length > 0 && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-600 font-medium flex items-center"><Scissors className="w-4 h-4 mr-2 text-gray-400"/> Services:</span> 
-                              <span className="text-gray-900">{v.visit_services.map((s: any) => s.service_name).join(', ')}</span>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                              <span className="text-white/50 font-bold tracking-widest uppercase text-xs flex items-center"><Scissors className="w-3.5 h-3.5 mr-2"/> Services:</span> 
+                              <span className="text-white font-light">{v.visit_services.map((s: any) => s.service_name).join(', ')}</span>
                             </div>
                           )}
                           {v.visit_products?.length > 0 && (
-                            <div className="flex justify-between mt-2">
-                              <span className="text-gray-600 font-medium flex items-center"><Package className="w-4 h-4 mr-2 text-gray-400"/> Products:</span> 
-                              <span className="text-gray-900">{v.visit_products.map((p: any) => `${p.product_name} (x${p.quantity})`).join(', ')}</span>
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 mt-3">
+                              <span className="text-white/50 font-bold tracking-widest uppercase text-xs flex items-center"><Package className="w-3.5 h-3.5 mr-2"/> Products:</span> 
+                              <span className="text-white font-light">{v.visit_products.map((p: any) => `${p.product_name} (x${p.quantity})`).join(', ')}</span>
                             </div>
                           )}
                         </div>

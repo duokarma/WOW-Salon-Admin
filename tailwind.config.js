@@ -8,38 +8,39 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: 'rgba(var(--background), <alpha-value>)',
-        sidebar: 'rgba(var(--sidebar), <alpha-value>)',
-        'sidebar-border': 'rgba(var(--sidebar-border), <alpha-value>)',
-        card: 'rgba(var(--card), <alpha-value>)',
-        text: 'rgba(var(--text), <alpha-value>)',
+        background: 'hsl(var(--background) / <alpha-value>)',
+        sidebar: 'hsl(var(--sidebar) / <alpha-value>)',
+        'sidebar-border': 'hsl(var(--sidebar-border) / <alpha-value>)',
+        card: 'hsl(var(--card) / <alpha-value>)',
+        text: 'hsl(var(--text) / <alpha-value>)',
         primary: {
-          DEFAULT: 'rgba(var(--primary), <alpha-value>)',
-          foreground: 'rgba(var(--primary-foreground), <alpha-value>)',
-          hover: 'rgba(var(--primary-hover), <alpha-value>)'
+          DEFAULT: 'hsl(var(--primary) / <alpha-value>)',
+          foreground: 'hsl(var(--primary-foreground) / <alpha-value>)',
+          hover: 'hsl(var(--primary-hover) / <alpha-value>)'
         },
         secondary: {
-          DEFAULT: 'rgba(var(--secondary), <alpha-value>)',
-          foreground: 'rgba(var(--secondary-foreground), <alpha-value>)',
+          DEFAULT: 'hsl(var(--secondary) / <alpha-value>)',
+          foreground: 'hsl(var(--secondary-foreground) / <alpha-value>)',
         },
         accent: {
-          DEFAULT: 'rgba(var(--accent), <alpha-value>)', 
-          foreground: 'rgba(var(--accent-foreground), <alpha-value>)',
+          DEFAULT: 'hsl(var(--accent) / <alpha-value>)', 
+          foreground: 'hsl(var(--accent-foreground) / <alpha-value>)',
         },
         muted: {
-          DEFAULT: 'rgba(var(--muted), <alpha-value>)',
-          foreground: 'rgba(var(--muted-foreground), <alpha-value>)', 
+          DEFAULT: 'hsl(var(--muted) / <alpha-value>)',
+          foreground: 'hsl(var(--muted-foreground) / <alpha-value>)', 
         },
-        border: 'rgba(var(--border), <alpha-value>)', 
-        success: 'rgba(var(--success), <alpha-value>)',
-        warning: 'rgba(var(--warning), <alpha-value>)',
-        danger: 'rgba(var(--danger), <alpha-value>)',
+        border: 'hsl(var(--border) / <alpha-value>)', 
+        success: 'hsl(var(--success) / <alpha-value>)',
+        warning: 'hsl(var(--warning) / <alpha-value>)',
+        danger: 'hsl(var(--danger) / <alpha-value>)',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
+        serif: ['Instrument Serif', 'serif'],
       },
       backgroundImage: {
-        'accent-gradient': 'linear-gradient(135deg, rgba(var(--primary), 1), rgba(var(--secondary), 1))',
+        'accent-gradient': 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))',
       },
       borderRadius: {
         '3xl': '1.5rem',

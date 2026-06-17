@@ -81,15 +81,15 @@ export default function Inventory() {
   });
 
   return (
-    <div className="space-y-8 relative">
+    <div className="space-y-8 relative max-w-7xl mx-auto pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900">Inventory ERP</h2>
-          <p className="text-gray-500 mt-1">Track master inventory, purchases, retail sales, and salon consumption.</p>
+          <h2 className="text-4xl font-light tracking-tight text-white">Inventory ERP</h2>
+          <p className="text-white/50 mt-2 font-light tracking-wide">Track master inventory, purchases, retail sales, and salon consumption.</p>
         </div>
         <button 
           onClick={() => handleOpenAddStock()}
-          className="inline-flex items-center justify-center rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 transition-all"
+          className="btn-primary"
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Stock Purchase
@@ -97,54 +97,58 @@ export default function Inventory() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-4 mb-6">
-        <div className="glass-card p-6 flex items-center justify-between bg-white border border-gray-200">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Total Value</p>
-            <p className="text-2xl font-bold text-gray-900">₹{totalInventoryValue.toLocaleString()}</p>
+        <div className="glass-card p-6 flex items-center justify-between relative overflow-hidden group hover:bg-white/5 transition-all">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-all"></div>
+          <div className="relative z-10">
+            <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2">Total Value</p>
+            <p className="text-3xl font-light text-white tracking-tight">₹{totalInventoryValue.toLocaleString()}</p>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-500">
+          <div className="h-12 w-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/70 shadow-[0_0_15px_rgba(255,255,255,0.1)] relative z-10">
             <IndianRupee className="h-5 w-5" />
           </div>
         </div>
-        <div className="glass-card p-6 flex items-center justify-between bg-white border border-gray-200">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Retail Revenue</p>
-            <p className="text-2xl font-bold text-success">₹{totalSoldValue.toLocaleString()}</p>
+        <div className="glass-card p-6 flex items-center justify-between relative overflow-hidden group hover:bg-white/5 transition-all">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-success/10 rounded-full blur-2xl group-hover:bg-success/20 transition-all"></div>
+          <div className="relative z-10">
+            <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2">Retail Revenue</p>
+            <p className="text-3xl font-light text-success tracking-tight">₹{totalSoldValue.toLocaleString()}</p>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-success/10 border border-success/20 flex items-center justify-center text-success">
+          <div className="h-12 w-12 rounded-full bg-success/10 border border-success/20 flex items-center justify-center text-success shadow-[0_0_15px_rgba(34,197,94,0.1)] relative z-10">
             <ArrowUpRight className="h-5 w-5" />
           </div>
         </div>
-        <div className="glass-card p-6 flex items-center justify-between bg-white border border-gray-200">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Consumption Cost</p>
-            <p className="text-2xl font-bold text-warning">₹{totalConsumedValue.toLocaleString()}</p>
+        <div className="glass-card p-6 flex items-center justify-between relative overflow-hidden group hover:bg-white/5 transition-all">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-warning/10 rounded-full blur-2xl group-hover:bg-warning/20 transition-all"></div>
+          <div className="relative z-10">
+            <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2">Consumption Cost</p>
+            <p className="text-3xl font-light text-warning tracking-tight">₹{totalConsumedValue.toLocaleString()}</p>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-warning/10 border border-warning/20 flex items-center justify-center text-warning">
+          <div className="h-12 w-12 rounded-full bg-warning/10 border border-warning/20 flex items-center justify-center text-warning shadow-[0_0_15px_rgba(234,179,8,0.1)] relative z-10">
             <ArrowDownRight className="h-5 w-5" />
           </div>
         </div>
-        <div className={`glass-card p-6 flex items-center justify-between bg-white border ${lowStockCount > 0 ? 'border-danger/50 bg-danger/5 shadow-sm' : 'border-gray-200'}`}>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Low Stock Alerts</p>
-            <p className={`text-2xl font-bold ${lowStockCount > 0 ? 'text-danger' : 'text-gray-900'}`}>{lowStockCount} <span className="text-sm font-medium lowercase text-gray-500">items</span></p>
+        <div className={`glass-card p-6 flex items-center justify-between relative overflow-hidden group hover:bg-white/5 transition-all ${lowStockCount > 0 ? 'border-danger/30' : ''}`}>
+          <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl transition-all ${lowStockCount > 0 ? 'bg-danger/20 group-hover:bg-danger/30' : 'bg-white/5 group-hover:bg-white/10'}`}></div>
+          <div className="relative z-10">
+            <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2">Low Stock Alerts</p>
+            <p className={`text-3xl font-light tracking-tight ${lowStockCount > 0 ? 'text-danger' : 'text-white'}`}>{lowStockCount} <span className="text-sm font-light lowercase text-white/50">items</span></p>
           </div>
-          <div className={`h-10 w-10 rounded-xl border flex items-center justify-center ${lowStockCount > 0 ? 'bg-danger/10 border-danger/20 text-danger' : 'bg-gray-100 border-gray-200 text-gray-500'}`}>
+          <div className={`h-12 w-12 rounded-full border flex items-center justify-center relative z-10 shadow-[0_0_15px_rgba(255,255,255,0.1)] ${lowStockCount > 0 ? 'bg-danger/10 border-danger/20 text-danger' : 'bg-white/10 border-white/20 text-white/50'}`}>
             <AlertTriangle className="h-5 w-5" />
           </div>
         </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-        <div className="flex flex-wrap gap-1 w-full md:w-auto p-1 bg-gray-100 border border-gray-200 rounded-xl shadow-sm">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto p-1 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
           {(['Master Inventory', 'Purchased Logs', 'Sold Products', 'Service Consumption'] as TabType[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all flex items-center gap-2 ${
                 activeTab === tab 
-                  ? 'bg-white text-gray-900 shadow-sm border border-gray-200' 
-                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                  ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.2)]' 
+                  : 'text-white/50 hover:text-white hover:bg-white/5'
               }`}
             >
               {tab === 'Master Inventory' && <Package className="w-4 h-4" />}
@@ -158,12 +162,12 @@ export default function Inventory() {
         
         {activeTab === 'Master Inventory' && (
           <div className="flex items-center w-full md:w-auto gap-2">
-            <div className="flex items-center bg-white rounded-xl px-3 py-2 shadow-sm border border-gray-200 w-full md:w-64 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500 transition-all">
-              <Search className="h-4 w-4 text-gray-400 mr-2" />
+            <div className="flex items-center bg-white/5 rounded-xl px-4 py-3 border border-white/10 w-full md:w-72 focus-within:border-white/30 transition-all backdrop-blur-md">
+              <Search className="h-4 w-4 text-white/40 mr-3" />
               <input 
                 type="text" 
                 placeholder="Search products..." 
-                className="bg-transparent outline-none w-full text-sm placeholder-gray-400 text-gray-900" 
+                className="bg-transparent outline-none w-full text-sm placeholder-white/30 text-white font-light tracking-wide" 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -174,10 +178,10 @@ export default function Inventory() {
 
       {/* MASTER INVENTORY TAB */}
       {activeTab === 'Master Inventory' && (
-        <div className="glass-card bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-medium border-b border-gray-200">
+        <div className="glass-card overflow-hidden">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-sm text-left text-white">
+              <thead className="bg-white/5 text-white/50 text-xs uppercase font-bold tracking-wider border-b border-white/10">
                 <tr>
                   <th className="px-6 py-4">Product</th>
                   <th className="px-6 py-4">Brand/Category</th>
@@ -188,32 +192,32 @@ export default function Inventory() {
                   <th className="px-6 py-4 text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-white/5">
                 {filteredProducts.map(item => {
                    const isLowStock = item.stockQuantity <= item.lowStockThreshold;
                    return (
-                    <tr key={item.id} className="hover:bg-gray-50 transition-colors group">
+                    <tr key={item.id} className="hover:bg-white/5 transition-colors group font-light">
                       <td className="px-6 py-4">
-                        <div className="font-bold text-gray-900">{item.name}</div>
-                        <div className="text-xs text-gray-500 mt-0.5">{item.supplierName}</div>
+                        <div className="font-medium text-white text-base">{item.name}</div>
+                        <div className="text-xs text-white/50 mt-1 uppercase tracking-wider">{item.supplierName}</div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200 uppercase">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/5 text-white border border-white/10 uppercase tracking-widest">
                           {item.brand}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold border ${item.stockQuantity === 0 ? 'bg-danger/10 text-danger border-danger/20' : isLowStock ? 'bg-warning/10 text-warning border-warning/20' : 'bg-success/10 text-success border-success/20'}`}>
+                        <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border ${item.stockQuantity === 0 ? 'bg-danger/10 text-danger border-danger/20' : isLowStock ? 'bg-warning/10 text-warning border-warning/20' : 'bg-success/10 text-success border-success/20'}`}>
                           {item.stockQuantity} {isLowStock && <AlertTriangle className="w-3 h-3 ml-1" />}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right font-medium text-gray-900">₹{item.purchasePrice.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-right font-medium text-gray-900">₹{item.sellingPrice.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-right font-bold text-gray-900">₹{(item.stockQuantity * item.purchasePrice).toLocaleString()}</td>
+                      <td className="px-6 py-4 text-right text-white">₹{item.purchasePrice.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-right text-white">₹{item.sellingPrice.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-right font-medium text-white">₹{(item.stockQuantity * item.purchasePrice).toLocaleString()}</td>
                       <td className="px-6 py-4 text-center">
                         <button 
                           onClick={() => handleOpenAddStock(item.id)}
-                          className="text-blue-600 font-bold hover:text-blue-800 transition-colors"
+                          className="text-white/50 font-bold hover:text-white transition-colors border border-white/10 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs tracking-wide"
                         >
                           + Add Stock
                         </button>
@@ -223,7 +227,7 @@ export default function Inventory() {
                 })}
                 {filteredProducts.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="text-center py-12 text-gray-500">No products found.</td>
+                    <td colSpan={7} className="text-center py-16 text-white/50 font-light text-lg">No products found.</td>
                   </tr>
                 )}
               </tbody>
@@ -234,13 +238,13 @@ export default function Inventory() {
 
       {/* PURCHASED LOGS TAB */}
       {activeTab === 'Purchased Logs' && (
-        <div className="glass-card bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden">
-          <div className="p-4 border-b border-gray-200 bg-gray-50">
-            <h3 className="font-bold text-gray-900 flex items-center"><Barcode className="w-4 h-4 mr-2 text-gray-500"/> Recent Purchases (Stock In)</h3>
+        <div className="glass-card overflow-hidden">
+          <div className="p-6 border-b border-white/10 bg-black/20">
+            <h3 className="font-light tracking-wide text-white flex items-center text-xl"><Barcode className="w-5 h-5 mr-3 text-white/50"/> Recent Purchases (Stock In)</h3>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-medium border-b border-gray-200">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-sm text-left text-white">
+              <thead className="bg-white/5 text-white/50 text-xs uppercase font-bold tracking-wider border-b border-white/10">
                 <tr>
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4">Product</th>
@@ -250,19 +254,19 @@ export default function Inventory() {
                   <th className="px-6 py-4 text-right">Total Cost</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-white/5">
                 {purchaseLogs.slice().reverse().map(log => (
-                  <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{format(new Date(log.date), 'dd MMM yyyy, hh:mm a')}</td>
-                    <td className="px-6 py-4 font-medium text-gray-900">{log.productName}</td>
-                    <td className="px-6 py-4 text-gray-500">{log.supplierName || '-'}</td>
-                    <td className="px-6 py-4 text-center font-bold text-gray-900">+{log.quantity}</td>
-                    <td className="px-6 py-4 text-right text-gray-900">₹{log.costPrice?.toLocaleString() || '-'}</td>
-                    <td className="px-6 py-4 text-right font-bold text-danger">₹{((log.costPrice || 0) * log.quantity).toLocaleString()}</td>
+                  <tr key={log.id} className="hover:bg-white/5 transition-colors font-light">
+                    <td className="px-6 py-4 whitespace-nowrap text-white/70">{format(new Date(log.date), 'dd MMM yyyy, hh:mm a')}</td>
+                    <td className="px-6 py-4 font-medium text-white">{log.productName}</td>
+                    <td className="px-6 py-4 text-white/50 uppercase text-xs tracking-wider">{log.supplierName || '-'}</td>
+                    <td className="px-6 py-4 text-center font-bold text-white">+{log.quantity}</td>
+                    <td className="px-6 py-4 text-right text-white">₹{log.costPrice?.toLocaleString() || '-'}</td>
+                    <td className="px-6 py-4 text-right font-medium text-danger">₹{((log.costPrice || 0) * log.quantity).toLocaleString()}</td>
                   </tr>
                 ))}
                 {purchaseLogs.length === 0 && (
-                  <tr><td colSpan={6} className="text-center py-12 text-gray-500">No purchase logs found.</td></tr>
+                  <tr><td colSpan={6} className="text-center py-16 text-white/50 font-light text-lg">No purchase logs found.</td></tr>
                 )}
               </tbody>
             </table>
@@ -272,13 +276,13 @@ export default function Inventory() {
 
       {/* SOLD PRODUCTS TAB */}
       {activeTab === 'Sold Products' && (
-        <div className="glass-card bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden">
-          <div className="p-4 border-b border-gray-200 bg-gray-50">
-            <h3 className="font-bold text-gray-900 flex items-center"><ShoppingCart className="w-4 h-4 mr-2 text-success"/> Retail Sales (Stock Out)</h3>
+        <div className="glass-card overflow-hidden">
+          <div className="p-6 border-b border-white/10 bg-black/20">
+            <h3 className="font-light tracking-wide text-white flex items-center text-xl"><ShoppingCart className="w-5 h-5 mr-3 text-success"/> Retail Sales (Stock Out)</h3>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-medium border-b border-gray-200">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-sm text-left text-white">
+              <thead className="bg-white/5 text-white/50 text-xs uppercase font-bold tracking-wider border-b border-white/10">
                 <tr>
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4">Product</th>
@@ -288,22 +292,22 @@ export default function Inventory() {
                   <th className="px-6 py-4 text-right">Revenue Generated</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-white/5">
                 {soldLogs.slice().reverse().map(log => (
-                  <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{format(new Date(log.date), 'dd MMM yyyy, hh:mm a')}</td>
-                    <td className="px-6 py-4 font-medium text-gray-900">{log.productName}</td>
-                    <td className="px-6 py-4 text-gray-500">
-                       {log.customerName}
-                       {log.visitId && <span className="block text-xs mt-0.5 text-gray-400">Visit #{log.visitId.split('_')[1] || log.visitId.substring(0, 8)}</span>}
+                  <tr key={log.id} className="hover:bg-white/5 transition-colors font-light">
+                    <td className="px-6 py-4 whitespace-nowrap text-white/70">{format(new Date(log.date), 'dd MMM yyyy, hh:mm a')}</td>
+                    <td className="px-6 py-4 font-medium text-white">{log.productName}</td>
+                    <td className="px-6 py-4 text-white/50">
+                       <span className="text-white">{log.customerName}</span>
+                       {log.visitId && <span className="block text-[10px] mt-1 text-white/30 uppercase tracking-widest">Visit #{log.visitId.split('_')[1] || log.visitId.substring(0, 8)}</span>}
                     </td>
-                    <td className="px-6 py-4 text-center font-bold text-gray-900">-{log.quantity}</td>
-                    <td className="px-6 py-4 text-right text-gray-900">₹{log.sellingPrice?.toLocaleString() || '-'}</td>
-                    <td className="px-6 py-4 text-right font-bold text-success">₹{((log.sellingPrice || 0) * log.quantity).toLocaleString()}</td>
+                    <td className="px-6 py-4 text-center font-bold text-white">-{log.quantity}</td>
+                    <td className="px-6 py-4 text-right text-white">₹{log.sellingPrice?.toLocaleString() || '-'}</td>
+                    <td className="px-6 py-4 text-right font-medium text-success">₹{((log.sellingPrice || 0) * log.quantity).toLocaleString()}</td>
                   </tr>
                 ))}
                 {soldLogs.length === 0 && (
-                  <tr><td colSpan={6} className="text-center py-12 text-gray-500">No retail sales logs found.</td></tr>
+                  <tr><td colSpan={6} className="text-center py-16 text-white/50 font-light text-lg">No retail sales logs found.</td></tr>
                 )}
               </tbody>
             </table>
@@ -313,13 +317,13 @@ export default function Inventory() {
 
       {/* SERVICE CONSUMPTION TAB */}
       {activeTab === 'Service Consumption' && (
-        <div className="glass-card bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden">
-          <div className="p-4 border-b border-gray-200 bg-gray-50">
-            <h3 className="font-bold text-gray-900 flex items-center"><Scissors className="w-4 h-4 mr-2 text-warning"/> Internal Service Consumption (Stock Out)</h3>
+        <div className="glass-card overflow-hidden">
+          <div className="p-6 border-b border-white/10 bg-black/20">
+            <h3 className="font-light tracking-wide text-white flex items-center text-xl"><Scissors className="w-5 h-5 mr-3 text-warning"/> Internal Service Consumption (Stock Out)</h3>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-medium border-b border-gray-200">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-sm text-left text-white">
+              <thead className="bg-white/5 text-white/50 text-xs uppercase font-bold tracking-wider border-b border-white/10">
                 <tr>
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4">Product Used</th>
@@ -328,25 +332,25 @@ export default function Inventory() {
                   <th className="px-6 py-4 text-right">Internal Cost Value</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-white/5">
                 {consumedLogs.slice().reverse().map(log => {
                    const p = products.find(prod => prod.id === log.productId);
                    const costValue = (p?.purchasePrice || 0) * log.quantity;
                    return (
-                    <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-900">{format(new Date(log.date), 'dd MMM yyyy, hh:mm a')}</td>
-                      <td className="px-6 py-4 font-medium text-gray-900">{log.productName}</td>
-                      <td className="px-6 py-4 text-gray-500">
-                         {log.customerName}
-                         {log.visitId && <span className="block text-xs mt-0.5 text-gray-400">Visit #{log.visitId.split('_')[1] || log.visitId.substring(0, 8)}</span>}
+                    <tr key={log.id} className="hover:bg-white/5 transition-colors font-light">
+                      <td className="px-6 py-4 whitespace-nowrap text-white/70">{format(new Date(log.date), 'dd MMM yyyy, hh:mm a')}</td>
+                      <td className="px-6 py-4 font-medium text-white">{log.productName}</td>
+                      <td className="px-6 py-4 text-white/50">
+                         <span className="text-white">{log.customerName}</span>
+                         {log.visitId && <span className="block text-[10px] mt-1 text-white/30 uppercase tracking-widest">Visit #{log.visitId.split('_')[1] || log.visitId.substring(0, 8)}</span>}
                       </td>
-                      <td className="px-6 py-4 text-center font-bold text-gray-900">-{log.quantity}</td>
+                      <td className="px-6 py-4 text-center font-bold text-white">-{log.quantity}</td>
                       <td className="px-6 py-4 text-right font-medium text-warning">₹{costValue.toLocaleString()}</td>
                     </tr>
                    );
                 })}
                 {consumedLogs.length === 0 && (
-                  <tr><td colSpan={5} className="text-center py-12 text-gray-500">No consumption logs found.</td></tr>
+                  <tr><td colSpan={5} className="text-center py-16 text-white/50 font-light text-lg">No consumption logs found.</td></tr>
                 )}
               </tbody>
             </table>
@@ -356,15 +360,15 @@ export default function Inventory() {
 
       {/* Add Stock Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-200">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 shrink-0 bg-gray-50">
-              <h3 className="text-xl font-bold text-gray-900">Restock Item</h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500 hover:text-gray-900"><X className="w-5 h-5"/></button>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-panel w-full max-w-sm flex flex-col animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0 bg-black/20">
+              <h3 className="text-xl font-light tracking-tight text-white">Restock Item</h3>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white"><X className="w-5 h-5"/></button>
             </div>
-            <form onSubmit={handleAddStock} className="p-6 space-y-4">
+            <form onSubmit={handleAddStock} className="p-6 space-y-6">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Select Product *</label>
+                <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Select Product *</label>
                 <select 
                   required 
                   value={selectedProductId || ''} 
@@ -377,10 +381,10 @@ export default function Inventory() {
                        setAddSupplier(p.supplierName);
                      }
                   }} 
-                  className="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 text-gray-900 text-sm shadow-sm transition-all"
+                  className="glass-input w-full px-4 py-3 appearance-none"
                 >
-                  <option value="">-- Choose Product --</option>
-                  {products.map(p => <option key={p.id} value={p.id}>{p.name} (Stock: {p.stockQuantity})</option>)}
+                  <option value="" className="bg-black">-- Choose Product --</option>
+                  {products.map(p => <option key={p.id} value={p.id} className="bg-black">{p.name} (Stock: {p.stockQuantity})</option>)}
                 </select>
               </div>
 
@@ -388,19 +392,19 @@ export default function Inventory() {
                 <>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Quantity *</label>
+                      <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Quantity *</label>
                       <input 
                         type="number" 
                         required 
                         min="1" 
                         value={addQuantity} 
                         onChange={e => setAddQuantity(e.target.value)} 
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 text-gray-900 placeholder-gray-400 text-sm shadow-sm transition-all" 
+                        className="glass-input w-full px-4 py-3" 
                         placeholder="E.g., 10" 
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Cost / Unit (₹) *</label>
+                      <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Cost / Unit (₹) *</label>
                       <input 
                         type="number" 
                         required 
@@ -408,33 +412,35 @@ export default function Inventory() {
                         step="0.01"
                         value={addCost} 
                         onChange={e => setAddCost(e.target.value)} 
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 text-gray-900 text-sm shadow-sm transition-all" 
+                        className="glass-input w-full px-4 py-3" 
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Supplier</label>
+                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Supplier</label>
                     <input 
                       type="text" 
                       value={addSupplier} 
                       onChange={e => setAddSupplier(e.target.value)} 
-                      className="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 text-gray-900 placeholder-gray-400 text-sm shadow-sm transition-all" 
+                      className="glass-input w-full px-4 py-3" 
                       placeholder="Supplier Name" 
                     />
                   </div>
 
-                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 mt-4 text-sm shadow-sm">
+                  <div className="bg-black/40 p-4 rounded-xl border border-white/5 mt-4">
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-gray-500">Total Expense Cost:</span>
-                      <span className="text-lg font-bold text-danger">₹{((parseFloat(addCost) || 0) * (parseInt(addQuantity, 10) || 0)).toLocaleString()}</span>
+                      <span className="font-light text-white/50 text-sm tracking-wide">Total Expense Cost:</span>
+                      <span className="text-xl font-light text-danger tracking-tight">₹{((parseFloat(addCost) || 0) * (parseInt(addQuantity, 10) || 0)).toLocaleString()}</span>
                     </div>
                   </div>
 
-                  <button type="submit" className="w-full mt-4 py-3.5 rounded-xl bg-gray-900 text-white font-bold hover:bg-black transition-all shadow-sm">
-                    Confirm Purchase
-                  </button>
-                  <p className="text-xs text-center text-gray-500 mt-2">This will automatically record an expense and add stock.</p>
+                  <div className="pt-2">
+                    <button type="submit" className="btn-primary w-full justify-center py-4 text-base">
+                      Confirm Purchase
+                    </button>
+                    <p className="text-[10px] text-center text-white/30 uppercase tracking-widest mt-3">This will automatically record an expense and add stock.</p>
+                  </div>
                 </>
               )}
             </form>

@@ -85,34 +85,37 @@ export default function Dashboard() {
   const lowStockProducts = products.filter(p => (Number(p.stock_quantity) || 0) <= (Number(p.low_stock_threshold) || 0)).slice(0, 10);
 
   const StatCard = ({ title, value, icon: Icon, colorClass }: any) => (
-    <motion.div variants={itemVariants} className="glass-card p-6 flex flex-col justify-between relative overflow-hidden group hover:border-gray-300 transition-all duration-300">
-      <div className="flex justify-between items-start mb-4 relative z-10">
-        <div className="p-3 rounded-2xl bg-gray-50 border border-gray-100 shadow-sm">
-          <Icon className={`w-6 h-6 ${colorClass}`} />
+    <motion.div variants={itemVariants} className="glass-card p-8 flex flex-col justify-between relative overflow-hidden group">
+      {/* Decorative background glow */}
+      <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/[0.02] rounded-full blur-3xl group-hover:bg-white/[0.04] transition-all duration-500"></div>
+      
+      <div className="flex justify-between items-start mb-6 relative z-10">
+        <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 shadow-sm backdrop-blur-md">
+          <Icon className="w-6 h-6 text-white/60" />
         </div>
       </div>
-      <div className="relative z-10 mt-2">
-        <h3 className="text-gray-500 text-sm font-medium mb-1 tracking-wide uppercase">{title}</h3>
-        <p className="text-4xl font-bold tracking-tight text-gray-900">{value}</p>
+      <div className="relative z-10 mt-4">
+        <h3 className="text-white/40 text-[11px] font-medium mb-3 tracking-[0.2em] uppercase">{title}</h3>
+        <p className="text-6xl font-serif text-white tracking-tight">{value}</p>
       </div>
     </motion.div>
   );
 
   return (
     <motion.div 
-      className="space-y-8 pb-12 max-w-7xl mx-auto"
+      className="space-y-12 pb-16 max-w-[1400px] mx-auto px-4"
       variants={containerVariants}
       initial="hidden"
       animate="show"
     >
-      <div className="mb-8">
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-2">Dashboard</h1>
-        <p className="text-gray-500 text-lg">Welcome back. Here's your salon's performance overview for today.</p>
+      <div className="mb-12 mt-6">
+        <h1 className="text-6xl font-serif text-white tracking-tight mb-4">Dashboard</h1>
+        <p className="text-white/40 text-sm font-medium tracking-widest uppercase">Executive Overview • {today.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</p>
       </div>
 
       {loading ? (
          <div className="flex justify-center items-center h-64">
-           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
          </div>
       ) : (
         <>
@@ -122,56 +125,57 @@ export default function Dashboard() {
               title="Today's Revenue" 
               value={`₹${todayRevenue.toLocaleString()}`}
               icon={IndianRupee} 
-              colorClass="text-gray-900"
             />
             <StatCard 
               title="Today's Profit" 
               value={`₹${todayProfit.toLocaleString()}`}
               icon={TrendingUp} 
-              colorClass="text-gray-700"
             />
             <StatCard 
-              title="Today's Customers" 
+              title="Customers" 
               value={todayCustomersCount.toString()}
               icon={Users} 
-              colorClass="text-gray-900"
             />
             <StatCard 
-              title="Today's Expenses" 
+              title="Expenses" 
               value={`₹${todayExpensesAmount.toLocaleString()}`}
               icon={IndianRupee} 
-              colorClass="text-red-500"
             />
           </div>
 
           {/* Low Stock Alerts */}
-          <motion.div variants={itemVariants} className="glass-card p-6 border-gray-200 flex flex-col min-h-[300px] mt-8">
-            <div className="flex justify-between items-center mb-6 shrink-0 border-b border-gray-100 pb-4">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="w-6 h-6 text-gray-900" />
-                <h3 className="text-xl font-bold text-gray-900">Low Stock Alerts</h3>
+          <motion.div variants={itemVariants} className="glass-card p-8 flex flex-col min-h-[350px] mt-10 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-danger/[0.02] rounded-full blur-[100px] pointer-events-none"></div>
+            
+            <div className="flex justify-between items-center mb-8 shrink-0 border-b border-white/5 pb-6 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 rounded-xl bg-danger/10 border border-danger/20">
+                  <AlertTriangle className="w-5 h-5 text-danger" />
+                </div>
+                <h3 className="text-2xl font-light tracking-tight text-white">Low Stock Alerts</h3>
               </div>
             </div>
-            <div className="space-y-4 overflow-y-auto custom-scrollbar pr-2 flex-1">
+            
+            <div className="space-y-4 overflow-y-auto custom-scrollbar pr-2 flex-1 relative z-10">
               {lowStockProducts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-gray-400 mt-10">
-                  <PackageOpen className="w-12 h-12 mb-3 opacity-50" />
-                  <p className="text-base font-medium">Inventory levels look good.</p>
+                <div className="flex flex-col items-center justify-center h-full text-white/40 mt-10">
+                  <PackageOpen className="w-12 h-12 mb-4 opacity-30" />
+                  <p className="text-sm font-medium tracking-wide uppercase">Inventory levels optimal</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {lowStockProducts.map(product => (
-                    <div key={product.id} className="flex flex-col p-4 rounded-xl bg-red-50 border border-red-100 transition-all hover:shadow-sm">
-                      <p className="text-base font-bold text-gray-900 truncate">{product.name}</p>
-                      <p className="text-xs text-gray-500 mb-3">{product.brand}</p>
+                    <div key={product.id} className="flex flex-col p-5 rounded-2xl bg-danger/[0.03] border border-danger/10 backdrop-blur-md transition-all hover:bg-danger/[0.05] hover:border-danger/30">
+                      <p className="text-lg font-medium text-white truncate">{product.name}</p>
+                      <p className="text-xs text-white/40 mb-4 tracking-wider uppercase">{product.brand}</p>
                       <div className="flex justify-between items-end mt-auto">
                         <div>
-                          <p className="text-[10px] text-gray-500 uppercase tracking-wide">Threshold</p>
-                          <p className="text-sm font-semibold text-gray-700">{product.low_stock_threshold || product.lowStockThreshold || 0}</p>
+                          <p className="text-[10px] text-white/40 uppercase tracking-[0.1em] mb-1">Threshold</p>
+                          <p className="text-sm font-semibold text-white/70">{product.low_stock_threshold || product.lowStockThreshold || 0}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-[10px] text-red-500 uppercase tracking-wide font-bold">Current Stock</p>
-                          <p className="text-xl font-bold text-red-600">{product.stock_quantity || product.stockQuantity || 0}</p>
+                          <p className="text-[10px] text-danger uppercase tracking-[0.1em] font-bold mb-1">Current Stock</p>
+                          <p className="text-2xl font-light text-danger">{product.stock_quantity || product.stockQuantity || 0}</p>
                         </div>
                       </div>
                     </div>

@@ -4,70 +4,50 @@
 
 @layer base {
   :root {
-    /* BODY Background */
-    --background: 249, 250, 251; /* #F9FAFB */
-    /* SIDEBAR */
-    --sidebar: 255, 255, 255; /* #FFFFFF */
-    --sidebar-border: 229, 231, 235; /* #E5E7EB */
+    /* BODY Background (Pure Black) */
+    --background: 0, 0%, 0%; 
+    --foreground: 0, 0%, 100%;
+    
+    /* SIDEBAR (Glassy dark) */
+    --sidebar: 0, 0%, 3%; 
+    --sidebar-border: 0, 0%, 10%; 
     
     /* CARDS */
-    --card: 255, 255, 255; /* #FFFFFF */
-    --border: 229, 231, 235; /* #E5E7EB */
+    --card: 0, 0%, 2%; 
+    --border: 0, 0%, 10%; 
     
     /* Text */
-    --text: 17, 24, 39; /* #111827 */
-    /* Secondary Text */
-    --secondary-foreground: 107, 114, 128; /* #6B7280 */
+    --text: 0, 0%, 100%; 
+    --secondary-foreground: 0, 0%, 65%;
     
     /* Secondary Background */
-    --secondary: 243, 244, 246; /* #F3F4F6 */
+    --secondary: 0, 0%, 5%; 
     
-    /* Accent (Black) */
-    --primary: 0, 0, 0; /* #000000 */
-    --primary-foreground: 255, 255, 255; /* #FFFFFF */
-    --primary-hover: 55, 65, 81; /* #374151 */
+    /* Accents */
+    /* Champagne Gold */
+    --primary: 43, 44%, 65%; 
+    --primary-foreground: 0, 0%, 5%; 
+    --primary-hover: 43, 44%, 75%; 
     
-    /* Secondary Accent (Grey) */
-    --secondary-accent: 75, 85, 99; /* #4B5563 */
+    /* Platinum Silver */
+    --secondary-accent: 0, 0%, 80%; 
     
-    --accent: 243, 244, 246; /* #F3F4F6 */
-    --accent-foreground: 17, 24, 39; /* #111827 */
-    --muted: 243, 244, 246; /* #F3F4F6 */
-    --muted-foreground: 107, 114, 128; /* #6B7280 */
+    --accent: 0, 0%, 10%; 
+    --accent-foreground: 45, 30%, 90%; /* Luxury Ivory */
+    --muted: 0, 0%, 8%; 
+    --muted-foreground: 0, 0%, 60%; 
     
-    /* Semantic Colors */
-    --success: 16, 185, 129; /* #10B981 */
-    --warning: 245, 158, 11; /* #F59E0B */
-    --danger: 239, 68, 68; /* #EF4444 */
-  }
-
-  .dark {
-    /* The app currently forces one theme, we'll map dark to the same light variables to ensure consistency */
-    --background: 249, 250, 251;
-    --sidebar: 255, 255, 255;
-    --sidebar-border: 229, 231, 235;
-    --card: 255, 255, 255;
-    --border: 229, 231, 235;
-    --text: 17, 24, 39;
-    --secondary-foreground: 107, 114, 128;
-    --secondary: 243, 244, 246;
-    --primary: 0, 0, 0;
-    --primary-foreground: 255, 255, 255;
-    --primary-hover: 55, 65, 81;
-    --secondary-accent: 75, 85, 99;
-    --accent: 243, 244, 246;
-    --accent-foreground: 17, 24, 39;
-    --muted: 243, 244, 246;
-    --muted-foreground: 107, 114, 128;
-    --success: 16, 185, 129;
-    --warning: 245, 158, 11;
-    --danger: 239, 68, 68;
+    /* Semantic Colors (Refined & Subtle) */
+    --success: 43, 44%, 65%; /* Replaced neon green with Champagne Gold */
+    --warning: 30, 40%, 60%; /* Warm muted bronze/orange instead of neon amber */
+    --danger: 0, 40%, 60%; /* Muted brick red instead of neon red */
   }
 
   body {
     @apply text-text font-sans antialiased bg-background;
-    background-color: rgba(var(--background), 1);
-    color: rgba(var(--text), 1);
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    min-height: 100vh;
   }
 
   /* Custom Scrollbar for a premium feel */
@@ -79,25 +59,87 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(var(--border), 1);
+    background: hsla(var(--border), 0.5);
     border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(var(--primary), 1);
+    background: hsla(var(--border), 1);
+  }
+  
+  /* Input overrides for dark theme */
+  input[type="text"], input[type="number"], input[type="email"], input[type="tel"], input[type="password"], input[type="date"], select, textarea {
+    @apply bg-black/20 border border-white/[0.05] text-white focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/20;
+  }
+  
+  /* Date picker icon invert for dark mode */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      opacity: 0.5;
+      cursor: pointer;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
+      opacity: 0.8;
   }
 }
 
 @layer utilities {
-  /* Minimalist Card */
+  .liquid-glass {
+    background: rgba(255, 255, 255, 0.005);
+    background-blend-mode: luminosity;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: none;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 4px 24px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+  .liquid-glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(180deg,
+      rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 20%,
+      rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%,
+      rgba(255,255,255,0.05) 80%, rgba(255,255,255,0.1) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Premium Glass Utilities */
+  .glass-panel {
+    @apply bg-white/[0.02] border border-white/[0.05] shadow-[0_4px_30px_rgba(0,0,0,0.2)] backdrop-blur-xl rounded-2xl;
+  }
+
+  .glass-sidebar {
+    @apply bg-black/40 border-r border-white/[0.05] shadow-[4px_0_24px_rgba(0,0,0,0.2)] backdrop-blur-2xl;
+  }
+
   .glass-card {
-    @apply bg-card border border-border rounded-xl shadow-sm overflow-hidden;
+    @apply liquid-glass rounded-2xl transition-all duration-300;
   }
   
   .glass-card-hover {
-    @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md hover:border-primary/20;
+    @apply hover:bg-white/[0.06] hover:border-white/[0.1] hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)];
+  }
+
+  /* Glass buttons */
+  .btn-primary {
+    @apply bg-white text-black font-semibold rounded-xl px-5 py-2.5 hover:bg-gray-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] flex items-center justify-center;
   }
   
+  .btn-secondary {
+    @apply bg-white/5 border border-white/10 text-white font-semibold rounded-xl px-5 py-2.5 hover:bg-white/10 transition-all flex items-center justify-center;
+  }
+  
+  .btn-danger {
+    @apply bg-danger/10 border border-danger/20 text-danger font-semibold rounded-xl px-5 py-2.5 hover:bg-danger/20 transition-all flex items-center justify-center;
+  }
+
   .premium-gradient-text {
-    @apply text-primary;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-white to-white/50;
   }
 }
