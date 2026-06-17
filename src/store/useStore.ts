@@ -125,6 +125,10 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'wow-salon-storage',
+      partialize: (state) => {
+        const { isAuthenticated, currentUser, ...rest } = state;
+        return rest;
+      },
     }
   )
 );
