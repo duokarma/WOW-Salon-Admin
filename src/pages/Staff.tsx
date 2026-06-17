@@ -5,7 +5,8 @@ import { format } from 'date-fns';
 
 export default function Staff() {
   const [staffList, setStaffList] = useState<any[]>([]);
-  const [invoices, setInvoices] = useState<any[]>([]);
+  const [commissions, setCommissions] = useState<any[]>([]);
+  const [visits, setVisits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Edit / Add Staff State
@@ -17,13 +18,15 @@ export default function Staff() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [staffRes, billsRes] = await Promise.all([
+      const [staffRes, commissionsRes, visitsRes] = await Promise.all([
         supabase.from('staff').select('*'),
-        supabase.from('bills').select('*')
+        supabase.from('staff_commissions').select('*, customer_visits(*)'),
+        supabase.from('customer_visits').select('*, customer:customer_id(name), visit_services(service_name, price)')
       ]);
 
       if (staffRes.data) setStaffList(staffRes.data);
-      if (billsRes.data) setInvoices(billsRes.data);
+      if (commissionsRes.data) setCommissions(commissionsRes.data);
+      if (visitsRes.data) setVisits(visitsRes.data);
     } catch (err) {
       console.error('Error fetching data:', err);
     } finally {
@@ -37,7 +40,8 @@ export default function Staff() {
     const channel = supabase
       .channel('staff-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'staff' }, fetchData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'bills' }, fetchData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'staff_commissions' }, fetchData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customer_visits' }, fetchData)
       .subscribe();
 
     return () => {
@@ -83,11 +87,11 @@ export default function Staff() {
     if (confirm(`Pay ₹${amount} to ${name}?`)) {
       try {
         await supabase.from('expenses').insert([{
-          title: `Salary - ${name}`,
+          title: `Salary & Commission - ${name}`,
           amount,
           category: 'Staff Salary',
           date: new Date().toISOString(),
-          notes: `Auto-generated salary payment for ${format(new Date(), 'MMMM yyyy')}`,
+          notes: `Auto-generated payment for ${format(new Date(), 'MMMM yyyy')}`,
           payment_method: 'Bank Transfer',
           status: 'Paid'
         }]);
@@ -99,38 +103,36 @@ export default function Staff() {
     }
   };
 
-  const calculateStaffMetrics = (staffId: string, staffName: string) => {
+  const calculateStaffMetrics = (staffId: string) => {
     const now = new Date();
-    const currentMonthInvoices = invoices.filter(inv => {
-      const invDate = new Date(inv.date);
-      const isSameStaff = (inv.staff_name || inv.staffName) === staffName;
-      return isSameStaff && invDate.getMonth() === now.getMonth() && invDate.getFullYear() === now.getFullYear();
+    
+    // Find all commissions for this staff this month
+    const currentMonthCommissions = commissions.filter(c => {
+      if (c.staff_id !== staffId) return false;
+      if (!c.customer_visits || !c.customer_visits.visit_date) return false;
+      const vDate = new Date(c.customer_visits.visit_date);
+      return vDate.getMonth() === now.getMonth() && vDate.getFullYear() === now.getFullYear();
     });
 
-    const getInvServicePrice = (inv: any) => {
-      let sum = 0;
-      if (Array.isArray(inv.services)) {
-        sum += inv.services.reduce((s: number, svc: any) => s + (Number(svc.price) || 0), 0);
-      } else if (inv.servicePrice) {
-        sum += Number(inv.servicePrice);
-      }
-      return sum;
-    };
+    const totalServiceRevenue = currentMonthCommissions.reduce((sum, c) => sum + (Number(c.service_amount) || 0), 0);
+    const totalCommission = currentMonthCommissions.reduce((sum, c) => sum + (Number(c.commission_amount) || 0), 0);
 
-    const totalServiceRevenue = currentMonthInvoices.reduce((sum, inv) => sum + getInvServicePrice(inv), 0);
-    // Maintain the 10% commission logic
-    const commission = currentMonthInvoices.reduce((sum, inv) => sum + (getInvServicePrice(inv) * 0.10), 0);
+    const staffVisits = visits.filter(v => {
+      if (v.staff_id !== staffId) return false;
+      const vDate = new Date(v.visit_date);
+      return vDate.getMonth() === now.getMonth() && vDate.getFullYear() === now.getFullYear();
+    });
 
     return {
-      currentMonthInvoices,
       totalServiceRevenue,
-      commission,
-      customersServed: currentMonthInvoices.length
+      commission: totalCommission,
+      customersServed: staffVisits.length,
+      staffVisits
     };
   };
 
   const selectedStaff = staffList.find(s => s.id === selectedStaffId);
-  const selectedStaffMetrics = selectedStaff ? calculateStaffMetrics(selectedStaff.id, selectedStaff.name || selectedStaff.staff_name) : null;
+  const selectedStaffMetrics = selectedStaff ? calculateStaffMetrics(selectedStaff.id) : null;
 
   return (
     <div className="space-y-8 pb-10 relative">
@@ -139,7 +141,7 @@ export default function Staff() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-gray-900">Staff Management</h2>
-          <p className="text-gray-500 mt-1">Manage team payroll and performance.</p>
+          <p className="text-gray-500 mt-1">Manage team payroll, commissions, and performance.</p>
         </div>
         <button 
           onClick={() => {
@@ -153,97 +155,100 @@ export default function Staff() {
         </button>
       </div>
 
-      {/* Staff Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {staffList.map((staff) => {
-          const staffName = staff.name || staff.staff_name || 'Unnamed';
-          const metrics = calculateStaffMetrics(staff.id, staffName);
-          const baseSalary = Number(staff.salary) || 15000;
-          const totalPayable = baseSalary + metrics.commission;
-          
-          // Generate Avatar Initials
-          const initials = staffName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {staffList.map((staff) => {
+            const staffName = staff.name || staff.staff_name || 'Unnamed';
+            const metrics = calculateStaffMetrics(staff.id);
+            const baseSalary = Number(staff.salary) || 15000;
+            const totalPayable = baseSalary + metrics.commission;
+            
+            const initials = staffName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
 
-          return (
-            <div 
-              key={staff.id} 
-              className="glass-card hover:border-gray-300 hover:shadow-md transition-all cursor-pointer group flex flex-col overflow-hidden relative"
-              onClick={() => setSelectedStaffId(staff.id)}
-            >
-              {/* Edit Button */}
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditingStaff({ ...staff, name: staffName, salary: baseSalary });
-                  setIsEditModalOpen(true);
-                }}
-                className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full text-gray-400 hover:text-gray-900 shadow-sm opacity-0 group-hover:opacity-100 transition-all z-10"
+            return (
+              <div 
+                key={staff.id} 
+                className="glass-card hover:border-gray-300 hover:shadow-md transition-all cursor-pointer group flex flex-col overflow-hidden relative"
+                onClick={() => setSelectedStaffId(staff.id)}
               >
-                <Edit2 className="w-4 h-4" />
-              </button>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingStaff({ ...staff, name: staffName, salary: baseSalary });
+                    setIsEditModalOpen(true);
+                  }}
+                  className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full text-gray-400 hover:text-gray-900 shadow-sm opacity-0 group-hover:opacity-100 transition-all z-10"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
 
-              <div className="p-6 border-b border-gray-100 bg-white">
-                <div className="flex items-center gap-4 mb-4 pr-8">
-                  <div className="w-14 h-14 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center shadow-sm shrink-0 group-hover:bg-gray-900 group-hover:border-gray-900 transition-colors">
-                    <span className="text-gray-600 font-bold text-lg group-hover:text-white transition-colors">{initials}</span>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-900">{staffName}</h3>
-                    <p className="text-sm font-medium text-gray-500">{staff.gender}</p>
-                  </div>
-                  <div className={`px-2.5 py-1 rounded-md text-xs font-bold border ${staff.status === 'Active' ? 'bg-success/10 text-success border-success/20' : 'bg-danger/10 text-danger border-danger/20'}`}>
-                    {staff.status || 'Active'}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-sm text-gray-500" onClick={e => e.stopPropagation()}>
-                  <div className="flex items-center">
-                    <Phone className="w-3.5 h-3.5 mr-2" /> {staff.phone || 'N/A'}
-                  </div>
-                  <div className="flex items-center">
-                    <CalendarIcon className="w-3.5 h-3.5 mr-2" /> 
-                    {staff.joining_date || staff.joiningDate ? format(new Date(staff.joining_date || staff.joiningDate), 'dd MMM yyyy') : 'N/A'}
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 bg-gray-50 flex-1 flex flex-col justify-between" onClick={e => e.stopPropagation()}>
-                <div className="space-y-4 mb-4">
-                  <div className="flex flex-col">
-                    <label className="text-xs font-semibold text-gray-500 mb-1">Monthly Salary</label>
-                    <div className="relative flex items-center focus-within:ring-1 focus-within:ring-gray-400 focus-within:border-gray-400 rounded-xl transition-all shadow-sm bg-white border border-gray-200">
-                      <IndianRupee className="w-4 h-4 text-gray-400 absolute left-3" />
-                      <input 
-                        type="number" 
-                        className="w-full bg-transparent border-none rounded-xl pl-9 pr-3 py-2 text-sm font-semibold text-gray-900 outline-none"
-                        value={baseSalary}
-                        onChange={(e) => handleSalaryChange(staff.id, e.target.value)}
-                      />
+                <div className="p-6 border-b border-gray-100 bg-white">
+                  <div className="flex items-center gap-4 mb-4 pr-8">
+                    <div className="w-14 h-14 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center shadow-sm shrink-0 group-hover:bg-gray-900 group-hover:border-gray-900 transition-colors">
+                      <span className="text-gray-600 font-bold text-lg group-hover:text-white transition-colors">{initials}</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-gray-900">{staffName}</h3>
+                      <p className="text-sm font-medium text-gray-500">{staff.gender}</p>
+                    </div>
+                    <div className={`px-2.5 py-1 rounded-md text-xs font-bold border ${staff.status === 'Active' ? 'bg-success/10 text-success border-success/20' : 'bg-danger/10 text-danger border-danger/20'}`}>
+                      {staff.status || 'Active'}
                     </div>
                   </div>
-                  <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
-                    <span className="text-xs font-semibold text-gray-500">Commission (10%)</span>
-                    <span className="font-bold text-success text-sm">+ ₹{metrics.commission.toLocaleString()}</span>
+
+                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-500" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center">
+                      <Phone className="w-3.5 h-3.5 mr-2" /> {staff.phone || 'N/A'}
+                    </div>
+                    <div className="flex items-center">
+                      <CalendarIcon className="w-3.5 h-3.5 mr-2" /> 
+                      {staff.joining_date || staff.joiningDate ? format(new Date(staff.joining_date || staff.joiningDate), 'dd MMM yyyy') : 'N/A'}
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm font-bold text-gray-900">Total Payable</span>
-                    <span className="text-lg font-bold text-gray-900">₹{totalPayable.toLocaleString()}</span>
+                <div className="p-6 bg-gray-50 flex-1 flex flex-col justify-between" onClick={e => e.stopPropagation()}>
+                  <div className="space-y-4 mb-4">
+                    <div className="flex flex-col">
+                      <label className="text-xs font-semibold text-gray-500 mb-1">Monthly Salary</label>
+                      <div className="relative flex items-center focus-within:ring-1 focus-within:ring-gray-400 focus-within:border-gray-400 rounded-xl transition-all shadow-sm bg-white border border-gray-200">
+                        <IndianRupee className="w-4 h-4 text-gray-400 absolute left-3" />
+                        <input 
+                          type="number" 
+                          className="w-full bg-transparent border-none rounded-xl pl-9 pr-3 py-2 text-sm font-semibold text-gray-900 outline-none"
+                          value={baseSalary}
+                          onChange={(e) => handleSalaryChange(staff.id, e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
+                      <span className="text-xs font-semibold text-gray-500">Commission (10%)</span>
+                      <span className="font-bold text-success text-sm">+ ₹{metrics.commission.toLocaleString()}</span>
+                    </div>
                   </div>
-                  <button 
-                    onClick={(e) => handlePaySalary(e, staff.id, totalPayable, staffName)}
-                    className="w-full py-2.5 bg-gray-900 border border-gray-900 text-white rounded-xl font-semibold text-sm hover:bg-black transition-all flex items-center justify-center shadow-sm"
-                  >
-                    Pay Salary
-                  </button>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-sm font-bold text-gray-900">Total Payable</span>
+                      <span className="text-lg font-bold text-gray-900">₹{totalPayable.toLocaleString()}</span>
+                    </div>
+                    <button 
+                      onClick={(e) => handlePaySalary(e, staff.id, totalPayable, staffName)}
+                      className="w-full py-2.5 bg-gray-900 border border-gray-900 text-white rounded-xl font-semibold text-sm hover:bg-black transition-all flex items-center justify-center shadow-sm"
+                    >
+                      Pay Salary
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Edit / Add Staff Modal */}
       {isEditModalOpen && (
@@ -349,7 +354,7 @@ export default function Staff() {
             <div className="flex-1 overflow-y-auto p-6 bg-gray-50 custom-scrollbar">
               <div className="grid lg:grid-cols-3 gap-6">
                 
-                {/* Left Column: Summary & Attendance */}
+                {/* Left Column: Summary */}
                 <div className="lg:col-span-1 space-y-6">
                   
                   {/* Monthly Summary */}
@@ -379,33 +384,14 @@ export default function Staff() {
                     </div>
                   </div>
 
-                  {/* Attendance Placeholder */}
-                  <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                     <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center"><CalendarIcon className="w-5 h-5 mr-2 text-gray-500"/> Attendance</h4>
-                     <div className="grid grid-cols-3 gap-3">
-                       <div className="bg-success/10 border border-success/20 rounded-xl p-3 flex flex-col items-center justify-center text-center">
-                         <span className="text-xl font-bold text-success">22</span>
-                         <span className="text-[10px] font-bold uppercase tracking-wider text-success/80 mt-1">Present</span>
-                       </div>
-                       <div className="bg-danger/10 border border-danger/20 rounded-xl p-3 flex flex-col items-center justify-center text-center">
-                         <span className="text-xl font-bold text-danger">1</span>
-                         <span className="text-[10px] font-bold uppercase tracking-wider text-danger/80 mt-1">Absent</span>
-                       </div>
-                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex flex-col items-center justify-center text-center">
-                         <span className="text-xl font-bold text-blue-600">2</span>
-                         <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600/80 mt-1">Leave</span>
-                       </div>
-                     </div>
-                  </div>
-
                 </div>
 
                 {/* Right Column: Service History */}
                 <div className="lg:col-span-2">
                   <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm h-full">
-                    <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center"><FileText className="w-5 h-5 mr-2 text-gray-500"/> Customer Service History (Current Month)</h4>
+                    <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center"><FileText className="w-5 h-5 mr-2 text-gray-500"/> Service History (Current Month)</h4>
                     
-                    {selectedStaffMetrics.currentMonthInvoices.length === 0 ? (
+                    {selectedStaffMetrics.staffVisits.length === 0 ? (
                       <div className="text-center py-10 text-gray-500 border-2 border-dashed border-gray-200 rounded-xl">
                         No customers served this month.
                       </div>
@@ -416,32 +402,26 @@ export default function Staff() {
                             <tr>
                               <th className="px-4 py-3 rounded-tl-lg">Date</th>
                               <th className="px-4 py-3">Customer</th>
-                              <th className="px-4 py-3">Service</th>
-                              <th className="px-4 py-3">Service Amount</th>
+                              <th className="px-4 py-3">Services</th>
+                              <th className="px-4 py-3">Service Total</th>
                               <th className="px-4 py-3 text-right rounded-tr-lg">Commission</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {selectedStaffMetrics.currentMonthInvoices.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(inv => {
-                              let srvPrice = 0;
-                              let srvNames = '';
-                              if (Array.isArray(inv.services)) {
-                                srvPrice = inv.services.reduce((sum: number, s: any) => sum + (Number(s.price) || 0), 0);
-                                srvNames = inv.services.map((s: any) => s.name).join(', ');
-                              } else {
-                                srvPrice = Number(inv.servicePrice) || 0;
-                                srvNames = inv.serviceName || 'Service';
-                              }
+                            {selectedStaffMetrics.staffVisits.sort((a,b) => new Date(b.visit_date).getTime() - new Date(a.visit_date).getTime()).map(v => {
+                              const srvNames = v.visit_services?.map((s: any) => s.service_name).join(', ') || 'No Services';
+                              const srvTotal = v.service_total || 0;
                               
                               return (
-                              <tr key={inv.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                <td className="px-4 py-3 whitespace-nowrap text-gray-500">{inv.date ? format(new Date(inv.date), 'dd MMM yyyy') : ''}</td>
-                                <td className="px-4 py-3 font-semibold text-gray-900">{inv.customer_name || inv.customerName || 'Walk-in'}</td>
-                                <td className="px-4 py-3 text-gray-900">{srvNames}</td>
-                                <td className="px-4 py-3 text-gray-900">₹{srvPrice.toLocaleString()}</td>
-                                <td className="px-4 py-3 text-right font-bold text-success">₹{(srvPrice * 0.10).toFixed(2)}</td>
-                              </tr>
-                            )})}
+                                <tr key={v.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                  <td className="px-4 py-3 whitespace-nowrap text-gray-500">{v.visit_date ? format(new Date(v.visit_date), 'dd MMM yyyy') : ''}</td>
+                                  <td className="px-4 py-3 font-semibold text-gray-900">{v.customer?.name || 'Walk-in'}</td>
+                                  <td className="px-4 py-3 text-gray-900">{srvNames}</td>
+                                  <td className="px-4 py-3 text-gray-900">₹{srvTotal.toLocaleString()}</td>
+                                  <td className="px-4 py-3 text-right font-bold text-success">₹{(srvTotal * 0.10).toFixed(2)}</td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>

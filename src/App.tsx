@@ -7,7 +7,6 @@ import Customers from './pages/Customers';
 import Services from './pages/Services';
 import Calendar from './pages/Calendar';
 import Inventory from './pages/Inventory';
-import Billing from './pages/Billing';
 import Staff from './pages/Staff';
 import Accounts from './pages/Accounts';
 import Expenses from './pages/Expenses';
@@ -39,7 +38,6 @@ function App() {
               <Route path="customers" element={<Customers />} />
               <Route path="services" element={<Services />} />
               <Route path="inventory" element={<Inventory />} />
-              <Route path="billing" element={<Billing />} />
               <Route path="staff" element={<Staff />} />
               <Route path="expenses" element={<Expenses />} />
               <Route path="accounts" element={<Accounts />} />

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Customer, Staff, Service, Product, Invoice, Expense, InventoryLog, User } from '../types';
+import type { Customer, Staff, Service, Product, Expense, InventoryLog, User } from '../types';
 
 interface AppState {
   isAuthenticated: boolean;
@@ -10,7 +10,6 @@ interface AppState {
   staff: Staff[];
   services: Service[];
   products: Product[];
-  invoices: Invoice[];
   expenses: Expense[];
   inventoryLogs: InventoryLog[];
   
@@ -21,7 +20,6 @@ interface AppState {
   addCustomer: (customer: Customer) => void;
   updateCustomer: (id: number, customer: Partial<Customer>) => void;
   deleteCustomer: (id: number) => void;
-  addInvoice: (invoice: Invoice) => void;
   addStaff: (staff: Staff) => void;
   updateStaffSalary: (id: string, salary: number) => void;
   updateProductStock: (id: string, newStock: number) => void;
@@ -49,7 +47,6 @@ export const useStore = create<AppState>()(
       staff: initialStaff,
       services: initialServices,
       products: initialProducts,
-      invoices: [],
       expenses: [],
       inventoryLogs: [],
 
@@ -79,90 +76,6 @@ export const useStore = create<AppState>()(
       deleteCustomer: (id) => set((state) => ({
         customers: state.customers.filter((c) => c.id !== id)
       })),
-      addInvoice: (invoice) => set((state) => {
-        const existingCustomer = state.customers.find(c => c.id === invoice.customerId);
-        let updatedCustomers = state.customers;
-
-        if (existingCustomer) {
-          updatedCustomers = state.customers.map(c => 
-            c.id === invoice.customerId 
-              ? { 
-                  ...c, 
-                  totalSpend: c.totalSpend + invoice.grandTotal, 
-                  visitCount: c.visitCount + 1, 
-                  lastServiceDate: invoice.date,
-                  phone: invoice.customerPhone || c.phone,
-                  dob: invoice.customerDob || c.dob
-                }
-              : c
-          );
-        } else {
-          updatedCustomers = [...state.customers, {
-            id: invoice.customerId,
-            name: invoice.customerName,
-            phone: invoice.customerPhone || 'N/A',
-            dob: invoice.customerDob,
-            totalSpend: invoice.grandTotal,
-            visitCount: 1,
-            lastServiceDate: invoice.date,
-            createdAt: new Date().toISOString()
-          }];
-        }
-
-        // Process Inventory logs for Sales and Consumption
-        const newLogs: InventoryLog[] = [];
-        let updatedProducts = [...state.products];
-
-        // Handle Sold Products (Retail)
-        invoice.soldProducts?.forEach(sp => {
-          const product = state.products.find(p => p.id === sp.id);
-          if (product) {
-            newLogs.push({
-              id: `log_sale_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-              productId: product.id,
-              productName: product.name,
-              type: 'SALE',
-              quantity: sp.quantity,
-              date: invoice.date,
-              sellingPrice: sp.price,
-              customerId: invoice.customerId,
-              customerName: invoice.customerName,
-              invoiceId: invoice.id
-            });
-            updatedProducts = updatedProducts.map(p => 
-              p.id === sp.id ? { ...p, stockQuantity: Math.max(0, p.stockQuantity - sp.quantity) } : p
-            );
-          }
-        });
-
-        // Handle Consumed Products (Service usage)
-        invoice.consumedProducts?.forEach(cp => {
-          const product = state.products.find(p => p.id === cp.id);
-          if (product) {
-            newLogs.push({
-              id: `log_cons_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-              productId: product.id,
-              productName: product.name,
-              type: 'CONSUMPTION',
-              quantity: cp.quantity,
-              date: invoice.date,
-              customerId: invoice.customerId,
-              customerName: invoice.customerName,
-              invoiceId: invoice.id
-            });
-            updatedProducts = updatedProducts.map(p => 
-              p.id === cp.id ? { ...p, stockQuantity: Math.max(0, p.stockQuantity - cp.quantity) } : p
-            );
-          }
-        });
-
-        return {
-          invoices: [...state.invoices, invoice],
-          customers: updatedCustomers,
-          inventoryLogs: [...state.inventoryLogs, ...newLogs],
-          products: updatedProducts
-        };
-      }),
       addStaff: (staff) => set((state) => ({ staff: [...state.staff, staff] })),
       updateStaffSalary: (id, salary) => set((state) => ({
         staff: state.staff.map((s) => s.id === id ? { ...s, salary } : s)

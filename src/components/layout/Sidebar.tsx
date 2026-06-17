@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   LayoutDashboard, Users, Package, Calendar, 
-  Receipt, FileText, PieChart, Scissors,
+  FileText, PieChart, Scissors,
   LogOut, User as UserIcon, List
 } from 'lucide-react';
  import { cn } from '../../lib/utils';
@@ -14,7 +14,6 @@ const navigation = [
   { name: 'Calendar', href: '/calendar', icon: Calendar },
   { name: 'Customer Management', href: '/customers', icon: Users },
   { name: 'Services', href: '/services', icon: List },
-  { name: 'Billing', href: '/billing', icon: Receipt },
   { name: 'Inventory', href: '/inventory', icon: Package },
   { name: 'Staff', href: '/staff', icon: Users },
   { name: 'Expenses', href: '/expenses', icon: FileText },

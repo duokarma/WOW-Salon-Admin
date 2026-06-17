@@ -295,7 +295,7 @@ export default function Inventory() {
                     <td className="px-6 py-4 font-medium text-gray-900">{log.productName}</td>
                     <td className="px-6 py-4 text-gray-500">
                        {log.customerName}
-                       {log.invoiceId && <span className="block text-xs mt-0.5 text-gray-400">Inv #{log.invoiceId.split('_')[1]}</span>}
+                       {log.visitId && <span className="block text-xs mt-0.5 text-gray-400">Visit #{log.visitId.split('_')[1] || log.visitId.substring(0, 8)}</span>}
                     </td>
                     <td className="px-6 py-4 text-center font-bold text-gray-900">-{log.quantity}</td>
                     <td className="px-6 py-4 text-right text-gray-900">₹{log.sellingPrice?.toLocaleString() || '-'}</td>
@@ -338,7 +338,7 @@ export default function Inventory() {
                       <td className="px-6 py-4 font-medium text-gray-900">{log.productName}</td>
                       <td className="px-6 py-4 text-gray-500">
                          {log.customerName}
-                         {log.invoiceId && <span className="block text-xs mt-0.5 text-gray-400">Inv #{log.invoiceId.split('_')[1]}</span>}
+                         {log.visitId && <span className="block text-xs mt-0.5 text-gray-400">Visit #{log.visitId.split('_')[1] || log.visitId.substring(0, 8)}</span>}
                       </td>
                       <td className="px-6 py-4 text-center font-bold text-gray-900">-{log.quantity}</td>
                       <td className="px-6 py-4 text-right font-medium text-warning">₹{costValue.toLocaleString()}</td>

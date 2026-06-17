@@ -62,38 +62,50 @@ export interface InventoryLog {
   sellingPrice?: number; // Only for SALE
   customerId?: number;
   customerName?: string;
-  invoiceId?: string;
+  visitId?: string;
 }
 
-export interface InvoiceItem {
+export interface VisitService {
   id: string;
-  name: string;
+  visit_id: string;
+  service_id: string;
+  service_name: string;
   price: number;
-  quantity: number;
 }
 
-export interface Invoice {
+export interface VisitProduct {
   id: string;
-  customerId: number;
-  customerName: string;
-  customerPhone?: string;
-  customerDob?: string;
-  date: string;
-  
-  // Legacy support for older records, or we can just migrate
-  serviceName?: string;
-  servicePrice?: number;
-  productName?: string;
-  productPrice?: number;
-  
-  // New Arrays for ERP
-  services: InvoiceItem[];
-  soldProducts: InvoiceItem[];
-  consumedProducts: InvoiceItem[]; // price is usually 0 here, but tracks what was used
+  visit_id: string;
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  price: number;
+}
 
-  staffId: string;
-  staffName: string;
-  grandTotal: number;
+export interface CustomerVisit {
+  id: string;
+  customer_id: number;
+  visit_date: string;
+  service_total: number;
+  product_total: number;
+  grand_total: number;
+  staff_id: string;
+  created_at: string;
+  
+  // Joins (optional based on API response)
+  customer?: Customer;
+  staff?: Staff;
+  visit_services?: VisitService[];
+  visit_products?: VisitProduct[];
+}
+
+export interface StaffCommission {
+  id: string;
+  staff_id: string;
+  visit_id: string;
+  service_amount: number;
+  commission_amount: number;
+  created_at: string;
 }
 export interface Expense {
   id: string;

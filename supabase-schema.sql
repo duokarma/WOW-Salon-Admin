@@ -12,9 +12,6 @@ CREATE TABLE IF NOT EXISTS public.services (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Note: The instructions assumed the following tables might also need to be created if not present.
--- If they already exist, this will safely skip due to IF NOT EXISTS (if supported in your context) or you can run only the services part.
-
 -- 2. Create Staff Table
 CREATE TABLE IF NOT EXISTS public.staff (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -28,16 +25,43 @@ CREATE TABLE IF NOT EXISTS public.staff (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 3. Create Bills/Invoices Table
-CREATE TABLE IF NOT EXISTS public.bills (
+-- 3. Customer Visits Base Table
+CREATE TABLE IF NOT EXISTS public.customer_visits (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    customer_id INTEGER REFERENCES public.customers(id),
-    customer_name TEXT,
-    customer_phone TEXT,
-    date TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    services JSONB DEFAULT '[]'::jsonb,
-    staff_id UUID REFERENCES public.staff(id),
-    staff_name TEXT,
+    customer_id INTEGER REFERENCES public.customers(id) ON DELETE CASCADE,
+    visit_date TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    service_total NUMERIC DEFAULT 0,
+    product_total NUMERIC DEFAULT 0,
     grand_total NUMERIC DEFAULT 0,
+    staff_id UUID REFERENCES public.staff(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 4. Visit Services Mapping Table
+CREATE TABLE IF NOT EXISTS public.visit_services (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    visit_id UUID REFERENCES public.customer_visits(id) ON DELETE CASCADE,
+    service_id UUID REFERENCES public.services(id) ON DELETE SET NULL,
+    service_name TEXT NOT NULL,
+    price NUMERIC NOT NULL DEFAULT 0
+);
+
+-- 5. Visit Products Mapping Table
+CREATE TABLE IF NOT EXISTS public.visit_products (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    visit_id UUID REFERENCES public.customer_visits(id) ON DELETE CASCADE,
+    product_id INTEGER REFERENCES public.products(id) ON DELETE SET NULL,
+    product_name TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    price NUMERIC NOT NULL DEFAULT 0
+);
+
+-- 6. Staff Commissions Table
+CREATE TABLE IF NOT EXISTS public.staff_commissions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    staff_id UUID REFERENCES public.staff(id) ON DELETE CASCADE,
+    visit_id UUID REFERENCES public.customer_visits(id) ON DELETE CASCADE,
+    service_amount NUMERIC NOT NULL DEFAULT 0,
+    commission_amount NUMERIC NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

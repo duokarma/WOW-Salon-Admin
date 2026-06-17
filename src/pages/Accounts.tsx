@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useStore } from '../store/useStore';
+import React, { useState, useMemo, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { PieChart as PieChartIcon, ArrowUpRight, ArrowDownRight, IndianRupee } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { format, isSameMonth, isSameYear } from 'date-fns';
@@ -7,25 +7,45 @@ import { format, isSameMonth, isSameYear } from 'date-fns';
 const COLORS = ['#111827', '#374151', '#4B5563', '#6B7280', '#9CA3AF', '#D1D5DB'];
 
 export default function Accounts() {
-  const store = useStore();
   const [filter, setFilter] = useState<'This Month' | 'This Year' | 'All Time'>('This Month');
+  const [visits, setVisits] = useState<any[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
+
+  const fetchData = async () => {
+    const [vRes, eRes] = await Promise.all([
+      supabase.from('customer_visits').select('*, customer:customer_id(name)'),
+      supabase.from('expenses').select('*')
+    ]);
+    if (vRes.data) setVisits(vRes.data);
+    if (eRes.data) setExpenses(eRes.data);
+  };
+
+  useEffect(() => {
+    fetchData();
+    const channel = supabase.channel('accounts-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customer_visits' }, fetchData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, fetchData)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   const now = new Date();
 
   // Filter Data
   const filterByDate = (dateString: string) => {
+    if (!dateString) return false;
     const d = new Date(dateString);
     if (filter === 'This Month') return isSameMonth(d, now);
     if (filter === 'This Year') return isSameYear(d, now);
     return true; // All Time
   };
 
-  const filteredInvoices = store.invoices.filter(inv => filterByDate(inv.date));
-  const filteredExpenses = store.expenses.filter(exp => filterByDate(exp.date));
+  const filteredVisits = visits.filter(v => filterByDate(v.visit_date));
+  const filteredExpenses = expenses.filter(exp => filterByDate(exp.date));
 
   // Calculations
-  const totalRevenue = filteredInvoices.reduce((sum, inv) => sum + inv.grandTotal, 0);
-  const totalExpenses = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const totalRevenue = filteredVisits.reduce((sum, v) => sum + (Number(v.grand_total) || 0), 0);
+  const totalExpenses = filteredExpenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
   const netProfit = totalRevenue - totalExpenses;
 
   // Pie Chart Data (Category breakdown)
@@ -33,25 +53,25 @@ export default function Accounts() {
     const breakdown: Record<string, number> = {};
     filteredExpenses.forEach(exp => {
       if (!breakdown[exp.category]) breakdown[exp.category] = 0;
-      breakdown[exp.category] += exp.amount;
+      breakdown[exp.category] += Number(exp.amount) || 0;
     });
     return Object.entries(breakdown).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value);
   }, [filteredExpenses]);
 
-  // Recent Transactions (Mix of Invoices and Expenses)
+  // Recent Transactions (Mix of Visits and Expenses)
   const recentTransactions = useMemo(() => {
-    const incomes = filteredInvoices.map(inv => ({
-      id: inv.id,
-      title: `Invoice: ${inv.customerName}`,
-      amount: inv.grandTotal,
+    const incomes = filteredVisits.map(v => ({
+      id: v.id,
+      title: `Visit: ${v.customer?.name || 'Walk-in'}`,
+      amount: Number(v.grand_total) || 0,
       type: 'income',
-      date: new Date(inv.date)
+      date: new Date(v.visit_date)
     }));
     
     const outgoings = filteredExpenses.map(exp => ({
       id: exp.id,
       title: exp.title,
-      amount: exp.amount,
+      amount: Number(exp.amount) || 0,
       type: 'expense',
       date: new Date(exp.date)
     }));
@@ -59,7 +79,7 @@ export default function Accounts() {
     return [...incomes, ...outgoings]
       .sort((a, b) => b.date.getTime() - a.date.getTime())
       .slice(0, 10);
-  }, [filteredInvoices, filteredExpenses]);
+  }, [filteredVisits, filteredExpenses]);
 
   return (
     <div className="space-y-6 pb-10">
