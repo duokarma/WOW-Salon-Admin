@@ -5,13 +5,7 @@ import { format, isSameMonth, isSameYear, isToday } from 'date-fns';
 import type { Expense } from '../types';
 
 const EXPENSE_CATEGORIES = [
-  'Water Bill', 'Electricity Bill', 'Internet / WiFi', 'Rent', 
-  'Staff Salary', 'Staff Bonus', 'Salon Products Purchase', 
-  'Hair Color Stock', 'Shampoo Stock', 'Treatment Products', 
-  'Cleaning Supplies', 'Equipment Purchase', 'Equipment Repair', 
-  'Furniture', 'Marketing', 'Instagram Ads', 'Google Ads', 
-  'Festival Decoration', 'Tea / Coffee', 'Snacks', 
-  'Stationery', 'Transportation', 'Miscellaneous'
+  'Electricity', 'Water', 'Rent', 'Internet', 'Other Expenses'
 ];
 
 const PAYMENT_METHODS = ['Cash', 'UPI', 'Bank Transfer', 'Card'];
@@ -19,7 +13,7 @@ const STATUSES = ['Paid', 'Pending', 'Partially Paid'];
 
 export default function Expenses() {
   const store = useStore();
-  const expenses = store.expenses;
+  const expenses = store.expenses || [];
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
@@ -137,15 +131,15 @@ export default function Expenses() {
   }, [expenses]);
 
   return (
-    <div className="space-y-8 pb-10 relative">
+    <div className="space-y-8 pb-10 relative max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900">Expense Management</h2>
-          <p className="text-gray-500 mt-1">Track and analyze all salon expenditures.</p>
+          <h2 className="text-4xl font-light tracking-tight text-white">Expense Management</h2>
+          <p className="text-white/50 mt-2 font-light tracking-wide">Track and analyze all salon expenditures.</p>
         </div>
         <button 
           onClick={() => { resetForm(); setIsModalOpen(true); }}
-          className="inline-flex items-center justify-center rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 transition-all"
+          className="btn-primary"
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Expense
@@ -154,21 +148,21 @@ export default function Expenses() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="glass-card p-5 flex flex-col justify-center bg-white border border-gray-200">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Today's Expenses</p>
-          <p className="text-2xl font-bold text-gray-900 flex items-center"><IndianRupee className="w-5 h-5 mr-0.5 text-gray-400"/>{todayExpenses.toLocaleString()}</p>
+        <div className="glass-card p-6 flex flex-col justify-center">
+          <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2">Today's Expenses</p>
+          <p className="text-3xl font-light text-white tracking-tight flex items-center"><IndianRupee className="w-5 h-5 mr-1 text-white/50"/>{todayExpenses.toLocaleString()}</p>
         </div>
-        <div className="glass-card p-5 flex flex-col justify-center bg-white border border-gray-200">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">This Month</p>
-          <p className="text-2xl font-bold text-gray-900 flex items-center"><IndianRupee className="w-5 h-5 mr-0.5 text-gray-400"/>{monthExpenses.toLocaleString()}</p>
+        <div className="glass-card p-6 flex flex-col justify-center">
+          <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2">This Month</p>
+          <p className="text-3xl font-light text-white tracking-tight flex items-center"><IndianRupee className="w-5 h-5 mr-1 text-white/50"/>{monthExpenses.toLocaleString()}</p>
         </div>
-        <div className="glass-card p-5 flex flex-col justify-center bg-white border border-gray-200">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">This Year</p>
-          <p className="text-2xl font-bold text-gray-900 flex items-center"><IndianRupee className="w-5 h-5 mr-0.5 text-gray-400"/>{yearExpenses.toLocaleString()}</p>
+        <div className="glass-card p-6 flex flex-col justify-center">
+          <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2">This Year</p>
+          <p className="text-3xl font-light text-white tracking-tight flex items-center"><IndianRupee className="w-5 h-5 mr-1 text-white/50"/>{yearExpenses.toLocaleString()}</p>
         </div>
-        <div className="glass-card p-5 flex flex-col justify-center border-danger/30 bg-danger/5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider text-danger mb-1">Pending Payments</p>
-          <p className="text-2xl font-bold text-danger flex items-center"><IndianRupee className="w-5 h-5 mr-0.5 opacity-70"/>{pendingPayments.toLocaleString()}</p>
+        <div className="glass-card p-6 flex flex-col justify-center border-danger/30 bg-danger/5">
+          <p className="text-xs font-bold uppercase tracking-widest text-danger mb-2">Pending Payments</p>
+          <p className="text-3xl font-light text-danger tracking-tight flex items-center"><IndianRupee className="w-5 h-5 mr-1 opacity-70"/>{pendingPayments.toLocaleString()}</p>
         </div>
       </div>
 
@@ -179,34 +173,34 @@ export default function Expenses() {
           
           {/* Filters */}
           <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center flex-1 min-w-[200px] bg-white rounded-xl px-3 py-2 shadow-sm border border-gray-200 focus-within:ring-1 focus-within:ring-gray-500 focus-within:border-gray-500 transition-all">
-              <Search className="h-4 w-4 text-gray-400 mr-2" />
+            <div className="flex items-center flex-1 min-w-[200px] glass-panel px-4 py-3 focus-within:border-white/30 transition-all">
+              <Search className="h-4 w-4 text-white/40 mr-3" />
               <input
                 type="text"
                 placeholder="Search description..."
-                className="bg-transparent outline-none w-full text-sm text-gray-900 placeholder-gray-400"
+                className="bg-transparent outline-none w-full text-sm text-white placeholder-white/30 font-light tracking-wide"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className="bg-white rounded-xl px-4 py-2 shadow-sm border border-gray-200 text-sm font-medium text-gray-700 outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500">
-              <option value="">All Months</option>
-              <option value={format(now, 'yyyy-MM')}>This Month</option>
+            <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className="glass-input px-4 py-3 appearance-none">
+              <option value="" className="bg-black">All Months</option>
+              <option value={format(now, 'yyyy-MM')} className="bg-black">This Month</option>
             </select>
-            <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="bg-white rounded-xl px-4 py-2 shadow-sm border border-gray-200 text-sm font-medium text-gray-700 outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500">
-              <option value="">All Categories</option>
-              {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="glass-input px-4 py-3 appearance-none">
+              <option value="" className="bg-black">All Categories</option>
+              {EXPENSE_CATEGORIES.map(c => <option key={c} value={c} className="bg-black">{c}</option>)}
             </select>
-            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="bg-white rounded-xl px-4 py-2 shadow-sm border border-gray-200 text-sm font-medium text-gray-700 outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500">
-              <option value="">All Statuses</option>
-              {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="glass-input px-4 py-3 appearance-none">
+              <option value="" className="bg-black">All Statuses</option>
+              {STATUSES.map(s => <option key={s} value={s} className="bg-black">{s}</option>)}
             </select>
           </div>
 
-          <div className="glass-card overflow-hidden bg-white border border-gray-200 shadow-sm rounded-xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-medium border-b border-gray-200">
+          <div className="glass-card overflow-hidden">
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-sm text-left text-white">
+                <thead className="bg-white/5 text-white/50 text-xs uppercase font-bold tracking-wider border-b border-white/10">
                   <tr>
                     <th className="px-6 py-4">Date</th>
                     <th className="px-6 py-4">Description</th>
@@ -217,21 +211,21 @@ export default function Expenses() {
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-white/5">
                   {filteredExpenses.length === 0 ? (
-                    <tr><td colSpan={7} className="text-center py-12 text-gray-500">No expenses found.</td></tr>
+                    <tr><td colSpan={7} className="text-center py-16 text-white/50 font-light text-lg">No expenses found.</td></tr>
                   ) : (
                     filteredExpenses.map(e => (
-                      <tr key={e.id} className="hover:bg-gray-50 transition-colors group">
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">{format(new Date(e.date), 'dd MMM yyyy')}</td>
-                        <td className="px-6 py-4 font-semibold text-gray-900">{e.title}</td>
+                      <tr key={e.id} className="hover:bg-white/5 transition-colors group font-light">
+                        <td className="px-6 py-4 whitespace-nowrap text-white/70">{format(new Date(e.date), 'dd MMM yyyy')}</td>
+                        <td className="px-6 py-4 font-medium text-white">{e.title}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="bg-gray-100 text-gray-600 border border-gray-200 px-2.5 py-1 rounded-md text-xs font-semibold">{e.category}</span>
+                          <span className="bg-white/5 text-white border border-white/10 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">{e.category}</span>
                         </td>
-                        <td className="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">₹{e.amount.toLocaleString()}</td>
-                        <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{e.paymentMethod}</td>
+                        <td className="px-6 py-4 font-bold text-white whitespace-nowrap">₹{e.amount.toLocaleString()}</td>
+                        <td className="px-6 py-4 text-white/50 whitespace-nowrap">{e.paymentMethod}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${
+                          <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border ${
                             e.status === 'Paid' ? 'bg-success/10 text-success border-success/20' :
                             e.status === 'Pending' ? 'bg-danger/10 text-danger border-danger/20' :
                             'bg-warning/10 text-warning border-warning/20'
@@ -240,8 +234,8 @@ export default function Expenses() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => handleOpenEdit(e)} className="p-1.5 text-blue-600 hover:bg-blue-50 hover:text-blue-800 rounded-lg transition-colors"><Edit2 className="w-4 h-4"/></button>
-                          <button onClick={() => handleDelete(e.id)} className="p-1.5 text-danger hover:bg-danger/10 rounded-lg transition-colors"><Trash2 className="w-4 h-4"/></button>
+                          <button onClick={() => handleOpenEdit(e)} className="p-2 text-white/70 hover:bg-white/10 hover:text-white rounded-xl transition-colors"><Edit2 className="w-4 h-4"/></button>
+                          <button onClick={() => handleDelete(e.id)} className="p-2 text-danger hover:bg-danger/10 rounded-xl transition-colors"><Trash2 className="w-4 h-4"/></button>
                         </td>
                       </tr>
                     ))
@@ -254,20 +248,20 @@ export default function Expenses() {
 
         {/* Sidebar Analytics */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="glass-card p-6 sticky top-6 bg-white border border-gray-200 shadow-sm rounded-xl">
-            <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center"><PieChart className="w-5 h-5 mr-2 text-gray-500"/> Monthly Analytics</h4>
+          <div className="glass-card p-6 sticky top-6">
+            <h4 className="text-xl font-light tracking-wide text-white mb-6 flex items-center"><PieChart className="w-5 h-5 mr-3 text-white/50"/> Monthly Analytics</h4>
             {categoryAnalytics.length === 0 ? (
-              <p className="text-sm text-gray-500">No expenses this month.</p>
+              <p className="text-sm text-white/50 font-light">No expenses this month.</p>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {categoryAnalytics.map(([cat, amount]) => (
                   <div key={cat}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="font-medium text-gray-600">{cat}</span>
-                      <span className="font-bold text-gray-900">₹{amount}</span>
+                    <div className="flex justify-between text-sm mb-2 font-light">
+                      <span className="text-white/70">{cat}</span>
+                      <span className="text-white">₹{amount}</span>
                     </div>
-                    <div className="w-full bg-gray-100 rounded-full h-1.5">
-                      <div className="bg-gray-900 h-1.5 rounded-full" style={{ width: `${Math.min((amount / monthExpenses) * 100, 100)}%` }}></div>
+                    <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-white h-full rounded-full" style={{ width: `${Math.min((amount / monthExpenses) * 100, 100)}%` }}></div>
                     </div>
                   </div>
                 ))}
@@ -280,65 +274,66 @@ export default function Expenses() {
 
       {/* Modal Form */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-200">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 shrink-0 bg-gray-50">
-              <h3 className="text-xl font-bold text-gray-900">{editingExpenseId ? 'Edit Expense' : 'Add New Expense'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-200 text-gray-500 hover:text-gray-900 rounded-full transition-colors"><X className="w-5 h-5"/></button>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-panel w-full max-w-lg flex flex-col animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0 bg-black/20">
+              <h3 className="text-xl font-light tracking-tight text-white">{editingExpenseId ? 'Edit Expense' : 'Add New Expense'}</h3>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white/10 text-white/50 hover:text-white rounded-full transition-colors"><X className="w-5 h-5"/></button>
             </div>
-            <form onSubmit={handleSubmit} className="flex flex-col h-full max-h-[70vh]">
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-gray-50">
+            <form onSubmit={handleSubmit} className="flex flex-col max-h-[70vh]">
+              <div className="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar">
                 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Description / Title *</label>
-                  <input type="text" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-white border border-gray-300 text-gray-900 rounded-xl px-4 py-2.5 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 shadow-sm" placeholder="E.g., June Water Bill" />
+                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Description / Title *</label>
+                  <input type="text" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="glass-input w-full px-4 py-3" placeholder="E.g., June Water Bill" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Amount *</label>
+                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Amount *</label>
                     <div className="relative flex items-center">
-                      <IndianRupee className="w-4 h-4 text-gray-400 absolute left-3" />
-                      <input type="number" required min="0" step="0.01" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="w-full bg-white border border-gray-300 text-gray-900 rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 shadow-sm" placeholder="0.00" />
+                      <IndianRupee className="w-4 h-4 text-white/40 absolute left-4" />
+                      <input type="number" required min="0" step="0.01" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="glass-input w-full pl-10 pr-4 py-3" placeholder="0.00" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Date *</label>
-                    <input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full bg-white border border-gray-300 text-gray-900 rounded-xl px-4 py-2.5 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 shadow-sm" />
+                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Date *</label>
+                    <input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="glass-input w-full px-4 py-3" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Category *</label>
-                  <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-white border border-gray-300 text-gray-900 rounded-xl px-4 py-2.5 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 shadow-sm">
-                    <option value="">-- Select Category --</option>
-                    {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Category *</label>
+                  <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none">
+                    <option value="" className="bg-black">-- Select Category --</option>
+                    {EXPENSE_CATEGORIES.map(c => <option key={c} value={c} className="bg-black">{c}</option>)}
                   </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Payment Method</label>
-                    <select required value={formData.paymentMethod} onChange={e => setFormData({...formData, paymentMethod: e.target.value})} className="w-full bg-white border border-gray-300 text-gray-900 rounded-xl px-4 py-2.5 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 shadow-sm">
-                      {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Payment Method</label>
+                    <select required value={formData.paymentMethod} onChange={e => setFormData({...formData, paymentMethod: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none">
+                      {PAYMENT_METHODS.map(m => <option key={m} value={m} className="bg-black">{m}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Status</label>
-                    <select required value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full bg-white border border-gray-300 text-gray-900 rounded-xl px-4 py-2.5 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 shadow-sm">
-                      {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Status</label>
+                    <select required value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none">
+                      {STATUSES.map(s => <option key={s} value={s} className="bg-black">{s}</option>)}
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Notes (Optional)</label>
-                  <textarea rows={3} value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full bg-white border border-gray-300 text-gray-900 rounded-xl px-4 py-2.5 outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 resize-none shadow-sm" placeholder="Any additional details..."></textarea>
+                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Notes (Optional)</label>
+                  <textarea rows={3} value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="glass-input w-full px-4 py-3 resize-none" placeholder="Any additional details..."></textarea>
                 </div>
 
               </div>
-              <div className="p-6 border-t border-gray-200 shrink-0 bg-white">
-                <button type="submit" className="w-full py-3.5 rounded-xl bg-gray-900 text-white font-bold hover:bg-black transition-all shadow-sm">
+              <div className="p-6 border-t border-white/10 bg-black/20 rounded-b-2xl flex justify-end gap-3">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary">Cancel</button>
+                <button type="submit" className="btn-primary">
                   {editingExpenseId ? 'Save Changes' : 'Add Expense'}
                 </button>
               </div>

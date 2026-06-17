@@ -12,6 +12,7 @@ export interface Customer {
   dob?: string;
   services_taken?: string[];
   staff_served?: string[];
+  amountPaid?: number;
   createdAt: string;
 }
 
@@ -35,16 +36,13 @@ export interface Service {
 }
 
 export interface Product {
-  id: string;
+  id: number;
   name: string;
-  brand: string;
-  purchasePrice: number;
-  sellingPrice: number;
-  supplierName: string;
-  purchaseDate: string;
-  expiryDate: string;
-  stockQuantity: number;
-  lowStockThreshold: number;
+  purchased_quantity: number;
+  sold_quantity: number;
+  salon_consumption: number;
+  current_stock: number;
+  created_at: string;
 }
 
 export interface InventoryLog {

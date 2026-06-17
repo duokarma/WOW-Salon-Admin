@@ -27,6 +27,7 @@ export const customerService = {
       dob: d.dob ? String(d.dob) : undefined,
       services_taken: d.services_taken || [],
       staff_served: d.staff_served || [],
+      amountPaid: Number(d.amount_paid || 0),
       createdAt: String(d.created_at || new Date().toISOString())
     }));
 
@@ -55,7 +56,8 @@ export const customerService = {
         phone: customerData.phone,
         dob: customerData.dob || null,
         services_taken: customerData.services_taken || [],
-        staff_served: customerData.staff_served || []
+        staff_served: customerData.staff_served || [],
+        amount_paid: customerData.amountPaid || 0
       })
       .select()
       .single();
@@ -72,6 +74,7 @@ export const customerService = {
       dob: data.dob ? String(data.dob) : undefined,
       services_taken: data.services_taken || [],
       staff_served: data.staff_served || [],
+      amountPaid: Number(data.amount_paid || 0),
       createdAt: String(data.created_at || new Date().toISOString())
     } as Customer;
   },
@@ -86,6 +89,7 @@ export const customerService = {
     if (updates.dob !== undefined) payload.dob = updates.dob || null;
     if (updates.services_taken !== undefined) payload.services_taken = updates.services_taken;
     if (updates.staff_served !== undefined) payload.staff_served = updates.staff_served;
+    if (updates.amountPaid !== undefined) payload.amount_paid = updates.amountPaid;
 
     const { data, error } = await supabase
       .from('customers')
@@ -106,6 +110,7 @@ export const customerService = {
       dob: data.dob ? String(data.dob) : undefined,
       services_taken: data.services_taken || [],
       staff_served: data.staff_served || [],
+      amountPaid: Number(data.amount_paid || 0),
       createdAt: String(data.created_at || new Date().toISOString())
     } as Customer;
   },

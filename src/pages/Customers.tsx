@@ -18,7 +18,9 @@ import type { SalonService } from '../lib/serviceService';
 const customerSchema = z.object({
   name: z.string().min(2, "Name is required"),
   phone: z.string().min(10, "Valid phone number is required"),
-  dob: z.string().optional()
+  dob: z.string().optional(),
+  services_taken: z.string().optional(),
+  amountPaid: z.string().optional()
 });
 type CustomerFormData = z.infer<typeof customerSchema>;
 
@@ -102,7 +104,7 @@ export default function Customers() {
 
   const openAddModal = () => {
     setCustomerToEdit(null);
-    reset({ name: '', phone: '', dob: '' });
+    reset({ name: '', phone: '', dob: '', services_taken: '', amountPaid: '' });
     setIsCustomerModalOpen(true);
   };
 
@@ -111,19 +113,29 @@ export default function Customers() {
     reset({
       name: customer.name,
       phone: customer.phone,
-      dob: customer.dob || ''
+      dob: customer.dob || '',
+      services_taken: customer.services_taken ? customer.services_taken.join(', ') : '',
+      amountPaid: customer.amountPaid ? customer.amountPaid.toString() : ''
     });
     setIsCustomerModalOpen(true);
   };
 
   const onSubmitCustomer = async (data: CustomerFormData) => {
     try {
+      const parsedData = {
+        name: data.name,
+        phone: data.phone,
+        dob: data.dob,
+        services_taken: data.services_taken ? data.services_taken.split(',').map(s => s.trim()).filter(Boolean) : [],
+        amountPaid: data.amountPaid ? Number(data.amountPaid) : 0
+      };
+
       if (customerToEdit) {
-        const updated = await customerService.updateCustomer(customerToEdit.id, data);
+        const updated = await customerService.updateCustomer(customerToEdit.id, parsedData);
         store.updateCustomer(updated.id, updated);
         toast.success('Customer updated successfully');
       } else {
-        const newCust = await customerService.addCustomer(data);
+        const newCust = await customerService.addCustomer(parsedData);
         store.addCustomer(newCust);
         toast.success('Customer added successfully');
       }
@@ -467,6 +479,14 @@ export default function Customers() {
                 <div>
                   <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Date of Birth</label>
                   <input type="date" {...register("dob")} className="glass-input w-full px-4 py-3" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Services Taken</label>
+                  <input type="text" {...register("services_taken")} className="glass-input w-full px-4 py-3" placeholder="e.g. Haircut, Spa" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Amount Paid (₹)</label>
+                  <input type="number" {...register("amountPaid")} className="glass-input w-full px-4 py-3" placeholder="e.g. 500" />
                 </div>
               </div>
               <div className="p-6 border-t border-white/10 bg-black/20 rounded-b-2xl flex justify-end gap-3">

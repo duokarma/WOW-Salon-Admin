@@ -24,8 +24,9 @@ CREATE TABLE IF NOT EXISTS public.customers (
     name TEXT NOT NULL,
     phone TEXT,
     dob DATE,
-    services_taken TEXT[], -- Array of service names or just store comma separated
+    services_taken TEXT[], -- Array of service names
     staff_served TEXT[],   -- Array of staff names
+    amount_paid NUMERIC DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
