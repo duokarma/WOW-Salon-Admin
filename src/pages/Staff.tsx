@@ -20,8 +20,8 @@ export default function Staff() {
     try {
       const [staffRes, commissionsRes, visitsRes] = await Promise.all([
         supabase.from('staff').select('*'),
-        supabase.from('staff_commissions').select('*, customer_visits(*)'),
-        supabase.from('customer_visits').select('*, customer:customer_id(name), visit_services(service_name, price)')
+        supabase.from('staff_commissions').select('*'),
+        supabase.from('customer_visits').select('*, customers(name), visit_services(service_name, price)')
       ]);
 
       if (staffRes.data) setStaffList(staffRes.data);
@@ -109,8 +109,9 @@ export default function Staff() {
     // Find all commissions for this staff this month
     const currentMonthCommissions = commissions.filter(c => {
       if (c.staff_id !== staffId) return false;
-      if (!c.customer_visits || !c.customer_visits.visit_date) return false;
-      const vDate = new Date(c.customer_visits.visit_date);
+      const v = visits.find(visit => visit.id === c.visit_id);
+      if (!v || !v.visit_date) return false;
+      const vDate = new Date(v.visit_date);
       return vDate.getMonth() === now.getMonth() && vDate.getFullYear() === now.getFullYear();
     });
 
@@ -415,7 +416,7 @@ export default function Staff() {
                               return (
                                 <tr key={v.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                                   <td className="px-4 py-3 whitespace-nowrap text-gray-500">{v.visit_date ? format(new Date(v.visit_date), 'dd MMM yyyy') : ''}</td>
-                                  <td className="px-4 py-3 font-semibold text-gray-900">{v.customer?.name || 'Walk-in'}</td>
+                                  <td className="px-4 py-3 font-semibold text-gray-900">{v.customers?.name || 'Walk-in'}</td>
                                   <td className="px-4 py-3 text-gray-900">{srvNames}</td>
                                   <td className="px-4 py-3 text-gray-900">₹{srvTotal.toLocaleString()}</td>
                                   <td className="px-4 py-3 text-right font-bold text-success">₹{(srvTotal * 0.10).toFixed(2)}</td>
