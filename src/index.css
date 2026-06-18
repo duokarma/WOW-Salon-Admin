@@ -4,39 +4,38 @@
 
 @layer base {
   :root {
-    color-scheme: light;
-    /* BODY Background: Warm Off White (#FAF9F6) */
-    --background: 45, 20%, 97%; 
-    /* Deep Charcoal Text (#36454F) */
-    --foreground: 204, 19%, 26%;
+    color-scheme: dark;
+    /* BODY Background: Deep Black (#0a0a0a) */
+    --background: 0, 0%, 4%; 
+    /* Text: White */
+    --foreground: 0, 0%, 98%;
     
-    /* SIDEBAR: Ivory (#FFFFF0) */
-    --sidebar: 60, 100%, 97%; 
-    --sidebar-border: 45, 15%, 90%; 
+    /* SIDEBAR */
+    --sidebar: 0, 0%, 6%; 
+    --sidebar-border: 0, 0%, 15%; 
     
-    /* CARDS: Pure White or Ivory */
-    --card: 0, 0%, 100%; 
-    --border: 45, 15%, 90%; 
+    /* CARDS */
+    --card: 0, 0%, 6%; 
+    --border: 0, 0%, 15%; 
     
     /* Text */
-    --text: 204, 19%, 26%; 
-    --secondary-foreground: 204, 10%, 45%;
+    --text: 0, 0%, 98%; 
+    --secondary-foreground: 0, 0%, 60%;
     
     /* Secondary Background */
-    --secondary: 45, 20%, 94%; 
+    --secondary: 0, 0%, 8%; 
     
-    /* Accents */
-    /* Champagne Gold (#F7E7CE) */
-    --primary: 37, 65%, 89%; 
-    --primary-foreground: 204, 19%, 26%; 
-    --primary-hover: 37, 65%, 83%; 
+    /* Accents: Champagne Gold */
+    --primary: 38, 60%, 86%; 
+    --primary-foreground: 0, 0%, 0%; 
+    --primary-hover: 38, 60%, 80%; 
     
-    --secondary-accent: 0, 0%, 90%; 
+    --secondary-accent: 0, 0%, 15%; 
     
-    --accent: 37, 65%, 95%; 
-    --accent-foreground: 204, 19%, 26%; 
-    --muted: 45, 10%, 95%; 
-    --muted-foreground: 204, 10%, 45%; 
+    --accent: 0, 0%, 12%; 
+    --accent-foreground: 0, 0%, 98%; 
+    --muted: 0, 0%, 10%; 
+    --muted-foreground: 0, 0%, 60%; 
     
     /* Semantic Colors */
     --success: 140, 40%, 45%;
@@ -67,30 +66,30 @@
     background: hsla(var(--secondary-foreground), 0.5);
   }
   
-  /* Input overrides for light theme */
-  input[type="text"], input[type="number"], input[type="email"], input[type="tel"], input[type="password"], input[type="date"], select, textarea {
-    @apply bg-white border border-border text-text focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-sm;
+  /* Input overrides for dark theme */
+  input[type="text"], input[type="number"], input[type="email"], input[type="tel"], input[type="password"], input[type="date"], select, textarea, .glass-input {
+    @apply w-full bg-black/40 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-[#F4E3C5]/40 focus:ring-1 focus:ring-[#F4E3C5]/40 rounded-xl transition-all duration-300;
   }
 }
 
 @layer utilities {
-  /* Frosted Cream Glass Utilities */
+  /* Frosted Dark Glass Utilities */
   .liquid-glass {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
     position: relative;
     overflow: hidden;
   }
 
   .glass-panel {
-    @apply bg-white/80 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl rounded-2xl;
+    @apply bg-black/40 border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.5)] backdrop-blur-3xl rounded-2xl;
   }
 
   .glass-sidebar {
-    @apply bg-white/80 border-r border-black/5 shadow-[4px_0_24px_rgba(0,0,0,0.02)] backdrop-blur-2xl;
+    @apply bg-black/40 border-r border-white/5 shadow-[4px_0_24px_rgba(0,0,0,0.2)] backdrop-blur-3xl;
   }
 
   .glass-card {
