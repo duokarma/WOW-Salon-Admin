@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Plus, Search, IndianRupee, X, Edit2, Trash2, PieChart, Package, TrendingUp } from 'lucide-react';
-import { format, isSameMonth, isSameYear, isToday } from 'date-fns';
+import { expenseService } from '../lib/expenseService';
+import { Plus, Search, IndianRupee, X, Edit2, Trash2, PieChart, Package, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
 const EXPENSE_CATEGORIES = [
@@ -13,8 +14,14 @@ const STATUSES = ['Paid', 'Pending', 'Partially Paid'];
 
 export default function Expenses() {
   const [expenses, setExpenses] = useState<any[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [products, setProducts] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>({ todayExpenses: 0, monthExpenses: 0, yearExpenses: 0, pendingPayments: 0, categoryAnalytics: [] });
   const [isLoading, setIsLoading] = useState(true);
+
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
@@ -38,14 +45,28 @@ export default function Expenses() {
     status: 'Paid'
   });
 
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, filterCategory, filterStatus, filterMonth]);
+
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [expRes, prodRes] = await Promise.all([
-        supabase.from('expenses').select('*').order('date', { ascending: false }),
+      const [expRes, statsRes, prodRes] = await Promise.all([
+        expenseService.getExpenses({ page, limit, search: debouncedSearch, category: filterCategory, status: filterStatus, month: filterMonth }),
+        expenseService.getExpenseStats(),
         supabase.from('products').select('*')
       ]);
-      if (expRes.data) setExpenses(expRes.data);
+      setExpenses(expRes.data);
+      setTotalCount(expRes.count);
+      setStats(statsRes);
       if (prodRes.data) setProducts(prodRes.data);
     } catch (err) {
       console.error(err);
@@ -57,7 +78,7 @@ export default function Expenses() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [page, debouncedSearch, filterCategory, filterStatus, filterMonth]);
 
   const resetForm = () => {
     setFormData({
@@ -140,14 +161,6 @@ export default function Expenses() {
     }
   };
 
-  // Calculations
-  const now = new Date();
-  
-  const todayExpenses = expenses.filter(e => isToday(new Date(e.date))).reduce((sum, e) => sum + Number(e.amount), 0);
-  const monthExpenses = expenses.filter(e => isSameMonth(new Date(e.date), now)).reduce((sum, e) => sum + Number(e.amount), 0);
-  const yearExpenses = expenses.filter(e => isSameYear(new Date(e.date), now)).reduce((sum, e) => sum + Number(e.amount), 0);
-  const pendingPayments = expenses.filter(e => e.status !== 'Paid').reduce((sum, e) => sum + Number(e.amount), 0);
-
   // Inventory Calculations
   let totalSpentInventory = 0;
   let currentStockValue = 0;
@@ -168,32 +181,12 @@ export default function Expenses() {
 
   const retailProfit = retailRevenue - retailCost;
 
-  // Filtering
-  const filteredExpenses = expenses.filter(e => {
-    const matchesSearch = e.title.toLowerCase().includes(searchTerm.toLowerCase()) || e.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory ? e.category === filterCategory : true;
-    const matchesStatus = filterStatus ? e.status === filterStatus : true;
-    const matchesMonth = filterMonth ? format(new Date(e.date), 'yyyy-MM') === filterMonth : true;
-    return matchesSearch && matchesCategory && matchesStatus && matchesMonth;
-  });
-
-  // Analytics (Category-wise for current month)
-  const categoryAnalytics = useMemo(() => {
-    const currentMonthExpenses = expenses.filter(e => isSameMonth(new Date(e.date), now));
-    const breakdown: Record<string, number> = {};
-    currentMonthExpenses.forEach(e => {
-      if (!breakdown[e.category]) breakdown[e.category] = 0;
-      breakdown[e.category] += Number(e.amount);
-    });
-    return Object.entries(breakdown).sort((a,b) => b[1] - a[1]);
-  }, [expenses]);
-
   return (
     <div className="space-y-8 pb-10 relative max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-4xl font-light tracking-tight text-white">Expense & Analytics</h2>
-          <p className="text-white/50 mt-2 font-light tracking-wide">Track expenses and monitor inventory profitability.</p>
+          <h2 className="text-4xl font-light tracking-tight text-text">Expense & Analytics</h2>
+          <p className="text-secondary-foreground mt-2 font-light tracking-wide">Track expenses and monitor inventory profitability.</p>
         </div>
         <button 
           onClick={() => { resetForm(); setIsModalOpen(true); }}
@@ -206,15 +199,15 @@ export default function Expenses() {
 
       {/* Inventory Analytics Cards */}
       <div className="glass-card p-6 border-warning/20">
-        <h4 className="text-xl font-light tracking-wide text-white mb-6 flex items-center"><Package className="w-5 h-5 mr-3 text-warning"/> Inventory Accounting</h4>
+        <h4 className="text-xl font-light tracking-wide text-text mb-6 flex items-center"><Package className="w-5 h-5 mr-3 text-warning"/> Inventory Accounting</h4>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-1">Total Capital Invested</p>
-            <p className="text-2xl font-light text-white">₹{totalSpentInventory.toLocaleString()}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-secondary-foreground mb-1">Total Capital Invested</p>
+            <p className="text-2xl font-light text-text">₹{totalSpentInventory.toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-1">Current Stock Value</p>
-            <p className="text-2xl font-light text-white">₹{currentStockValue.toLocaleString()}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-secondary-foreground mb-1">Current Stock Value</p>
+            <p className="text-2xl font-light text-text">₹{currentStockValue.toLocaleString()}</p>
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-danger mb-1">Salon Consumption (Cost)</p>
@@ -234,20 +227,20 @@ export default function Expenses() {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="glass-card p-6 flex flex-col justify-center">
-          <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2">Today's Expenses</p>
-          <p className="text-3xl font-light text-white tracking-tight flex items-center"><IndianRupee className="w-5 h-5 mr-1 text-white/50"/>{todayExpenses.toLocaleString()}</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-secondary-foreground mb-2">Today's Expenses</p>
+          <p className="text-3xl font-light text-text tracking-tight flex items-center"><IndianRupee className="w-5 h-5 mr-1 text-secondary-foreground"/>{stats.todayExpenses.toLocaleString()}</p>
         </div>
         <div className="glass-card p-6 flex flex-col justify-center">
-          <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2">This Month</p>
-          <p className="text-3xl font-light text-white tracking-tight flex items-center"><IndianRupee className="w-5 h-5 mr-1 text-white/50"/>{monthExpenses.toLocaleString()}</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-secondary-foreground mb-2">This Month</p>
+          <p className="text-3xl font-light text-text tracking-tight flex items-center"><IndianRupee className="w-5 h-5 mr-1 text-secondary-foreground"/>{stats.monthExpenses.toLocaleString()}</p>
         </div>
         <div className="glass-card p-6 flex flex-col justify-center">
-          <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2">This Year</p>
-          <p className="text-3xl font-light text-white tracking-tight flex items-center"><IndianRupee className="w-5 h-5 mr-1 text-white/50"/>{yearExpenses.toLocaleString()}</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-secondary-foreground mb-2">This Year</p>
+          <p className="text-3xl font-light text-text tracking-tight flex items-center"><IndianRupee className="w-5 h-5 mr-1 text-secondary-foreground"/>{stats.yearExpenses.toLocaleString()}</p>
         </div>
         <div className="glass-card p-6 flex flex-col justify-center border-danger/30 bg-danger/5">
           <p className="text-xs font-bold uppercase tracking-widest text-danger mb-2">Pending Payments</p>
-          <p className="text-3xl font-light text-danger tracking-tight flex items-center"><IndianRupee className="w-5 h-5 mr-1 opacity-70"/>{pendingPayments.toLocaleString()}</p>
+          <p className="text-3xl font-light text-danger tracking-tight flex items-center"><IndianRupee className="w-5 h-5 mr-1 opacity-70"/>{stats.pendingPayments.toLocaleString()}</p>
         </div>
       </div>
 
@@ -258,34 +251,34 @@ export default function Expenses() {
           
           {/* Filters */}
           <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center flex-1 min-w-[200px] glass-panel px-4 py-3 focus-within:border-white/30 transition-all">
-              <Search className="h-4 w-4 text-white/40 mr-3" />
+            <div className="flex items-center flex-1 min-w-[200px] glass-panel px-4 py-3 focus-within:border-black/10 transition-all bg-white/50">
+              <Search className="h-4 w-4 text-secondary-foreground mr-3" />
               <input
                 type="text"
                 placeholder="Search description..."
-                className="bg-transparent outline-none w-full text-sm text-white placeholder-white/30 font-light tracking-wide"
+                className="bg-transparent outline-none w-full text-sm text-text placeholder-secondary-foreground font-light tracking-wide"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className="glass-input px-4 py-3 appearance-none">
-              <option value="" className="bg-black">All Months</option>
-              <option value={format(now, 'yyyy-MM')} className="bg-black">This Month</option>
+            <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className="glass-input px-4 py-3 appearance-none bg-white">
+              <option value="" className="text-text">All Months</option>
+              <option value={format(new Date(), 'yyyy-MM')} className="text-text">This Month</option>
             </select>
-            <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="glass-input px-4 py-3 appearance-none">
-              <option value="" className="bg-black">All Categories</option>
-              {EXPENSE_CATEGORIES.map(c => <option key={c} value={c} className="bg-black">{c}</option>)}
+            <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="glass-input px-4 py-3 appearance-none bg-white">
+              <option value="" className="text-text">All Categories</option>
+              {EXPENSE_CATEGORIES.map(c => <option key={c} value={c} className="text-text">{c}</option>)}
             </select>
-            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="glass-input px-4 py-3 appearance-none">
-              <option value="" className="bg-black">All Statuses</option>
-              {STATUSES.map(s => <option key={s} value={s} className="bg-black">{s}</option>)}
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="glass-input px-4 py-3 appearance-none bg-white">
+              <option value="" className="text-text">All Statuses</option>
+              {STATUSES.map(s => <option key={s} value={s} className="text-text">{s}</option>)}
             </select>
           </div>
 
           <div className="glass-card overflow-hidden">
             <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-sm text-left text-white">
-                <thead className="bg-white/5 text-white/50 text-xs uppercase font-bold tracking-wider border-b border-white/10">
+              <table className="w-full text-sm text-left text-text">
+                <thead className="bg-white/5 text-secondary-foreground text-xs uppercase font-bold tracking-wider border-b border-border">
                   <tr>
                     <th className="px-6 py-4">Date</th>
                     <th className="px-6 py-4">Description</th>
@@ -296,21 +289,21 @@ export default function Expenses() {
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-border">
                   {isLoading ? (
-                    <tr><td colSpan={7} className="text-center py-16 text-white/50">Loading expenses...</td></tr>
-                  ) : filteredExpenses.length === 0 ? (
-                    <tr><td colSpan={7} className="text-center py-16 text-white/50 font-light text-lg">No expenses found.</td></tr>
+                    <tr><td colSpan={7} className="text-center py-16 text-secondary-foreground">Loading expenses...</td></tr>
+                  ) : expenses.length === 0 ? (
+                    <tr><td colSpan={7} className="text-center py-16 text-secondary-foreground font-light text-lg">No expenses found.</td></tr>
                   ) : (
-                    filteredExpenses.map(e => (
-                      <tr key={e.id} className="hover:bg-white/5 transition-colors group font-light">
-                        <td className="px-6 py-4 whitespace-nowrap text-white/70">{format(new Date(e.date), 'dd MMM yyyy')}</td>
-                        <td className="px-6 py-4 font-medium text-white">{e.title}</td>
+                    expenses.map(e => (
+                      <tr key={e.id} className="hover:bg-white/50 transition-colors group font-light">
+                        <td className="px-6 py-4 whitespace-nowrap text-secondary-foreground">{format(new Date(e.date), 'dd MMM yyyy')}</td>
+                        <td className="px-6 py-4 font-medium text-text">{e.title}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="bg-white/5 text-white border border-white/10 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">{e.category}</span>
+                          <span className="bg-white/50 text-text border border-border px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">{e.category}</span>
                         </td>
-                        <td className="px-6 py-4 font-bold text-white whitespace-nowrap">₹{Number(e.amount).toLocaleString()}</td>
-                        <td className="px-6 py-4 text-white/50 whitespace-nowrap">{e.payment_method || e.paymentMethod}</td>
+                        <td className="px-6 py-4 font-bold text-text whitespace-nowrap">₹{Number(e.amount).toLocaleString()}</td>
+                        <td className="px-6 py-4 text-secondary-foreground whitespace-nowrap">{e.payment_method || e.paymentMethod}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border ${
                             e.status === 'Paid' ? 'bg-success/10 text-success border-success/20' :
@@ -321,7 +314,7 @@ export default function Expenses() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => handleOpenEdit(e)} className="p-2 text-white/70 hover:bg-white/10 hover:text-white rounded-xl transition-colors"><Edit2 className="w-4 h-4"/></button>
+                          <button onClick={() => handleOpenEdit(e)} className="p-2 text-secondary-foreground hover:bg-black/5 hover:text-text rounded-xl transition-colors"><Edit2 className="w-4 h-4"/></button>
                           <button onClick={() => handleDelete(e.id)} className="p-2 text-danger hover:bg-danger/10 rounded-xl transition-colors"><Trash2 className="w-4 h-4"/></button>
                         </td>
                       </tr>
@@ -330,25 +323,50 @@ export default function Expenses() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalCount > limit && (
+              <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-white/50">
+                <div className="text-sm text-secondary-foreground">
+                  Showing <span className="font-medium text-text">{((page - 1) * limit) + 1}</span> to <span className="font-medium text-text">{Math.min(page * limit, totalCount)}</span> of <span className="font-medium text-text">{totalCount}</span> expenses
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="p-2 rounded-lg border border-border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-text" />
+                  </button>
+                  <button 
+                    onClick={() => setPage(p => p + 1)}
+                    disabled={page * limit >= totalCount}
+                    className="p-2 rounded-lg border border-border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronRight className="w-5 h-5 text-text" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Sidebar Analytics */}
         <div className="lg:col-span-1 space-y-6">
           <div className="glass-card p-6 sticky top-6">
-            <h4 className="text-xl font-light tracking-wide text-white mb-6 flex items-center"><PieChart className="w-5 h-5 mr-3 text-white/50"/> Monthly Analytics</h4>
-            {categoryAnalytics.length === 0 ? (
-              <p className="text-sm text-white/50 font-light">No expenses this month.</p>
+            <h4 className="text-xl font-light tracking-wide text-text mb-6 flex items-center"><PieChart className="w-5 h-5 mr-3 text-secondary-foreground"/> Monthly Analytics</h4>
+            {stats.categoryAnalytics.length === 0 ? (
+              <p className="text-sm text-secondary-foreground font-light">No expenses this month.</p>
             ) : (
               <div className="space-y-6">
-                {categoryAnalytics.map(([cat, amount]) => (
+                {stats.categoryAnalytics.map(([cat, amount]: [string, number]) => (
                   <div key={cat}>
                     <div className="flex justify-between text-sm mb-2 font-light">
-                      <span className="text-white/70">{cat}</span>
-                      <span className="text-white">₹{amount}</span>
+                      <span className="text-secondary-foreground">{cat}</span>
+                      <span className="text-text">₹{amount}</span>
                     </div>
-                    <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
-                      <div className="bg-white h-full rounded-full" style={{ width: `${Math.min((amount / monthExpenses) * 100, 100)}%` }}></div>
+                    <div className="w-full bg-black/5 rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-primary h-full rounded-full" style={{ width: `${Math.min((amount / stats.monthExpenses) * 100, 100)}%` }}></div>
                     </div>
                   </div>
                 ))}
@@ -361,84 +379,84 @@ export default function Expenses() {
 
       {/* Modal Form */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="glass-panel w-full max-w-lg flex flex-col animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0 bg-black/20">
-              <h3 className="text-xl font-light tracking-tight text-white">{editingExpenseId ? 'Edit Expense' : 'Add New Expense'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white/10 text-white/50 hover:text-white rounded-full transition-colors"><X className="w-5 h-5"/></button>
+            <div className="flex items-center justify-between p-6 border-b border-border shrink-0 bg-white/50 rounded-t-2xl">
+              <h3 className="text-xl font-light tracking-tight text-text">{editingExpenseId ? 'Edit Expense' : 'Add New Expense'}</h3>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-black/5 text-secondary-foreground hover:text-text rounded-full transition-colors"><X className="w-5 h-5"/></button>
             </div>
             <form onSubmit={handleSubmit} className="flex flex-col max-h-[70vh]">
-              <div className="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar bg-white/80">
                 
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Description / Title *</label>
+                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Description / Title *</label>
                   <input type="text" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="glass-input w-full px-4 py-3" placeholder="E.g., June Water Bill" />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Amount *</label>
+                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Amount *</label>
                   <div className="relative flex items-center">
-                    <IndianRupee className="w-4 h-4 text-white/40 absolute left-4" />
+                    <IndianRupee className="w-4 h-4 text-secondary-foreground absolute left-4" />
                     <input type="number" required min="0" step="0.01" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="glass-input w-full pl-10 pr-4 py-3" placeholder="0.00" />
                   </div>
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Date *</label>
+                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Date *</label>
                   <div className="grid grid-cols-3 gap-3">
-                    <select required value={formData.day} onChange={e => setFormData({...formData, day: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer">
-                      <option value="" className="bg-black text-white/50">Day</option>
+                    <select required value={formData.day} onChange={e => setFormData({...formData, day: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer bg-white">
+                      <option value="" className="text-secondary-foreground">Day</option>
                       {Array.from({length: 31}, (_, i) => i + 1).map(d => (
-                        <option key={d} value={d.toString().padStart(2, '0')} className="bg-black text-white">{d.toString().padStart(2, '0')}</option>
+                        <option key={d} value={d.toString().padStart(2, '0')} className="text-text">{d.toString().padStart(2, '0')}</option>
                       ))}
                     </select>
-                    <select required value={formData.month} onChange={e => setFormData({...formData, month: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer">
-                      <option value="" className="bg-black text-white/50">Month</option>
+                    <select required value={formData.month} onChange={e => setFormData({...formData, month: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer bg-white">
+                      <option value="" className="text-secondary-foreground">Month</option>
                       {Array.from({length: 12}, (_, i) => i + 1).map(m => (
-                        <option key={m} value={m.toString().padStart(2, '0')} className="bg-black text-white">
+                        <option key={m} value={m.toString().padStart(2, '0')} className="text-text">
                           {format(new Date(2000, m - 1, 1), 'MMM')}
                         </option>
                       ))}
                     </select>
-                    <select required value={formData.year} onChange={e => setFormData({...formData, year: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer">
-                      <option value="" className="bg-black text-white/50">Year</option>
+                    <select required value={formData.year} onChange={e => setFormData({...formData, year: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer bg-white">
+                      <option value="" className="text-secondary-foreground">Year</option>
                       {Array.from({length: 10}, (_, i) => new Date().getFullYear() - i).map(y => (
-                        <option key={y} value={y.toString()} className="bg-black text-white">{y}</option>
+                        <option key={y} value={y.toString()} className="text-text">{y}</option>
                       ))}
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Category *</label>
-                  <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none">
-                    <option value="" className="bg-black">-- Select Category --</option>
-                    {EXPENSE_CATEGORIES.map(c => <option key={c} value={c} className="bg-black">{c}</option>)}
+                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Category *</label>
+                  <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none bg-white">
+                    <option value="" className="text-text">-- Select Category --</option>
+                    {EXPENSE_CATEGORIES.map(c => <option key={c} value={c} className="text-text">{c}</option>)}
                   </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Payment Method</label>
-                    <select required value={formData.paymentMethod} onChange={e => setFormData({...formData, paymentMethod: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none">
-                      {PAYMENT_METHODS.map(m => <option key={m} value={m} className="bg-black">{m}</option>)}
+                    <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Payment Method</label>
+                    <select required value={formData.paymentMethod} onChange={e => setFormData({...formData, paymentMethod: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none bg-white">
+                      {PAYMENT_METHODS.map(m => <option key={m} value={m} className="text-text">{m}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Status</label>
-                    <select required value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none">
-                      {STATUSES.map(s => <option key={s} value={s} className="bg-black">{s}</option>)}
+                    <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Status</label>
+                    <select required value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none bg-white">
+                      {STATUSES.map(s => <option key={s} value={s} className="text-text">{s}</option>)}
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Notes (Optional)</label>
+                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Notes (Optional)</label>
                   <textarea rows={3} value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="glass-input w-full px-4 py-3 resize-none" placeholder="Any additional details..."></textarea>
                 </div>
 
               </div>
-              <div className="p-6 border-t border-white/10 bg-black/20 rounded-b-2xl flex justify-end gap-3">
+              <div className="p-6 border-t border-border bg-white rounded-b-2xl flex justify-end gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary">Cancel</button>
                 <button type="submit" className="btn-primary">
                   {editingExpenseId ? 'Save Changes' : 'Add Expense'}

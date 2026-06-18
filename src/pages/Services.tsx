@@ -12,7 +12,7 @@ import { z } from 'zod';
 const serviceSchema = z.object({
   service_name: z.string().min(2, "Name is required"),
   category: z.string().min(1, "Category is required"),
-  price: z.coerce.number({ invalid_type_error: "Price is required" }).min(0, "Price must be positive")
+  price: z.coerce.number().min(0, "Price must be positive")
 });
 
 type ServiceFormData = z.infer<typeof serviceSchema>;
@@ -28,7 +28,7 @@ export default function Services() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [serviceToEdit, setServiceToEdit] = useState<SalonService | null>(null);
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ServiceFormData>({
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<any>({
     resolver: zodResolver(serviceSchema)
   });
 
@@ -66,7 +66,7 @@ export default function Services() {
     setIsModalOpen(true);
   };
 
-  const onSubmit = async (data: ServiceFormData) => {
+  const onSubmit = async (data: any) => {
     try {
       if (serviceToEdit) {
         await serviceService.updateService(serviceToEdit.id, data);
@@ -230,7 +230,7 @@ export default function Services() {
                 <div>
                   <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Service Name *</label>
                   <input type="text" {...register("service_name")} className="glass-input w-full px-4 py-3" placeholder="e.g. Haircut" />
-                  {errors.service_name && <p className="text-danger text-xs mt-1.5">{errors.service_name.message}</p>}
+                  {errors.service_name && <p className="text-danger text-xs mt-1.5">{errors.service_name.message as string}</p>}
                 </div>
                 <div>
                   <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Category *</label>
@@ -242,12 +242,12 @@ export default function Services() {
                     <option value="Beauty Services" className="bg-black">Beauty Services</option>
                     <option value="Other" className="bg-black">Other</option>
                   </select>
-                  {errors.category && <p className="text-danger text-xs mt-1.5">{errors.category.message}</p>}
+                  {errors.category && <p className="text-danger text-xs mt-1.5">{errors.category.message as string}</p>}
                 </div>
                 <div>
                   <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Price (₹) *</label>
                   <input type="number" {...register("price")} className="glass-input w-full px-4 py-3" placeholder="Enter price..." />
-                  {errors.price && <p className="text-danger text-xs mt-1.5">{errors.price.message}</p>}
+                  {errors.price && <p className="text-danger text-xs mt-1.5">{errors.price.message as string}</p>}
                 </div>
               </div>
 

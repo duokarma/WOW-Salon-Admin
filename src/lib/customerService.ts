@@ -6,13 +6,24 @@ export type CustomerUpdate = Partial<CustomerInsert>;
 
 export const customerService = {
   /**
-   * Fetch all customers from Supabase
+   * Fetch customers with pagination and search
    */
-  async getCustomers() {
-    const { data, error } = await supabase
+  async getCustomers({ page = 1, limit = 50, search = '' }: { page?: number, limit?: number, search?: string } = {}) {
+    let query = supabase
       .from('customers')
-      .select('*')
+      .select('*', { count: 'exact' })
+      .eq('is_deleted', false)
       .order('created_at', { ascending: false });
+
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`);
+    }
+
+    const start = (page - 1) * limit;
+    const end = start + limit - 1;
+    query = query.range(start, end);
+
+    const { data, count, error } = await query;
 
     if (error) {
       console.error('Error fetching customers:', error);
@@ -31,18 +42,62 @@ export const customerService = {
       createdAt: String(d.created_at || new Date().toISOString())
     }));
 
-    return mappedCustomers;
+    return { data: mappedCustomers, count: count || 0 };
+  },
+
+  /**
+   * Get Customer Aggregated Stats
+   */
+  async getCustomerStats() {
+    try {
+      // 1. Total Customers
+      const { count: totalCustomers } = await supabase
+        .from('customers')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_deleted', false);
+
+      // 2. New This Month
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const { count: newThisMonth } = await supabase
+        .from('customers')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_deleted', false)
+        .gte('created_at', startOfMonth.toISOString());
+
+      // 3. Lifetime Revenue & Avg Spend
+      // For highly scaled apps, we would use an RPC here. For now, fetching grand_totals
+      const { data: visits } = await supabase
+        .from('customer_visits')
+        .select('grand_total')
+        .eq('is_deleted', false);
+        
+      const totalRevenue = (visits || []).reduce((sum, v) => sum + Number(v.grand_total || 0), 0);
+      const avgSpend = (totalCustomers || 0) > 0 ? totalRevenue / totalCustomers! : 0;
+
+      return {
+        totalCustomers: totalCustomers || 0,
+        newThisMonth: newThisMonth || 0,
+        totalRevenue,
+        avgSpend
+      };
+    } catch (e) {
+      console.error('Error fetching customer stats:', e);
+      return { totalCustomers: 0, newThisMonth: 0, totalRevenue: 0, avgSpend: 0 };
+    }
   },
 
   /**
    * Add a new customer
    */
   async addCustomer(customerData: CustomerInsert) {
-    // Basic check for duplicate phone (optional, but good practice if not enforced by DB unique constraint)
     const { data: existing } = await supabase
       .from('customers')
       .select('id')
       .eq('phone', customerData.phone)
+      .eq('is_deleted', false)
       .maybeSingle();
 
     if (existing) {
@@ -116,12 +171,12 @@ export const customerService = {
   },
 
   /**
-   * Delete a customer
+   * Delete a customer (Soft Delete)
    */
   async deleteCustomer(id: number) {
     const { error } = await supabase
       .from('customers')
-      .delete()
+      .update({ is_deleted: true })
       .eq('id', id);
 
     if (error) {

@@ -38,9 +38,9 @@ export default function Dashboard() {
         { data: expensesData },
         { data: productsData }
       ] = await Promise.all([
-        supabase.from('customer_visits').select('*').order('visit_date', { ascending: false }),
-        supabase.from('expenses').select('*').order('date', { ascending: false }),
-        supabase.from('products').select('*')
+        supabase.from('customer_visits').select('*').eq('is_deleted', false).order('visit_date', { ascending: false }),
+        supabase.from('expenses').select('*').eq('is_deleted', false).order('date', { ascending: false }),
+        supabase.from('products').select('*').eq('is_deleted', false)
       ]);
 
       setVisits(visitsData || []);

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { customerService } from '../lib/customerService';
-import { useStore } from '../store/useStore';
 import type { Customer } from '../types';
 import { 
   Search, Plus, User, Scissors, Receipt, Package,
-  Trash2, Edit2, X, Users, UserPlus, IndianRupee, TrendingUp, Calendar as CalendarIcon
+  Trash2, Edit2, X, Users, UserPlus, IndianRupee, TrendingUp, Calendar as CalendarIcon,
+  ChevronLeft, ChevronRight, Download, MessageCircle, Star
 } from 'lucide-react';
+import { generateInvoicePDF } from '../lib/pdfGenerator';
 import { format, isThisMonth } from 'date-fns';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
@@ -25,13 +26,15 @@ const customerSchema = z.object({
 type CustomerFormData = z.infer<typeof customerSchema>;
 
 export default function Customers() {
-  const store = useStore();
-  
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  
   const [services, setServices] = useState<SalonService[]>([]);
   const [staff, setStaff] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [visits, setVisits] = useState<any[]>([]);
+  const [stats, setStats] = useState({ totalCustomers: 0, newThisMonth: 0, totalRevenue: 0, avgSpend: 0 });
 
   const groupedServices = services.reduce((acc, service) => {
     const category = service.category || 'Other';
@@ -42,7 +45,18 @@ export default function Customers() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
   
   // Modals state
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
@@ -52,6 +66,7 @@ export default function Customers() {
   
   const [selectedCustomerForHistory, setSelectedCustomerForHistory] = useState<number | null>(null);
   const [selectedHistory, setSelectedHistory] = useState<any[]>([]);
+  const [selectedCustomerRewards, setSelectedCustomerRewards] = useState<{points: number, membership_tier: string} | null>(null);
 
   const [isVisitModalOpen, setIsVisitModalOpen] = useState(false);
   const [customerForVisit, setCustomerForVisit] = useState<Customer | null>(null);
@@ -68,22 +83,19 @@ export default function Customers() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [custData, srvData, stfRes, prodRes, visitRes] = await Promise.all([
-        customerService.getCustomers(),
+      const [custData, srvData, stfRes, prodRes, statsData] = await Promise.all([
+        customerService.getCustomers({ page, limit, search: debouncedSearch }),
         serviceService.getServices(),
         supabase.from('staff').select('*'),
         supabase.from('products').select('*'),
-        supabase.from('customer_visits').select(`
-          *,
-          visit_services(*),
-          visit_products(*)
-        `)
+        customerService.getCustomerStats()
       ]);
-      setCustomers(custData);
+      setCustomers(custData.data);
+      setTotalCount(custData.count);
+      setStats(statsData);
       setServices(srvData);
       if (stfRes.data) setStaff(stfRes.data);
       if (prodRes.data) setProducts(prodRes.data);
-      if (visitRes.data) setVisits(visitRes.data);
       setError(null);
     } catch (err: any) {
       setError(err.message || 'Failed to load data');
@@ -95,14 +107,30 @@ export default function Customers() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [page, debouncedSearch]);
 
   useEffect(() => {
-    if (selectedCustomerForHistory) {
-      const history = visits.filter(v => v.customer_id === selectedCustomerForHistory).sort((a, b) => new Date(b.visit_date).getTime() - new Date(a.visit_date).getTime());
-      setSelectedHistory(history);
-    }
-  }, [selectedCustomerForHistory, visits]);
+    const fetchHistory = async () => {
+      if (selectedCustomerForHistory) {
+        const [{ data: historyData }, { data: rewardsData }] = await Promise.all([
+          supabase
+            .from('customer_visits')
+            .select('*, visit_services(*), visit_products(*)')
+            .eq('customer_id', selectedCustomerForHistory)
+            .eq('is_deleted', false)
+            .order('visit_date', { ascending: false }),
+          supabase
+            .from('customer_rewards')
+            .select('*')
+            .eq('customer_id', selectedCustomerForHistory)
+            .maybeSingle()
+        ]);
+        setSelectedHistory(historyData || []);
+        setSelectedCustomerRewards(rewardsData || { points: 0, membership_tier: 'Standard' });
+      }
+    };
+    fetchHistory();
+  }, [selectedCustomerForHistory]);
 
   const openAddModal = () => {
     setCustomerToEdit(null);
@@ -175,15 +203,15 @@ export default function Customers() {
       }
 
       if (customerToEdit) {
-        const updated = await customerService.updateCustomer(customerToEdit.id, parsedData);
-        store.updateCustomer(updated.id, updated);
+        await customerService.updateCustomer(customerToEdit.id, parsedData);
         toast.success('Customer updated successfully');
       } else {
         const newCust = await customerService.addCustomer(parsedData);
-        store.addCustomer(newCust);
         
         // --- Create Visit & Commission automatically ---
-        const commissionAmount = serviceTotal * 0.10; // 10%
+        const selectedStaffMember = staff.find(s => s.id.toString() === customerStaffId.toString());
+        const commissionRate = selectedStaffMember ? Number(selectedStaffMember.commission_rate || 10) : 10;
+        const commissionAmount = serviceTotal * (commissionRate / 100);
         
         const { data: visitData, error: visitErr } = await supabase.from('customer_visits').insert([{
           customer_id: newCust.id,
@@ -226,7 +254,6 @@ export default function Customers() {
     if (!window.confirm('Are you sure you want to delete this customer? This action cannot be undone.')) return;
     try {
       await customerService.deleteCustomer(id);
-      store.deleteCustomer(id);
       toast.success('Customer deleted successfully');
       loadData();
     } catch (err: any) {
@@ -272,7 +299,10 @@ export default function Customers() {
       });
 
       const grandTotal = serviceTotal + productTotal;
-      const commissionAmount = serviceTotal * 0.10; // 10% of services only
+      // Calculate dynamic commission
+      const selectedStaffMember = staff.find(s => s.id.toString() === visitStaffId.toString());
+      const commissionRate = selectedStaffMember ? Number(selectedStaffMember.commission_rate || 10) : 10;
+      const commissionAmount = serviceTotal * (commissionRate / 100);
 
       // Insert Visit
       const { data: visitData, error: visitErr } = await supabase.from('customer_visits').insert([{
@@ -334,27 +364,18 @@ export default function Customers() {
     }
   };
 
-  // Derived Data
-  const filteredCustomers = customers.filter(
-    (c) => 
-      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.phone.includes(searchTerm)
-  );
-
-  const totalCustomers = customers.length;
-  const newThisMonth = customers.filter(c => isThisMonth(new Date(c.createdAt))).length;
-  
-  // Compute totals from visits
-  const totalRevenue = visits.reduce((sum, v) => sum + (v.grand_total || 0), 0);
-  const avgSpend = totalCustomers > 0 ? totalRevenue / totalCustomers : 0;
+  // Derived Data (no longer filtered locally)
   const selectedCustomer = customers.find(c => c.id === selectedCustomerForHistory);
 
-  const getCustomerTotalSpend = (customerId: number) => {
-    return visits.filter(v => v.customer_id === customerId).reduce((sum, v) => sum + (v.grand_total || 0), 0);
+  // We can't synchronously calculate total spend across 50k customers in UI for the table.
+  // The 'amount_paid' field on customer table aggregates this on save, let's use it!
+  const getCustomerTotalSpend = (customer: Customer) => {
+    return customer.amountPaid || 0;
   };
-  const getCustomerVisitCount = (customerId: number) => {
-    return visits.filter(v => v.customer_id === customerId).length;
-  };
+  
+  // Similarly, visit count isn't readily available without an RPC. 
+  // For now we omit or leave as 'History' button. Let's omit the generic visit count in list for performance.
+
 
   return (
     <div className="space-y-8 relative max-w-7xl mx-auto">
@@ -377,12 +398,12 @@ export default function Customers() {
         <div className="glass-card p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0 bg-white/10 p-3 rounded-2xl border border-white/20">
-              <Users className="h-6 w-6 text-white" />
+              <Users className="h-6 w-6 text-text" />
             </div>
             <div className="ml-5 w-0 flex-1">
               <dl>
-                <dt className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Total Customers</dt>
-                <dd className="text-3xl font-light text-white mt-1">{totalCustomers}</dd>
+                <dt className="text-xs font-bold tracking-[0.1em] text-secondary-foreground uppercase">Total Customers</dt>
+                <dd className="text-3xl font-light text-text mt-1">{stats.totalCustomers}</dd>
               </dl>
             </div>
           </div>
@@ -390,12 +411,12 @@ export default function Customers() {
         <div className="glass-card p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0 bg-white/10 p-3 rounded-2xl border border-white/20">
-              <UserPlus className="h-6 w-6 text-white" />
+              <UserPlus className="h-6 w-6 text-text" />
             </div>
             <div className="ml-5 w-0 flex-1">
               <dl>
-                <dt className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">New This Month</dt>
-                <dd className="text-3xl font-light text-white mt-1">{newThisMonth}</dd>
+                <dt className="text-xs font-bold tracking-[0.1em] text-secondary-foreground uppercase">New This Month</dt>
+                <dd className="text-3xl font-light text-text mt-1">{stats.newThisMonth}</dd>
               </dl>
             </div>
           </div>
@@ -403,12 +424,12 @@ export default function Customers() {
         <div className="glass-card p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0 bg-white/10 p-3 rounded-2xl border border-white/20">
-              <IndianRupee className="h-6 w-6 text-white" />
+              <IndianRupee className="h-6 w-6 text-text" />
             </div>
             <div className="ml-5 w-0 flex-1">
               <dl>
-                <dt className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Lifetime Revenue</dt>
-                <dd className="text-3xl font-light text-white mt-1">₹{totalRevenue.toLocaleString()}</dd>
+                <dt className="text-xs font-bold tracking-[0.1em] text-secondary-foreground uppercase">Lifetime Revenue</dt>
+                <dd className="text-3xl font-light text-text mt-1">₹{stats.totalRevenue.toLocaleString()}</dd>
               </dl>
             </div>
           </div>
@@ -416,12 +437,12 @@ export default function Customers() {
         <div className="glass-card p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0 bg-white/10 p-3 rounded-2xl border border-white/20">
-              <TrendingUp className="h-6 w-6 text-white" />
+              <TrendingUp className="h-6 w-6 text-text" />
             </div>
             <div className="ml-5 w-0 flex-1">
               <dl>
-                <dt className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Average Spend</dt>
-                <dd className="text-3xl font-light text-white mt-1">₹{Math.round(avgSpend).toLocaleString()}</dd>
+                <dt className="text-xs font-bold tracking-[0.1em] text-secondary-foreground uppercase">Average Spend</dt>
+                <dd className="text-3xl font-light text-text mt-1">₹{Math.round(stats.avgSpend).toLocaleString()}</dd>
               </dl>
             </div>
           </div>
@@ -455,65 +476,72 @@ export default function Customers() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-white">
-              <thead className="bg-white/5 text-white/50 text-xs uppercase font-bold tracking-wider border-b border-white/10">
+              <thead className="bg-white/5 text-secondary-foreground text-xs uppercase font-bold tracking-wider border-b border-border">
                 <tr>
                   <th className="px-6 py-5">Customer</th>
                   <th className="px-6 py-5">Contact</th>
                   <th className="px-6 py-5">Lifetime Spend</th>
-                  <th className="px-6 py-5">Visits</th>
                   <th className="px-6 py-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
-                {filteredCustomers.length === 0 && (
+              <tbody className="divide-y divide-border">
+                {customers.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="text-center py-16 text-white/50">
-                      <User className="h-10 w-10 mx-auto mb-4 text-white/30" />
-                      <p className="text-base font-light tracking-wide text-white">No customers found</p>
+                    <td colSpan={4} className="text-center py-16 text-secondary-foreground">
+                      <User className="h-10 w-10 mx-auto mb-4 opacity-50" />
+                      <p className="text-base font-light tracking-wide text-text">No customers found</p>
                     </td>
                   </tr>
                 )}
-                {filteredCustomers.map((customer) => {
+                {customers.map((customer) => {
                   const initials = customer.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
                   
                   return (
-                    <tr key={customer.id} className="hover:bg-white/5 transition-colors group">
+                    <tr key={customer.id} className="hover:bg-white/50 transition-colors group">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-4">
-                          <div className="h-11 w-11 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                          <div className="h-11 w-11 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">
                             {initials}
                           </div>
                           <div>
-                            <div className="font-medium text-white text-base">{customer.name}</div>
-                            {customer.dob && <div className="text-xs text-white/50 mt-1 uppercase tracking-wide">DOB: {format(new Date(customer.dob), 'dd MMM yyyy')}</div>}
+                            <div className="font-medium text-text text-base">{customer.name}</div>
+                            {customer.dob && <div className="text-xs text-secondary-foreground mt-1 uppercase tracking-wide">DOB: {format(new Date(customer.dob), 'dd MMM yyyy')}</div>}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-white/70 font-light">
-                        {customer.phone}
+                      <td className="px-6 py-4 whitespace-nowrap text-secondary-foreground font-light">
+                        <div className="flex items-center gap-2">
+                          {customer.phone}
+                          {customer.phone && (
+                            <a 
+                              href={`https://wa.me/${customer.phone.replace(/\D/g, '')}?text=${encodeURIComponent('Hello from WOW Salon!')}`}
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-[#25D366] hover:text-[#128C7E] transition-colors bg-[#25D366]/10 p-1.5 rounded-lg"
+                              title="Message on WhatsApp"
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                            </a>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="font-light text-white text-lg">
-                          ₹{getCustomerTotalSpend(customer.id).toLocaleString()}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white border border-white/10">
-                          {getCustomerVisitCount(customer.id)} visits
+                        <span className="font-light text-text text-lg">
+                          ₹{getCustomerTotalSpend(customer).toLocaleString()}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button 
                             onClick={() => openVisitModal(customer)}
-                            className="px-4 py-2 text-xs font-bold bg-white text-black hover:bg-gray-200 rounded-xl transition-colors flex items-center shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                            className="px-4 py-2 text-xs font-bold bg-[#F7E7CE] text-[#36454F] hover:bg-[#eadebe] rounded-xl transition-colors flex items-center shadow-sm"
                           >
                             <Plus className="w-3 h-3 mr-1.5" /> Record Visit
                           </button>
-                          <button onClick={() => setSelectedCustomerForHistory(customer.id)} className="p-2 text-white hover:bg-white/10 rounded-xl transition-colors">
+                          <button onClick={() => setSelectedCustomerForHistory(customer.id)} className="p-2 text-text hover:bg-black/5 rounded-xl transition-colors">
                             <CalendarIcon className="w-4 h-4" />
                           </button>
-                          <button onClick={() => openEditModal(customer)} className="p-2 text-white/70 hover:bg-white/10 hover:text-white rounded-xl transition-colors">
+                          <button onClick={() => openEditModal(customer)} className="p-2 text-secondary-foreground hover:bg-black/5 hover:text-text rounded-xl transition-colors">
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button onClick={() => handleDelete(customer.id)} className="p-2 text-danger hover:bg-danger/10 rounded-xl transition-colors">
@@ -526,79 +554,104 @@ export default function Customers() {
                 })}
               </tbody>
             </table>
+            
+            {/* Pagination Controls */}
+            {totalCount > limit && (
+              <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-white/50">
+                <div className="text-sm text-secondary-foreground">
+                  Showing <span className="font-medium text-text">{((page - 1) * limit) + 1}</span> to <span className="font-medium text-text">{Math.min(page * limit, totalCount)}</span> of <span className="font-medium text-text">{totalCount}</span> customers
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="p-2 rounded-lg border border-border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-text" />
+                  </button>
+                  <button 
+                    onClick={() => setPage(p => p + 1)}
+                    disabled={page * limit >= totalCount}
+                    className="p-2 rounded-lg border border-border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronRight className="w-5 h-5 text-text" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {/* Add/Edit Customer Modal (No Billing) */}
       {isCustomerModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="glass-panel w-full max-w-md flex flex-col animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-6 border-b border-white/10">
-              <h3 className="text-xl font-light tracking-tight text-white">{customerToEdit ? 'Edit Customer' : 'Add New Customer'}</h3>
-              <button onClick={() => setIsCustomerModalOpen(false)} className="p-2 hover:bg-white/10 rounded-full text-white/50 transition-colors">
+            <div className="flex items-center justify-between p-6 border-b border-border bg-white/50 rounded-t-2xl">
+              <h3 className="text-xl font-light tracking-tight text-text">{customerToEdit ? 'Edit Customer' : 'Add New Customer'}</h3>
+              <button onClick={() => setIsCustomerModalOpen(false)} className="p-2 hover:bg-black/5 rounded-full text-secondary-foreground transition-colors">
                 <X className="w-5 h-5"/>
               </button>
             </div>
             <form onSubmit={handleSubmit(onSubmitCustomer)} className="flex flex-col flex-1">
-              <div className="p-6 space-y-5">
+              <div className="p-6 space-y-5 bg-white/80">
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Full Name *</label>
+                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Full Name *</label>
                   <input type="text" {...register("name")} className="glass-input w-full px-4 py-3" placeholder="e.g. Jane Doe" />
                   {errors.name && <p className="text-danger text-xs mt-1.5">{errors.name.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Phone Number *</label>
+                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Phone Number *</label>
                   <input type="tel" {...register("phone")} className="glass-input w-full px-4 py-3" placeholder="e.g. 9876543210" />
                   {errors.phone && <p className="text-danger text-xs mt-1.5">{errors.phone.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Date of Birth</label>
+                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Date of Birth</label>
                   <div className="grid grid-cols-3 gap-3">
-                    <select {...register("dobDay")} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer">
-                      <option value="" className="bg-black text-white/50">Day</option>
+                    <select {...register("dobDay")} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer bg-white">
+                      <option value="" className="text-secondary-foreground">Day</option>
                       {Array.from({length: 31}, (_, i) => i + 1).map(d => (
-                        <option key={d} value={d.toString().padStart(2, '0')} className="bg-black text-white">{d}</option>
+                        <option key={d} value={d.toString().padStart(2, '0')} className="text-text">{d}</option>
                       ))}
                     </select>
-                    <select {...register("dobMonth")} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer">
-                      <option value="" className="bg-black text-white/50">Month</option>
+                    <select {...register("dobMonth")} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer bg-white">
+                      <option value="" className="text-secondary-foreground">Month</option>
                       {Array.from({length: 12}, (_, i) => i + 1).map(m => (
-                        <option key={m} value={m.toString().padStart(2, '0')} className="bg-black text-white">
+                        <option key={m} value={m.toString().padStart(2, '0')} className="text-text">
                           {format(new Date(2000, m - 1, 1), 'MMM')}
                         </option>
                       ))}
                     </select>
-                    <select {...register("dobYear")} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer">
-                      <option value="" className="bg-black text-white/50">Year</option>
+                    <select {...register("dobYear")} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer bg-white">
+                      <option value="" className="text-secondary-foreground">Year</option>
                       {Array.from({length: 100}, (_, i) => new Date().getFullYear() - i).map(y => (
-                        <option key={y} value={y} className="bg-black text-white">{y}</option>
+                        <option key={y} value={y} className="text-text">{y}</option>
                       ))}
                     </select>
                   </div>
                 </div>
                 {!customerToEdit && (
                   <div>
-                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-3">Select Staff Member *</label>
+                    <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-3">Select Staff Member *</label>
                     <select 
                       value={customerStaffId} 
                       onChange={(e) => setCustomerStaffId(e.target.value)}
-                      className="glass-input w-full px-4 py-3.5 appearance-none mb-2"
+                      className="glass-input w-full px-4 py-3.5 appearance-none mb-2 bg-white"
                     >
-                      <option value="" className="bg-black">-- Choose Staff --</option>
-                      {staff.map(s => <option key={s.id} value={s.id} className="bg-black">{s.name || s.staff_name}</option>)}
+                      <option value="" className="text-secondary-foreground">-- Choose Staff --</option>
+                      {staff.map(s => <option key={s.id} value={s.id} className="text-text">{s.name || s.staff_name}</option>)}
                     </select>
                   </div>
                 )}
                 <div>
                   <div className="flex justify-between items-center mb-3">
-                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase">Services Taken</label>
-                    <button type="button" onClick={() => setCustomerServices([...customerServices, {serviceId: ''}])} className="text-xs font-bold text-white bg-white/10 hover:bg-white/20 border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
+                    <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase">Services Taken</label>
+                    <button type="button" onClick={() => setCustomerServices([...customerServices, {serviceId: ''}])} className="text-xs font-bold text-text bg-black/5 hover:bg-black/10 border border-border px-3 py-1.5 rounded-lg transition-colors">
                       + Add Service
                     </button>
                   </div>
                   {customerServices.length === 0 ? (
-                    <div className="text-sm text-white/30 font-light italic p-6 bg-white/5 rounded-2xl border border-dashed border-white/20 text-center">No services added. Click above to add.</div>
+                    <div className="text-sm text-secondary-foreground/60 font-light italic p-6 bg-black/5 rounded-2xl border border-dashed border-border text-center">No services added. Click above to add.</div>
                   ) : (
                     <div className="space-y-3">
                       {customerServices.map((cs, idx) => (
@@ -610,12 +663,12 @@ export default function Customers() {
                               newSvcs[idx].serviceId = e.target.value;
                               setCustomerServices(newSvcs);
                             }}
-                            className="glass-input flex-1 px-4 py-3 appearance-none"
+                            className="glass-input flex-1 px-4 py-3 appearance-none bg-white"
                           >
-                            <option value="" className="bg-black">-- Select Service --</option>
+                            <option value="" className="text-secondary-foreground">-- Select Service --</option>
                             {Object.entries(groupedServices).map(([category, items]) => (
-                              <optgroup key={category} label={category} className="bg-black text-white/50">
-                                {items.map(s => <option key={s.id} value={s.id} className="text-white bg-black">{s.service_name} - ₹{s.price}</option>)}
+                              <optgroup key={category} label={category} className="text-secondary-foreground">
+                                {items.map(s => <option key={s.id} value={s.id} className="text-text">{s.service_name} - ₹{s.price}</option>)}
                               </optgroup>
                             ))}
                           </select>
@@ -627,16 +680,16 @@ export default function Customers() {
                     </div>
                   )}
                   {customerServices.length > 0 && (
-                    <div className="mt-4 bg-white/5 p-4 rounded-xl border border-white/10 flex justify-between items-center">
-                      <span className="text-xs font-bold tracking-widest text-white/50 uppercase">Total Amount</span>
-                      <span className="text-xl font-light text-white">
+                    <div className="mt-4 bg-black/5 p-4 rounded-xl border border-border flex justify-between items-center">
+                      <span className="text-xs font-bold tracking-widest text-secondary-foreground uppercase">Total Amount</span>
+                      <span className="text-xl font-light text-text">
                         ₹{customerServices.reduce((sum, cs) => sum + Number(services.find(s => s.id.toString() === cs.serviceId.toString())?.price || 0), 0).toLocaleString()}
                       </span>
                     </div>
                   )}
                 </div>
               </div>
-              <div className="p-6 border-t border-white/10 bg-black/20 rounded-b-2xl flex justify-end gap-3">
+              <div className="p-6 border-t border-border bg-white rounded-b-2xl flex justify-end gap-3">
                 <button type="button" onClick={() => setIsCustomerModalOpen(false)} className="btn-secondary">Cancel</button>
                 <button type="submit" disabled={isSubmitting} className="btn-primary disabled:opacity-50">
                   {customerToEdit ? 'Save Changes' : 'Add Customer'}
@@ -649,42 +702,42 @@ export default function Customers() {
 
       {/* Record Visit Modal */}
       {isVisitModalOpen && customerForVisit && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="glass-panel w-full max-w-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0 bg-black/20 rounded-t-2xl">
+            <div className="flex items-center justify-between p-6 border-b border-border shrink-0 bg-white/50 rounded-t-2xl">
               <div>
-                <h3 className="text-2xl font-light tracking-tight text-white">Record Visit</h3>
-                <p className="text-sm font-light text-white/50 mt-1 tracking-wide">for {customerForVisit.name}</p>
+                <h3 className="text-2xl font-light tracking-tight text-text">Record Visit</h3>
+                <p className="text-sm font-light text-secondary-foreground mt-1 tracking-wide">for {customerForVisit.name}</p>
               </div>
-              <button onClick={() => setIsVisitModalOpen(false)} className="p-2 hover:bg-white/10 rounded-full text-white/50 transition-colors">
+              <button onClick={() => setIsVisitModalOpen(false)} className="p-2 hover:bg-black/5 rounded-full text-secondary-foreground transition-colors">
                 <X className="w-6 h-6"/>
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto space-y-8 flex-1 custom-scrollbar">
+            <div className="p-6 overflow-y-auto space-y-8 flex-1 custom-scrollbar bg-white/80">
               {/* Staff Selection */}
               <div>
-                <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-3">Select Staff Member *</label>
+                <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-3">Select Staff Member *</label>
                 <select 
                   value={visitStaffId} 
                   onChange={(e) => setVisitStaffId(e.target.value)}
-                  className="glass-input w-full px-4 py-3.5 appearance-none"
+                  className="glass-input w-full px-4 py-3.5 appearance-none bg-white"
                 >
-                  <option value="" className="bg-black">-- Choose Staff --</option>
-                  {staff.map(s => <option key={s.id} value={s.id} className="bg-black">{s.name || s.staff_name}</option>)}
+                  <option value="" className="text-secondary-foreground">-- Choose Staff --</option>
+                  {staff.map(s => <option key={s.id} value={s.id} className="text-text">{s.name || s.staff_name}</option>)}
                 </select>
               </div>
 
               {/* Services Selection */}
               <div>
                 <div className="flex justify-between items-center mb-3">
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase">Services Taken *</label>
-                  <button onClick={() => setVisitServices([...visitServices, {serviceId: ''}])} className="text-xs font-bold text-white bg-white/10 hover:bg-white/20 border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
+                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase">Services Taken *</label>
+                  <button onClick={() => setVisitServices([...visitServices, {serviceId: ''}])} className="text-xs font-bold text-text bg-black/5 hover:bg-black/10 border border-border px-3 py-1.5 rounded-lg transition-colors">
                     + Add Service
                   </button>
                 </div>
                 {visitServices.length === 0 ? (
-                  <div className="text-sm text-white/30 font-light italic p-6 bg-white/5 rounded-2xl border border-dashed border-white/20 text-center">No services added. Click above to add.</div>
+                  <div className="text-sm text-secondary-foreground/60 font-light italic p-6 bg-black/5 rounded-2xl border border-dashed border-border text-center">No services added. Click above to add.</div>
                 ) : (
                   <div className="space-y-3">
                     {visitServices.map((vs, idx) => (
@@ -696,12 +749,12 @@ export default function Customers() {
                             newSvcs[idx].serviceId = e.target.value;
                             setVisitServices(newSvcs);
                           }}
-                          className="glass-input flex-1 px-4 py-3 appearance-none"
+                          className="glass-input flex-1 px-4 py-3 appearance-none bg-white"
                         >
-                          <option value="" className="bg-black">-- Select Service --</option>
+                          <option value="" className="text-secondary-foreground">-- Select Service --</option>
                           {Object.entries(groupedServices).map(([category, items]) => (
-                            <optgroup key={category} label={category} className="bg-black text-white/50">
-                              {items.map(s => <option key={s.id} value={s.id} className="text-white bg-black">{s.service_name} - ₹{s.price}</option>)}
+                            <optgroup key={category} label={category} className="text-secondary-foreground">
+                              {items.map(s => <option key={s.id} value={s.id} className="text-text">{s.service_name} - ₹{s.price}</option>)}
                             </optgroup>
                           ))}
                         </select>
@@ -717,8 +770,8 @@ export default function Customers() {
               {/* Products Selection */}
               <div>
                 <div className="flex justify-between items-center mb-3">
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase">Products Purchased</label>
-                  <button onClick={() => setVisitProducts([...visitProducts, {productId: '', quantity: 1}])} className="text-xs font-bold text-white bg-white/10 hover:bg-white/20 border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
+                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase">Products Purchased</label>
+                  <button onClick={() => setVisitProducts([...visitProducts, {productId: '', quantity: 1}])} className="text-xs font-bold text-text bg-black/5 hover:bg-black/10 border border-border px-3 py-1.5 rounded-lg transition-colors">
                     + Add Product
                   </button>
                 </div>
@@ -733,10 +786,10 @@ export default function Customers() {
                             newProds[idx].productId = e.target.value;
                             setVisitProducts(newProds);
                           }}
-                          className="glass-input flex-1 px-4 py-3 appearance-none"
+                          className="glass-input flex-1 px-4 py-3 appearance-none bg-white"
                         >
-                          <option value="" className="bg-black">-- Select Product --</option>
-                          {products.map(p => <option key={p.id} value={p.id} className="bg-black">{(p.name || '').substring(0,40)} - ₹{p.selling_price || p.sellingPrice || 0}</option>)}
+                          <option value="" className="text-secondary-foreground">-- Select Product --</option>
+                          {products.map(p => <option key={p.id} value={p.id} className="text-text">{(p.name || '').substring(0,40)} - ₹{p.selling_price || p.sellingPrice || 0}</option>)}
                         </select>
                         <input 
                           type="number" 
@@ -747,7 +800,7 @@ export default function Customers() {
                             newProds[idx].quantity = parseInt(e.target.value) || 1;
                             setVisitProducts(newProds);
                           }}
-                          className="glass-input w-24 px-3 py-3 text-center"
+                          className="glass-input w-24 px-3 py-3 text-center bg-white"
                         />
                         <button onClick={() => setVisitProducts(visitProducts.filter((_, i) => i !== idx))} className="p-3 text-danger hover:bg-danger/20 rounded-xl bg-danger/10 border border-danger/20 transition-colors">
                           <Trash2 className="w-5 h-5" />
@@ -759,10 +812,10 @@ export default function Customers() {
               </div>
               
               {/* Summary */}
-              <div className="bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-md relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                <div className="flex justify-between items-center text-sm font-bold text-white relative z-10">
-                  <span className="tracking-wide uppercase text-white/70">Grand Total</span>
+              <div className="bg-primary/10 p-6 rounded-2xl border border-primary/20 backdrop-blur-md relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-2xl"></div>
+                <div className="flex justify-between items-center text-sm font-bold text-text relative z-10">
+                  <span className="tracking-wide uppercase text-secondary-foreground">Grand Total</span>
                   <span className="text-3xl font-light tracking-tight">
                     ₹{
                       visitServices.reduce((sum, vs) => sum + Number(services.find(s => s.id.toString() === vs.serviceId.toString())?.price || 0), 0) +
@@ -773,7 +826,7 @@ export default function Customers() {
               </div>
             </div>
 
-            <div className="p-6 border-t border-white/10 bg-black/40 rounded-b-2xl flex justify-end gap-3 shrink-0">
+            <div className="p-6 border-t border-border bg-white rounded-b-2xl flex justify-end gap-3 shrink-0">
               <button onClick={() => setIsVisitModalOpen(false)} className="btn-secondary">Cancel</button>
               <button onClick={submitVisit} className="btn-primary">Save Visit</button>
             </div>
@@ -783,86 +836,117 @@ export default function Customers() {
 
       {/* View Profile History Modal */}
       {selectedCustomerForHistory && selectedCustomer && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="glass-panel w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="flex items-start justify-between p-8 border-b border-white/10 bg-black/20 shrink-0">
+            <div className="flex items-start justify-between p-8 border-b border-border bg-white/50 shrink-0">
               <div className="flex items-center gap-6">
-                <div className="h-16 w-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-xl shrink-0 shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                <div className="h-16 w-16 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary-foreground font-bold text-xl shrink-0 shadow-sm">
                   {selectedCustomer.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-3xl font-light tracking-tight text-white">{selectedCustomer.name}</h3>
-                  <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2 text-sm text-white/50 tracking-wide uppercase">
+                  <h3 className="text-3xl font-light tracking-tight text-text">{selectedCustomer.name}</h3>
+                  {selectedCustomerRewards && (
+                    <div className="flex items-center gap-2 mt-2 mb-1">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${selectedCustomerRewards.membership_tier === 'Gold' ? 'bg-[#FFDF00]/10 text-[#B8860B] border-[#FFDF00]/30' : selectedCustomerRewards.membership_tier === 'Silver' ? 'bg-slate-100 text-slate-600 border-slate-200' : 'bg-primary/5 text-primary border-primary/20'}`}>
+                        <Star className="w-3 h-3 mr-1" /> {selectedCustomerRewards.membership_tier} Member
+                      </span>
+                      <span className="text-sm font-bold text-secondary-foreground">{selectedCustomerRewards.points} pts</span>
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-x-6 gap-y-1 mt-1 text-sm text-secondary-foreground tracking-wide uppercase">
                     <span className="flex items-center"><User className="w-4 h-4 mr-2"/> {selectedCustomer.phone}</span>
                     {selectedCustomer.dob && <span>DOB: {format(new Date(selectedCustomer.dob), 'dd MMM yyyy')}</span>}
                     <span>Joined {format(new Date(selectedCustomer.createdAt), 'MMM yyyy')}</span>
                   </div>
                 </div>
               </div>
-              <button onClick={() => setSelectedCustomerForHistory(null)} className="p-2 hover:bg-white/10 rounded-full text-white/50 transition-colors">
+              <button onClick={() => setSelectedCustomerForHistory(null)} className="p-2 hover:bg-black/5 rounded-full text-secondary-foreground transition-colors">
                 <X className="w-6 h-6"/>
               </button>
             </div>
-            
-            <div className="flex-1 overflow-y-auto p-8 bg-transparent custom-scrollbar">
-              <div className="grid md:grid-cols-3 gap-6 mb-10">
-                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
-                  <p className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Total Visits</p>
-                  <p className="text-3xl font-light text-white mt-2">{selectedHistory.length}</p>
+            <div className="p-8 overflow-y-auto bg-white/80 flex-1 custom-scrollbar">
+              <h4 className="text-xs font-bold tracking-[0.2em] text-secondary-foreground uppercase mb-6 flex items-center">
+                <Receipt className="w-4 h-4 mr-2" /> Visit History
+              </h4>
+              {selectedHistory.length === 0 ? (
+                <div className="text-center py-12 text-secondary-foreground/60 bg-black/5 rounded-2xl border border-dashed border-border">
+                  <CalendarIcon className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-base font-light tracking-wide">No past visits recorded.</p>
                 </div>
-                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
-                  <p className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Lifetime Spend</p>
-                  <p className="text-3xl font-light text-white mt-2">₹{getCustomerTotalSpend(selectedCustomer.id).toLocaleString()}</p>
-                </div>
-                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
-                  <p className="text-xs font-bold tracking-[0.1em] text-white/50 uppercase">Average Spend</p>
-                  <p className="text-3xl font-light text-white mt-2">
-                    ₹{selectedHistory.length > 0 ? Math.round(getCustomerTotalSpend(selectedCustomer.id) / selectedHistory.length).toLocaleString() : '0'}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-xl font-light tracking-tight text-white mb-6 flex items-center">
-                  <Receipt className="w-5 h-5 mr-3 text-white/50"/> Visit History
-                </h4>
-                {selectedHistory.length === 0 ? (
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-10 text-center text-white/50 font-light">
-                    No visits recorded yet.
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {selectedHistory.map(v => (
-                      <div key={v.id} className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-all duration-300">
-                        <div className="flex justify-between items-start mb-5">
-                          <div>
-                            <p className="text-lg font-medium text-white">Visit on {format(new Date(v.visit_date), 'dd MMM yyyy, hh:mm a')}</p>
-                            <p className="text-sm font-light text-white/50 mt-1 tracking-wide">
-                              Served by {staff.find(s => s.id === v.staff_id)?.name || staff.find(s => s.id === v.staff_id)?.staff_name || 'Unknown'}
-                            </p>
-                          </div>
-                          <span className="font-light text-white text-2xl bg-white/10 border border-white/10 px-4 py-1.5 rounded-xl">₹{(v.grand_total || 0).toLocaleString()}</span>
+              ) : (
+                <div className="space-y-6">
+                  {selectedHistory.map((visit: any, index) => {
+                    const servicesList = visit.visit_services || [];
+                    const productsList = visit.visit_products || [];
+                    
+                    return (
+                      <div key={visit.id} className="bg-white p-6 rounded-2xl border border-border shadow-sm flex flex-col md:flex-row gap-6 relative overflow-hidden group">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-primary/40 group-hover:bg-primary transition-colors"></div>
+                        <div className="shrink-0 flex flex-col justify-center w-32 border-r border-border pr-6">
+                          <span className="text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-1">Date</span>
+                          <span className="text-lg font-light text-text">{format(new Date(visit.visit_date), 'dd MMM')}</span>
+                          <span className="text-sm text-secondary-foreground">{format(new Date(visit.visit_date), 'yyyy')}</span>
                         </div>
-                        
-                        <div className="bg-black/20 rounded-xl p-5 text-sm space-y-3 border border-white/5">
-                          {v.visit_services?.length > 0 && (
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
-                              <span className="text-white/50 font-bold tracking-widest uppercase text-xs flex items-center"><Scissors className="w-3.5 h-3.5 mr-2"/> Services:</span> 
-                              <span className="text-white font-light">{v.visit_services.map((s: any) => s.service_name).join(', ')}</span>
+                        <div className="flex-1 min-w-0">
+                          {servicesList.length > 0 && (
+                            <div className="mb-4">
+                              <span className="text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2 flex items-center">
+                                <Scissors className="w-3 h-3 mr-1" /> Services
+                              </span>
+                              <div className="flex flex-wrap gap-2">
+                                {servicesList.map((vs: any, idx: number) => (
+                                  <span key={idx} className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-black/5 text-text border border-border">
+                                    {vs.service_name}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                           )}
-                          {v.visit_products?.length > 0 && (
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 mt-3">
-                              <span className="text-white/50 font-bold tracking-widest uppercase text-xs flex items-center"><Package className="w-3.5 h-3.5 mr-2"/> Products:</span> 
-                              <span className="text-white font-light">{v.visit_products.map((p: any) => `${p.product_name} (x${p.quantity})`).join(', ')}</span>
+                          {productsList.length > 0 && (
+                            <div>
+                              <span className="text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2 flex items-center">
+                                <Package className="w-3 h-3 mr-1" /> Products
+                              </span>
+                              <div className="flex flex-wrap gap-2">
+                                {productsList.map((vp: any, idx: number) => (
+                                  <span key={idx} className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-black/5 text-text border border-border">
+                                    {vp.quantity}x {vp.product_name}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                           )}
+                        </div>
+                        <div className="shrink-0 flex flex-col justify-center items-end pl-6 border-l border-border min-w-[120px] gap-3">
+                          <div>
+                            <span className="text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-1 block text-right">Total</span>
+                            <span className="text-2xl font-light text-text">₹{visit.grand_total}</span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              generateInvoicePDF({
+                                invoiceNumber: visit.id.substring(0, 8).toUpperCase(),
+                                date: visit.visit_date,
+                                customerName: selectedCustomer.name,
+                                customerPhone: selectedCustomer.phone,
+                                services: servicesList.map((s: any) => ({ name: s.service_name, quantity: 1, price: s.price || 0, amount: s.price || 0 })),
+                                products: productsList.map((p: any) => ({ name: p.product_name, quantity: p.quantity, price: p.price || 0, amount: (p.price || 0) * p.quantity })),
+                                subtotal: visit.grand_total,
+                                tax: 0,
+                                discount: 0,
+                                grandTotal: visit.grand_total
+                              });
+                            }}
+                            className="text-xs font-bold px-3 py-1.5 bg-black/5 hover:bg-black/10 text-text rounded-lg border border-border transition-colors flex items-center"
+                          >
+                            <Download className="w-3 h-3 mr-1" /> Invoice
+                          </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>

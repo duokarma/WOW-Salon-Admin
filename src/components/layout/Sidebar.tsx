@@ -4,10 +4,11 @@ import { motion } from 'framer-motion';
 import { 
   LayoutDashboard, Users, Package, Calendar, 
   FileText, PieChart, Scissors,
-  LogOut, User as UserIcon, List
+  LogOut, User as UserIcon, List, Tag
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { useAuth, UserRole } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
+import type { UserRole } from '../../contexts/AuthContext';
 import RoleGuard from './RoleGuard';
 
 interface NavItem {
@@ -22,30 +23,7 @@ const navigation: NavItem[] = [
   { name: 'Calendar', href: '/calendar', icon: Calendar, allowedRoles: ['Owner', 'Manager', 'Receptionist'] },
   { name: 'Customer Management', href: '/customers', icon: Users, allowedRoles: ['Owner', 'Manager', 'Receptionist'] },
   { name: 'Services', href: '/services', icon: List, allowedRoles: ['Owner', 'Manager', 'Receptionist'] },
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { 
-  LayoutDashboard, Users, Package, Calendar, 
-  FileText, PieChart, Scissors,
-  LogOut, User as UserIcon, List
-} from 'lucide-react';
-import { cn } from '../../lib/utils';
-import { useAuth, UserRole } from '../../contexts/AuthContext';
-import RoleGuard from './RoleGuard';
-
-interface NavItem {
-  name: string;
-  href: string;
-  icon: any;
-  allowedRoles: UserRole[];
-}
-
-const navigation: NavItem[] = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard, allowedRoles: ['Owner', 'Manager', 'Receptionist'] },
-  { name: 'Calendar', href: '/calendar', icon: Calendar, allowedRoles: ['Owner', 'Manager', 'Receptionist'] },
-  { name: 'Customer Management', href: '/customers', icon: Users, allowedRoles: ['Owner', 'Manager', 'Receptionist'] },
-  { name: 'Services', href: '/services', icon: List, allowedRoles: ['Owner', 'Manager', 'Receptionist'] },
+  { name: 'Packages', href: '/packages', icon: Tag, allowedRoles: ['Owner', 'Manager', 'Receptionist'] },
   { name: 'Inventory', href: '/inventory', icon: Package, allowedRoles: ['Owner', 'Manager', 'Receptionist'] },
   { name: 'Staff', href: '/staff', icon: Users, allowedRoles: ['Owner', 'Manager'] },
   { name: 'Expenses', href: '/expenses', icon: FileText, allowedRoles: ['Owner', 'Manager'] },
