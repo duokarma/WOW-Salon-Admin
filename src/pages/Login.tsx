@@ -59,8 +59,6 @@ export default function Login() {
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden bg-black font-sans selection:bg-[#F4E3C5] selection:text-black flex flex-col justify-between">
-      <Toaster position="top-center" />
-      
       {/* Background Image Setup */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-black/40 z-10"></div>
