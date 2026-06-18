@@ -163,8 +163,9 @@ export default function Accounts() {
     try {
       const { data: allVisits } = await supabase.from('customer_visits').select('visit_date, grand_total, customer:customer_id(name)').eq('is_deleted', false);
       const { data: allExpenses } = await supabase.from('expenses').select('date, title, category, amount').eq('is_deleted', false);
+      const { data: allProducts } = await supabase.from('products').select('name, purchased_quantity, purchase_price, created_at');
 
-      if ((!allVisits || allVisits.length === 0) && (!allExpenses || allExpenses.length === 0)) {
+      if ((!allVisits || allVisits.length === 0) && (!allExpenses || allExpenses.length === 0) && (!allProducts || allProducts.length === 0)) {
         toast.error('No financial data found.');
         return;
       }
@@ -186,8 +187,16 @@ export default function Accounts() {
         `"${e.category}"`,
         e.amount || 0
       ]);
+
+      const inventory = (allProducts || []).filter(p => (p.purchased_quantity || 0) > 0).map((p: any) => [
+        format(new Date(p.created_at || new Date()), 'yyyy-MM-dd'),
+        'Expense',
+        `"Inventory Purchase - ${p.name}"`,
+        `"Inventory"`,
+        (p.purchased_quantity || 0) * (p.purchase_price || 0)
+      ]);
       
-      const allTx = [...incomes, ...outgoings].sort((a, b) => new Date(b[0] as string).getTime() - new Date(a[0] as string).getTime());
+      const allTx = [...incomes, ...outgoings, ...inventory].sort((a, b) => new Date(b[0] as string).getTime() - new Date(a[0] as string).getTime());
       
       const csvContent = [headers.join(','), ...allTx.map(r => r.join(','))].join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
