@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS public.customers (
     amount_paid NUMERIC DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+ALTER TABLE public.customers DISABLE ROW LEVEL SECURITY;
 
 -- Services Table
 CREATE TABLE IF NOT EXISTS public.services (
@@ -38,6 +39,7 @@ CREATE TABLE IF NOT EXISTS public.services (
     price NUMERIC NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+ALTER TABLE public.services DISABLE ROW LEVEL SECURITY;
 
 -- Staff Table
 CREATE TABLE IF NOT EXISTS public.staff (
@@ -49,6 +51,7 @@ CREATE TABLE IF NOT EXISTS public.staff (
     commission_earned NUMERIC DEFAULT 0, -- 10% Commission
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+ALTER TABLE public.staff DISABLE ROW LEVEL SECURITY;
 
 -- Products (Inventory) Table
 CREATE TABLE IF NOT EXISTS public.products (
@@ -60,6 +63,7 @@ CREATE TABLE IF NOT EXISTS public.products (
     current_stock INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+ALTER TABLE public.products DISABLE ROW LEVEL SECURITY;
 
 -- Expenses Table
 CREATE TABLE IF NOT EXISTS public.expenses (
@@ -69,6 +73,7 @@ CREATE TABLE IF NOT EXISTS public.expenses (
     amount NUMERIC NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+ALTER TABLE public.expenses DISABLE ROW LEVEL SECURITY;
 
 --------------------------------------------------------
 -- 3. CREATE TRANSACTION & MAPPING TABLES
@@ -85,6 +90,7 @@ CREATE TABLE IF NOT EXISTS public.customer_visits (
     staff_id BIGINT REFERENCES public.staff(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+ALTER TABLE public.customer_visits DISABLE ROW LEVEL SECURITY;
 
 -- Visit Services Mapping
 CREATE TABLE IF NOT EXISTS public.visit_services (
@@ -94,6 +100,7 @@ CREATE TABLE IF NOT EXISTS public.visit_services (
     service_name TEXT NOT NULL,
     price NUMERIC NOT NULL DEFAULT 0
 );
+ALTER TABLE public.visit_services DISABLE ROW LEVEL SECURITY;
 
 -- Visit Products Mapping
 CREATE TABLE IF NOT EXISTS public.visit_products (
@@ -104,6 +111,7 @@ CREATE TABLE IF NOT EXISTS public.visit_products (
     quantity INTEGER NOT NULL DEFAULT 1,
     price NUMERIC NOT NULL DEFAULT 0
 );
+ALTER TABLE public.visit_products DISABLE ROW LEVEL SECURITY;
 
 -- Staff Commissions Table
 CREATE TABLE IF NOT EXISTS public.staff_commissions (
@@ -114,6 +122,7 @@ CREATE TABLE IF NOT EXISTS public.staff_commissions (
     commission_amount NUMERIC NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+ALTER TABLE public.staff_commissions DISABLE ROW LEVEL SECURITY;
 
 --------------------------------------------------------
 -- 4. CREATE INDEXES FOR PERFORMANCE
