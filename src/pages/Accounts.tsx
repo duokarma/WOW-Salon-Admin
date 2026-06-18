@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { PieChart as PieChartIcon, ArrowUpRight, ArrowDownRight, IndianRupee } from 'lucide-react';
+import { PieChart as PieChartIcon, ArrowUpRight, ArrowDownRight, IndianRupee, Download } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { format, isSameMonth, isSameYear } from 'date-fns';
+import toast from 'react-hot-toast';
 
-const COLORS = ['#111827', '#374151', '#4B5563', '#6B7280', '#9CA3AF', '#D1D5DB'];
+const COLORS = ['#F4E3C5', '#D4AF37', '#996515', '#C5B358', '#E6C200', '#FFDF00'];
 
 export default function Accounts() {
   const [filter, setFilter] = useState<'This Month' | 'This Year' | 'All Time'>('This Month');
@@ -70,7 +71,7 @@ export default function Accounts() {
     
     const outgoings = filteredExpenses.map(exp => ({
       id: exp.id,
-      title: exp.title,
+      title: exp.title || exp.category,
       amount: Number(exp.amount) || 0,
       type: 'expense',
       date: new Date(exp.date)
@@ -81,64 +82,140 @@ export default function Accounts() {
       .slice(0, 10);
   }, [filteredVisits, filteredExpenses]);
 
+  // CSV Exports
+  const exportCustomerCSV = async () => {
+    try {
+      const { data, error } = await supabase.from('customers').select('*');
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        toast.error('No customers found.');
+        return;
+      }
+      
+      const headers = ['ID', 'Name', 'Phone', 'Date of Birth', 'Services Taken', 'Staff Served', 'Amount Paid', 'Created At'];
+      const rows = data.map(c => [
+        c.id,
+        `"${c.name}"`,
+        `"${c.phone || ''}"`,
+        c.dob || '',
+        `"${(c.services_taken || []).join(', ')}"`,
+        `"${(c.staff_served || []).join(', ')}"`,
+        c.amount_paid || 0,
+        c.created_at
+      ]);
+      
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', `customers_export_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('Customer CSV exported!');
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Failed to export customers');
+    }
+  };
+
+  const exportFinanceCSV = () => {
+    if (visits.length === 0 && expenses.length === 0) {
+      toast.error('No financial data found.');
+      return;
+    }
+    const headers = ['Date', 'Type', 'Description', 'Category/Customer', 'Amount'];
+    
+    const incomes = visits.map(v => [
+      format(new Date(v.visit_date), 'yyyy-MM-dd HH:mm'),
+      'Income',
+      `"Visit - ${v.customer?.name || 'Walk-in'}"`,
+      `"Services & Products"`,
+      v.grand_total || 0
+    ]);
+    
+    const outgoings = expenses.map(e => [
+      format(new Date(e.date), 'yyyy-MM-dd'),
+      'Expense',
+      `"${e.title || e.category}"`,
+      `"${e.category}"`,
+      e.amount || 0
+    ]);
+    
+    const allTx = [...incomes, ...outgoings].sort((a, b) => new Date(b[0] as string).getTime() - new Date(a[0] as string).getTime());
+    
+    const csvContent = [headers.join(','), ...allTx.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', `finance_export_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Finance CSV exported!');
+  };
+
   return (
     <div className="space-y-6 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900">Accounts Overview</h2>
-          <p className="text-gray-500 text-sm mt-1">Financial summary, P&L, and expense tracking.</p>
+          <h2 className="text-4xl font-light tracking-tight text-white">Accounts Overview</h2>
+          <p className="text-white/50 font-light mt-1 tracking-wide">Financial summary, P&L, and expense tracking.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-3">
           <select 
             value={filter} 
             onChange={(e) => setFilter(e.target.value as any)} 
-            className="text-sm font-medium border border-gray-300 rounded-xl px-4 py-2.5 bg-white shadow-sm outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-all text-gray-900"
+            className="glass-input text-sm font-medium px-4 py-2.5 appearance-none text-white cursor-pointer"
           >
-            <option value="This Month">This Month</option>
-            <option value="This Year">This Year</option>
-            <option value="All Time">All Time</option>
+            <option value="This Month" className="bg-black">This Month</option>
+            <option value="This Year" className="bg-black">This Year</option>
+            <option value="All Time" className="bg-black">All Time</option>
           </select>
-          <button className="inline-flex items-center justify-center rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 transition-all">
-            Export Report
+          <button onClick={exportCustomerCSV} className="btn-secondary flex items-center bg-white/5 hover:bg-white/10 text-white border-white/20">
+            <Download className="w-4 h-4 mr-2" /> Customers CSV
+          </button>
+          <button onClick={exportFinanceCSV} className="btn-primary flex items-center">
+            <Download className="w-4 h-4 mr-2" /> Finance CSV
           </button>
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="glass-card p-6 flex flex-col justify-center bg-white border border-gray-200">
+        <div className="glass-card p-6 flex flex-col justify-center border border-white/10">
           <div className="flex justify-between items-start">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500">Total Revenue</h3>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-white/50">Total Revenue</h3>
             <div className="bg-success/10 p-2 rounded-lg border border-success/20"><ArrowUpRight className="h-5 w-5 text-success" /></div>
           </div>
           <div className="mt-4 flex items-center gap-2">
-            <span className="text-3xl font-bold text-gray-900 flex items-center"><IndianRupee className="w-6 h-6 mr-1 text-gray-400" />{totalRevenue.toLocaleString()}</span>
+            <span className="text-4xl font-light text-white flex items-center tracking-tight"><IndianRupee className="w-6 h-6 mr-1 text-white/40" />{totalRevenue.toLocaleString()}</span>
           </div>
         </div>
         
-        <div className="glass-card p-6 flex flex-col justify-center border-danger/20 bg-white">
+        <div className="glass-card p-6 flex flex-col justify-center border border-danger/20">
           <div className="flex justify-between items-start">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500">Total Expenses</h3>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-white/50">Total Expenses</h3>
             <div className="bg-danger/10 p-2 rounded-lg border border-danger/20"><ArrowDownRight className="h-5 w-5 text-danger" /></div>
           </div>
           <div className="mt-4 flex items-center gap-2">
-            <span className="text-3xl font-bold text-gray-900 flex items-center"><IndianRupee className="w-6 h-6 mr-1 text-danger" />{totalExpenses.toLocaleString()}</span>
+            <span className="text-4xl font-light text-white flex items-center tracking-tight"><IndianRupee className="w-6 h-6 mr-1 text-danger" />{totalExpenses.toLocaleString()}</span>
           </div>
         </div>
 
-        <div className="glass-card p-6 relative overflow-hidden flex flex-col justify-center group border-gray-200 bg-white">
+        <div className="glass-card p-6 relative overflow-hidden flex flex-col justify-center group border border-white/10">
           <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:scale-110 transition-transform duration-500">
-             <IndianRupee className="w-24 h-24 text-gray-900" />
+             <IndianRupee className="w-24 h-24 text-white" />
           </div>
           <div className="relative z-10">
             <div className="flex justify-between items-start">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500">Net Profit</h3>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-white/50">Net Profit</h3>
             </div>
             <div className="mt-4 flex items-center gap-2">
-              <span className={`text-3xl font-bold flex items-center ${netProfit >= 0 ? 'text-gray-900' : 'text-danger'}`}>
-                <IndianRupee className="w-6 h-6 mr-1 text-gray-400" />{netProfit.toLocaleString()}
+              <span className={`text-4xl font-light tracking-tight flex items-center ${netProfit >= 0 ? 'text-white' : 'text-danger'}`}>
+                <IndianRupee className="w-6 h-6 mr-1 text-white/40" />{netProfit.toLocaleString()}
               </span>
             </div>
-            <p className="text-xs font-medium mt-2 text-gray-500">After all recorded expenses</p>
+            <p className="text-xs font-light mt-2 text-white/50 italic">After all recorded expenses</p>
           </div>
         </div>
       </div>
@@ -146,10 +223,10 @@ export default function Accounts() {
       <div className="grid lg:grid-cols-2 gap-6">
         
         {/* Pie Chart */}
-        <div className="glass-card p-6 bg-white border border-gray-200">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Expense Breakdown</h3>
+        <div className="glass-card p-6 border border-white/10">
+          <h3 className="text-xl font-light text-white mb-6 tracking-tight">Expense Breakdown</h3>
           {expenseData.length === 0 ? (
-            <div className="h-[300px] flex items-center justify-center text-gray-500 text-sm">
+            <div className="h-[300px] flex items-center justify-center text-white/30 text-sm italic font-light">
               No expenses recorded for {filter.toLowerCase()}.
             </div>
           ) : (
@@ -171,7 +248,7 @@ export default function Accounts() {
                   </Pie>
                   <RechartsTooltip 
                     formatter={(value: any) => `₹${value}`} 
-                    contentStyle={{ backgroundColor: '#fff', borderColor: '#e5e7eb', borderRadius: '8px', color: '#111827', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}
+                    contentStyle={{ backgroundColor: '#000', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff', boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)' }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -180,23 +257,23 @@ export default function Accounts() {
         </div>
 
         {/* Recent Transactions List */}
-        <div className="glass-card p-6 flex flex-col h-full max-h-[420px] bg-white border border-gray-200">
+        <div className="glass-card p-6 flex flex-col h-full max-h-[420px] border border-white/10">
           <div className="flex justify-between items-center mb-6 shrink-0">
-            <h3 className="text-lg font-bold text-gray-900">Recent Transactions</h3>
-            <span className="text-xs font-bold px-2.5 py-1 bg-gray-100 text-gray-600 border border-gray-200 rounded-md">{filter}</span>
+            <h3 className="text-xl font-light text-white tracking-tight">Recent Transactions</h3>
+            <span className="text-xs font-bold px-3 py-1.5 bg-white/10 text-white border border-white/10 rounded-lg">{filter}</span>
           </div>
           
           <div className="space-y-4 overflow-y-auto custom-scrollbar pr-2 flex-1">
             {recentTransactions.length === 0 ? (
-              <p className="text-sm text-center text-gray-500 mt-10">No transactions found.</p>
+              <p className="text-sm text-center text-white/30 italic font-light mt-10">No transactions found.</p>
             ) : (
               recentTransactions.map(tx => (
-                <div key={`${tx.type}-${tx.id}`} className="flex justify-between items-center pb-4 border-b border-gray-100 last:border-0 last:pb-0 group">
+                <div key={`${tx.type}-${tx.id}`} className="flex justify-between items-center pb-4 border-b border-white/10 last:border-0 last:pb-0 group">
                   <div>
-                    <p className="font-semibold text-sm text-gray-900">{tx.title}</p>
-                    <p className="text-xs font-medium text-gray-500 mt-0.5">{format(tx.date, 'dd MMM yyyy, hh:mm a')}</p>
+                    <p className="font-light text-base text-white">{tx.title}</p>
+                    <p className="text-xs font-light tracking-wide text-white/50 mt-1 uppercase">{format(tx.date, 'dd MMM yyyy, hh:mm a')}</p>
                   </div>
-                  <span className={`font-bold text-sm px-3 py-1 rounded-lg border ${tx.type === 'income' ? 'text-success bg-success/10 border-success/20' : 'text-danger bg-danger/10 border-danger/20'}`}>
+                  <span className={`font-light text-sm px-3 py-1 rounded-lg border ${tx.type === 'income' ? 'text-success bg-success/10 border-success/20' : 'text-danger bg-danger/10 border-danger/20'}`}>
                     {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString()}
                   </span>
                 </div>
@@ -209,3 +286,4 @@ export default function Accounts() {
     </div>
   );
 }
+
