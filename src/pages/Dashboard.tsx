@@ -81,22 +81,34 @@ export default function Dashboard() {
   const todayExpensesAmount = todayExpensesItems.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
   const todayProfit = todayRevenue - todayExpensesAmount;
 
-  // --- Low Stock Products ---
-  const lowStockProducts = products.filter(p => (Number(p.stock_quantity) || 0) <= (Number(p.low_stock_threshold) || 0)).slice(0, 10);
+  // --- Lifetime Metrics ---
+  const allUniqueCustomerIds = new Set(visits.map(v => v.customer_id).filter(Boolean));
+  const lifetimeCustomersCount = allUniqueCustomerIds.size;
+  const lifetimeRevenue = visits.reduce((sum, v) => sum + (Number(v.grand_total) || 0), 0);
+  const lifetimeExpensesAmount = expenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
+  const lifetimeProfit = lifetimeRevenue - lifetimeExpensesAmount;
 
-  const StatCard = ({ title, value, icon: Icon, colorClass }: any) => (
-    <motion.div variants={itemVariants} className="glass-card p-8 flex flex-col justify-between relative overflow-hidden group">
+  // --- Low Stock Products ---
+  const lowStockProducts = products.filter(p => (Number(p.current_stock) || 0) <= 5).slice(0, 10);
+
+  const StatCard = ({ title, todayValue, lifetimeValue, lifetimeLabel, icon: Icon, colorClass }: any) => (
+    <motion.div variants={itemVariants} className="glass-card p-5 flex flex-col justify-between relative overflow-hidden group">
       {/* Decorative background glow */}
       <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/[0.02] rounded-full blur-3xl group-hover:bg-white/[0.04] transition-all duration-500"></div>
       
-      <div className="flex justify-between items-start mb-6 relative z-10">
-        <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 shadow-sm backdrop-blur-md">
-          <Icon className="w-6 h-6 text-white/60" />
+      <div className="flex justify-between items-start mb-4 relative z-10">
+        <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/5 shadow-sm backdrop-blur-md">
+          <Icon className="w-5 h-5 text-white/60" />
         </div>
       </div>
-      <div className="relative z-10 mt-4">
-        <h3 className="text-white/40 text-[11px] font-medium mb-3 tracking-[0.2em] uppercase">{title}</h3>
-        <p className="text-6xl font-serif text-white tracking-tight">{value}</p>
+      <div className="relative z-10">
+        <h3 className="text-white/40 text-[10px] font-bold mb-2 tracking-[0.2em] uppercase">{title}</h3>
+        <p className="text-4xl font-serif text-white tracking-tight mb-3">{todayValue}</p>
+        
+        <div className="flex items-center justify-between border-t border-white/5 pt-3">
+          <span className="text-[10px] text-white/40 uppercase tracking-widest">{lifetimeLabel || 'Lifetime'}</span>
+          <span className="text-sm font-light text-white/70">{lifetimeValue}</span>
+        </div>
       </div>
     </motion.div>
   );
@@ -120,62 +132,66 @@ export default function Dashboard() {
       ) : (
         <>
           {/* Key Daily Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard 
               title="Today's Revenue" 
-              value={`₹${todayRevenue.toLocaleString()}`}
+              todayValue={`₹${todayRevenue.toLocaleString()}`}
+              lifetimeValue={`₹${lifetimeRevenue.toLocaleString()}`}
               icon={IndianRupee} 
             />
             <StatCard 
               title="Today's Profit" 
-              value={`₹${todayProfit.toLocaleString()}`}
+              todayValue={`₹${todayProfit.toLocaleString()}`}
+              lifetimeValue={`₹${lifetimeProfit.toLocaleString()}`}
               icon={TrendingUp} 
             />
             <StatCard 
-              title="Customers" 
-              value={todayCustomersCount.toString()}
+              title="Customers (Today)" 
+              todayValue={todayCustomersCount.toString()}
+              lifetimeValue={lifetimeCustomersCount.toString()}
+              lifetimeLabel="Total Customers"
               icon={Users} 
             />
             <StatCard 
-              title="Expenses" 
-              value={`₹${todayExpensesAmount.toLocaleString()}`}
+              title="Today's Expenses" 
+              todayValue={`₹${todayExpensesAmount.toLocaleString()}`}
+              lifetimeValue={`₹${lifetimeExpensesAmount.toLocaleString()}`}
               icon={IndianRupee} 
             />
           </div>
 
           {/* Low Stock Alerts */}
-          <motion.div variants={itemVariants} className="glass-card p-8 flex flex-col min-h-[350px] mt-10 relative overflow-hidden">
+          <motion.div variants={itemVariants} className="glass-card p-5 flex flex-col min-h-[300px] mt-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-danger/[0.02] rounded-full blur-[100px] pointer-events-none"></div>
             
-            <div className="flex justify-between items-center mb-8 shrink-0 border-b border-white/5 pb-6 relative z-10">
-              <div className="flex items-center gap-4">
-                <div className="p-2.5 rounded-xl bg-danger/10 border border-danger/20">
-                  <AlertTriangle className="w-5 h-5 text-danger" />
+            <div className="flex justify-between items-center mb-5 shrink-0 border-b border-white/5 pb-4 relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-danger/10 border border-danger/20">
+                  <AlertTriangle className="w-4 h-4 text-danger" />
                 </div>
-                <h3 className="text-2xl font-light tracking-tight text-white">Low Stock Alerts</h3>
+                <h3 className="text-xl font-light tracking-tight text-white">Low Stock Alerts</h3>
               </div>
             </div>
             
-            <div className="space-y-4 overflow-y-auto custom-scrollbar pr-2 flex-1 relative z-10">
+            <div className="space-y-3 overflow-y-auto custom-scrollbar pr-2 flex-1 relative z-10">
               {lowStockProducts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-white/40 mt-10">
-                  <PackageOpen className="w-12 h-12 mb-4 opacity-30" />
-                  <p className="text-sm font-medium tracking-wide uppercase">Inventory levels optimal</p>
+                <div className="flex flex-col items-center justify-center h-full text-white/40 mt-6">
+                  <PackageOpen className="w-10 h-10 mb-3 opacity-30" />
+                  <p className="text-xs font-medium tracking-wide uppercase">Inventory levels optimal</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {lowStockProducts.map(product => (
-                    <div key={product.id} className="flex flex-col p-5 rounded-2xl bg-danger/[0.03] border border-danger/10 backdrop-blur-md transition-all hover:bg-danger/[0.05] hover:border-danger/30">
-                      <p className="text-lg font-medium text-white truncate">{product.name}</p>
-                      <p className="text-xs text-white/40 mb-4 tracking-wider uppercase">{product.brand}</p>
-                      <div className="flex justify-between items-end mt-auto">
+                    <div key={product.id} className="flex flex-col p-4 rounded-xl bg-danger/[0.03] border border-danger/10 backdrop-blur-md transition-all hover:bg-danger/[0.05] hover:border-danger/30">
+                      <p className="text-base font-medium text-white truncate">{product.name}</p>
+                      <div className="flex justify-between items-end mt-4">
                         <div>
-                          <p className="text-[10px] text-white/40 uppercase tracking-[0.1em] mb-1">Threshold</p>
-                          <p className="text-sm font-semibold text-white/70">{product.low_stock_threshold || product.lowStockThreshold || 0}</p>
+                          <p className="text-[9px] text-white/40 uppercase tracking-[0.1em] mb-1">Threshold</p>
+                          <p className="text-xs font-semibold text-white/70">5</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-[10px] text-danger uppercase tracking-[0.1em] font-bold mb-1">Current Stock</p>
-                          <p className="text-2xl font-light text-danger">{product.stock_quantity || product.stockQuantity || 0}</p>
+                          <p className="text-[9px] text-danger uppercase tracking-[0.1em] font-bold mb-1">Current Stock</p>
+                          <p className="text-xl font-light text-danger">{product.current_stock || 0}</p>
                         </div>
                       </div>
                     </div>
