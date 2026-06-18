@@ -43,7 +43,7 @@ export const customerService = {
       .from('customers')
       .select('id')
       .eq('phone', customerData.phone)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       throw new Error('A customer with this phone number already exists.');
