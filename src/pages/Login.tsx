@@ -224,13 +224,8 @@ export default function Login() {
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
-          className="hidden lg:flex w-[30%] flex-col items-end justify-between h-[600px]"
+          className="hidden lg:flex w-[30%] flex-col items-end justify-end h-[600px]"
         >
-          <button className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full border border-white/10 bg-black/40 hover:bg-white/10 transition-colors backdrop-blur-md">
-            <Headphones className="w-4 h-4 text-white" />
-            <span className="text-[12px] text-white tracking-wide">Need help?</span>
-          </button>
-
           <div className="mt-auto mb-16 max-w-[280px] text-left flex flex-col items-start mr-8">
             <div className="w-[100px] h-[100px] rounded-full border border-white/10 flex items-center justify-center mb-8 relative">
               {/* Subtle inner glow for the circle */}
@@ -257,7 +252,7 @@ export default function Login() {
         <div className="inline-flex items-center gap-6 px-8 py-3.5 rounded-full border border-white/10 bg-black/40 backdrop-blur-md text-[11px] text-white/50 tracking-wide">
           <span className="flex items-center gap-2">
             <Lock className="w-3 h-3 text-white/40" /> 
-            © 2025 WOW Salon. All rights reserved.
+            © 2026 WOW Salon. All rights reserved.
           </span>
           <span className="w-px h-3 bg-white/20"></span>
           <span className="flex gap-4">
