@@ -64,8 +64,8 @@ export default function CalendarView() {
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-light tracking-tight text-white">{format(currentDate, 'MMMM yyyy')}</h3>
             <div className="flex gap-2">
-              <button onClick={prevMonth} className="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white border border-transparent transition-colors"><ChevronLeft className="w-5 h-5"/></button>
-              <button onClick={nextMonth} className="p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white border border-transparent transition-colors"><ChevronRight className="w-5 h-5"/></button>
+              <button onClick={prevMonth} className="p-2 rounded-full hover:bg-black/40/5 text-white/50 hover:text-white border border-transparent transition-colors"><ChevronLeft className="w-5 h-5"/></button>
+              <button onClick={nextMonth} className="p-2 rounded-full hover:bg-black/40/5 text-white/50 hover:text-white border border-transparent transition-colors"><ChevronRight className="w-5 h-5"/></button>
             </div>
           </div>
           
@@ -75,7 +75,7 @@ export default function CalendarView() {
           
           <div className="grid grid-cols-7 gap-2 flex-1">
             {paddingDays.map((_, i) => (
-              <div key={`pad-${i}`} className="rounded-xl bg-white/5 border border-transparent opacity-50"></div>
+              <div key={`pad-${i}`} className="rounded-xl bg-black/40/5 border border-transparent opacity-50"></div>
             ))}
             {daysInMonth.map((day, i) => {
               const dayVisits = visits.filter(v => v.visit_date && isSameDay(new Date(v.visit_date), day));
@@ -86,7 +86,7 @@ export default function CalendarView() {
                 <div 
                   key={i} 
                   onClick={() => setSelectedDate(day)}
-                  className={`rounded-xl border p-2 flex flex-col cursor-pointer transition-all duration-300 ${isSelected ? 'bg-white text-black border-white shadow-lg scale-[1.05]' : 'bg-white/5 border-white/10 hover:border-white/30 hover:bg-white/10'}`}
+                  className={`rounded-xl border p-2 flex flex-col cursor-pointer transition-all duration-300 ${isSelected ? 'bg-black/40 text-black border-white shadow-lg scale-[1.05]' : 'bg-black/40/5 border-white/10 hover:border-white/30 hover:bg-black/40/5'}`}
                 >
                   <span className={`text-sm font-bold mb-1 ${isSelected ? 'text-black' : 'text-white'}`}>{format(day, 'd')}</span>
                   {dayVisits.length > 0 && (
@@ -112,11 +112,11 @@ export default function CalendarView() {
           </h3>
           
           <div className="grid grid-cols-2 gap-4 mb-6 shrink-0">
-            <div className="bg-white/5 p-5 rounded-2xl border border-white/10">
+            <div className="bg-black/40/5 p-5 rounded-2xl border border-white/10">
               <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2">Customers</p>
               <p className="text-3xl font-light text-white">{totalCustomers}</p>
             </div>
-            <div className="bg-white/5 p-5 rounded-2xl border border-white/10">
+            <div className="bg-black/40/5 p-5 rounded-2xl border border-white/10">
               <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-2">Revenue</p>
               <p className="text-3xl font-light text-success flex items-center"><IndianRupee className="w-5 h-5 mr-1"/>{totalRevenue.toLocaleString()}</p>
             </div>
@@ -125,14 +125,14 @@ export default function CalendarView() {
           <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
             {selectedDateVisits.length === 0 ? (
               <div className="text-center text-white/50 py-10 flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4">
+                <div className="w-16 h-16 rounded-full bg-black/40/5 border border-white/10 flex items-center justify-center mb-4">
                   <Users className="w-8 h-8 text-white/20" />
                 </div>
                 <p className="font-light tracking-wide">No visits on this date.</p>
               </div>
             ) : (
               selectedDateVisits.map((v, i) => (
-                <div key={v.id || i} className="bg-white/5 rounded-2xl p-5 border border-white/10 hover:border-white/30 transition-all">
+                <div key={v.id || i} className="bg-black/40/5 rounded-2xl p-5 border border-white/10 hover:border-white/30 transition-all">
                   <div className="flex justify-between items-start mb-3">
                     <h4 className="font-medium text-white text-lg">{i + 1}. {v.customer?.name || 'Walk-in'}</h4>
                     <span className="font-bold text-success text-lg tracking-tight">₹{(v.grand_total || 0).toLocaleString()}</span>

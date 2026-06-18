@@ -130,12 +130,12 @@ export default function Packages() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 glass-panel p-6 sm:p-8 animate-in slide-in-from-bottom-4 duration-500">
         <div>
-          <h1 className="text-3xl font-light tracking-tight text-text">Packages</h1>
-          <p className="text-sm text-secondary-foreground mt-2">Manage bundled services</p>
+          <h1 className="text-3xl font-light tracking-tight text-white">Packages</h1>
+          <p className="text-sm text-white/60 mt-2">Manage bundled services</p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-foreground/50" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60/50" />
             <input 
               type="text" 
               placeholder="Search packages..." 
@@ -160,8 +160,8 @@ export default function Packages() {
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <Tag className="w-8 h-8 text-primary" />
           </div>
-          <h3 className="text-xl font-light text-text mb-2">No Packages Found</h3>
-          <p className="text-secondary-foreground">Click "Add Package" to create a new service bundle.</p>
+          <h3 className="text-xl font-light text-white mb-2">No Packages Found</h3>
+          <p className="text-white/60">Click "Add Package" to create a new service bundle.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -171,11 +171,11 @@ export default function Packages() {
               
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-xl font-light text-text">{pkg.name}</h3>
-                  <p className="text-sm text-secondary-foreground mt-1 line-clamp-2">{pkg.description}</p>
+                  <h3 className="text-xl font-light text-white">{pkg.name}</h3>
+                  <p className="text-sm text-white/60 mt-1 line-clamp-2">{pkg.description}</p>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => openEditModal(pkg)} className="p-2 text-secondary-foreground hover:text-text hover:bg-black/5 rounded-lg transition-colors">
+                  <button onClick={() => openEditModal(pkg)} className="p-2 text-white/60 hover:text-white hover:bg-black/5 rounded-lg transition-colors">
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button onClick={() => handleDelete(pkg.id)} className="p-2 text-danger hover:bg-danger/10 rounded-lg transition-colors">
@@ -185,12 +185,12 @@ export default function Packages() {
               </div>
 
               <div className="flex-1 mt-2 mb-4">
-                <span className="text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2 block">Included Services</span>
+                <span className="text-xs font-bold tracking-widest text-white/60 uppercase mb-2 block">Included Services</span>
                 <div className="flex flex-wrap gap-2">
                   {pkg.package_services?.map((ps: any, idx: number) => {
                     const s = availableServices.find(as => as.id.toString() === ps.service_id.toString());
                     return s ? (
-                      <span key={idx} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-black/5 text-text">
+                      <span key={idx} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-black/5 text-white">
                         {s.service_name}
                       </span>
                     ) : null;
@@ -198,9 +198,9 @@ export default function Packages() {
                 </div>
               </div>
 
-              <div className="mt-auto pt-4 border-t border-border flex justify-between items-center">
-                <span className="text-xs font-bold tracking-widest text-secondary-foreground uppercase">Price</span>
-                <span className="text-2xl font-light text-text">₹{pkg.price}</span>
+              <div className="mt-auto pt-4 border-t border-white/10 flex justify-between items-center">
+                <span className="text-xs font-bold tracking-widest text-white/60 uppercase">Price</span>
+                <span className="text-2xl font-light text-white">₹{pkg.price}</span>
               </div>
             </div>
           ))}
@@ -211,34 +211,34 @@ export default function Packages() {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="glass-panel w-full max-w-lg flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-6 border-b border-border bg-white/50 rounded-t-2xl shrink-0">
-              <h3 className="text-xl font-light tracking-tight text-text">{packageToEdit ? 'Edit Package' : 'Create Package'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-black/5 rounded-full text-secondary-foreground transition-colors">
+            <div className="flex items-center justify-between p-6 border-b border-white/10 bg-black/40 rounded-t-2xl shrink-0">
+              <h3 className="text-xl font-light tracking-tight text-white">{packageToEdit ? 'Edit Package' : 'Create Package'}</h3>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-black/5 rounded-full text-white/60 transition-colors">
                 <X className="w-5 h-5"/>
               </button>
             </div>
             
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
-              <div className="p-6 space-y-5 bg-white/80 overflow-y-auto custom-scrollbar flex-1">
+              <div className="p-6 space-y-5 bg-black/60 overflow-y-auto custom-scrollbar flex-1">
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Package Name *</label>
+                  <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Package Name *</label>
                   <input type="text" {...register("name")} className="glass-input w-full px-4 py-3" placeholder="e.g. Bridal Deluxe" />
                   {errors.name && <p className="text-danger text-xs mt-1.5">{errors.name.message as string}</p>}
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Description</label>
+                  <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Description</label>
                   <textarea {...register("description")} rows={2} className="glass-input w-full px-4 py-3 resize-none" placeholder="Details..." />
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Package Price *</label>
+                  <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Package Price *</label>
                   <input type="number" {...register("price")} className="glass-input w-full px-4 py-3" placeholder="0" />
                   {errors.price && <p className="text-danger text-xs mt-1.5">{errors.price.message as string}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2 flex items-center justify-between">
+                  <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2 flex items-center justify-between">
                     <span>Included Services</span>
                     <button type="button" onClick={() => setSelectedServices([...selectedServices, {service_id: ''}])} className="text-xs font-bold text-primary hover:text-primary/80 transition-colors">
                       + Add Service
@@ -256,7 +256,7 @@ export default function Packages() {
                               newS[idx].service_id = e.target.value;
                               setSelectedServices(newS);
                             }}
-                            className="glass-input flex-1 px-4 py-3 appearance-none bg-white"
+                            className="glass-input flex-1 px-4 py-3 appearance-none bg-black/40"
                           >
                             <option value="">-- Select Service --</option>
                             {availableServices.map(s => <option key={s.id} value={s.id}>{s.service_name}</option>)}
@@ -271,7 +271,7 @@ export default function Packages() {
                 </div>
               </div>
 
-              <div className="p-6 border-t border-border bg-white rounded-b-2xl flex justify-end gap-3 shrink-0">
+              <div className="p-6 border-t border-white/10 bg-black/40 rounded-b-2xl flex justify-end gap-3 shrink-0">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary">Cancel</button>
                 <button type="submit" className="btn-primary">Save Package</button>
               </div>

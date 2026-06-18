@@ -94,10 +94,10 @@ export default function Dashboard() {
   const StatCard = ({ title, todayValue, lifetimeValue, lifetimeLabel, icon: Icon, colorClass }: any) => (
     <motion.div variants={itemVariants} className="glass-card p-5 flex flex-col justify-between relative overflow-hidden group">
       {/* Decorative background glow */}
-      <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/[0.02] rounded-full blur-3xl group-hover:bg-white/[0.04] transition-all duration-500"></div>
+      <div className="absolute -right-10 -top-10 w-40 h-40 bg-black/40/[0.02] rounded-full blur-3xl group-hover:bg-black/40/[0.04] transition-all duration-500"></div>
       
       <div className="flex justify-between items-start mb-4 relative z-10">
-        <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/5 shadow-sm backdrop-blur-md">
+        <div className="p-3 rounded-2xl bg-black/40/[0.03] border border-white/5 shadow-sm backdrop-blur-md">
           <Icon className="w-5 h-5 text-white/60" />
         </div>
       </div>

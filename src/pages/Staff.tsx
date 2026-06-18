@@ -141,8 +141,8 @@ export default function Staff() {
       {/* Header Area */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-4xl font-light tracking-tight text-text">Staff Management</h2>
-          <p className="text-secondary-foreground mt-2 font-light tracking-wide">Manage team payroll, commissions, and performance.</p>
+          <h2 className="text-4xl font-light tracking-tight text-white">Staff Management</h2>
+          <p className="text-white/60 mt-2 font-light tracking-wide">Manage team payroll, commissions, and performance.</p>
         </div>
         <button 
           onClick={() => {
@@ -174,7 +174,7 @@ export default function Staff() {
             return (
               <div 
                 key={staff.id} 
-                className="glass-card hover:bg-white/50 transition-all cursor-pointer group flex flex-col overflow-hidden relative border border-border bg-white"
+                className="glass-card hover:bg-black/40 transition-all cursor-pointer group flex flex-col overflow-hidden relative border border-white/10 bg-black/40"
                 onClick={() => setSelectedStaffId(staff.id)}
               >
                 <button 
@@ -183,19 +183,19 @@ export default function Staff() {
                     setEditingStaff({ ...staff, name: staffName, salary: baseSalary, commission_rate: commissionRate });
                     setIsEditModalOpen(true);
                   }}
-                  className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-md border border-border rounded-full text-secondary-foreground hover:text-text shadow-sm opacity-0 group-hover:opacity-100 transition-all z-10"
+                  className="absolute top-4 right-4 p-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-white/60 hover:text-white shadow-sm opacity-0 group-hover:opacity-100 transition-all z-10"
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
 
-                <div className="p-6 border-b border-border">
+                <div className="p-6 border-b border-white/10">
                   <div className="flex items-center gap-4 mb-4 pr-8">
-                    <div className="w-14 h-14 rounded-full bg-black/5 border border-border flex items-center justify-center shrink-0 transition-colors">
-                      <span className="text-text font-bold text-lg transition-colors">{initials}</span>
+                    <div className="w-14 h-14 rounded-full bg-black/5 border border-white/10 flex items-center justify-center shrink-0 transition-colors">
+                      <span className="text-white font-bold text-lg transition-colors">{initials}</span>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-xl font-light text-text tracking-wide">{staffName}</h3>
-                      <p className="text-sm font-light text-secondary-foreground">{staff.gender}</p>
+                      <h3 className="text-xl font-light text-white tracking-wide">{staffName}</h3>
+                      <p className="text-sm font-light text-white/60">{staff.gender}</p>
                     </div>
                     <div className={`px-3 py-1 rounded-full text-xs font-bold border ${staff.status === 'Active' ? 'bg-success/10 text-success border-success/20' : 'bg-danger/10 text-danger border-danger/20'}`}>
                       {staff.status || 'Active'}
@@ -206,27 +206,27 @@ export default function Staff() {
                 <div className="p-6 flex-1 flex flex-col justify-between bg-black/5" onClick={e => e.stopPropagation()}>
                   <div className="space-y-4 mb-4">
                     <div className="flex flex-col">
-                      <label className="text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Monthly Salary</label>
+                      <label className="text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Monthly Salary</label>
                       <div className="relative flex items-center">
-                        <IndianRupee className="w-4 h-4 text-secondary-foreground absolute left-4" />
+                        <IndianRupee className="w-4 h-4 text-white/60 absolute left-4" />
                         <input 
                           type="number" 
-                          className="glass-input w-full pl-10 pr-4 py-3 bg-white text-text border-border"
+                          className="glass-input w-full pl-10 pr-4 py-3 bg-black/40 text-white border-white/10"
                           value={baseSalary}
                           onChange={(e) => handleSalaryChange(staff.id, e.target.value)}
                         />
                       </div>
                     </div>
-                    <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-border shadow-sm">
-                      <span className="text-xs font-bold tracking-widest text-secondary-foreground uppercase">Commission ({commissionRate}%)</span>
+                    <div className="flex justify-between items-center bg-black/40 p-4 rounded-xl border border-white/10 shadow-sm">
+                      <span className="text-xs font-bold tracking-widest text-white/60 uppercase">Commission ({commissionRate}%)</span>
                       <span className="font-light text-success text-lg">+ ₹{metrics.commission.toLocaleString()}</span>
                     </div>
                   </div>
 
                   <div>
                     <div className="flex justify-between items-center mb-4">
-                      <span className="text-sm font-bold tracking-widest text-secondary-foreground uppercase">Total Payable</span>
-                      <span className="text-2xl font-light text-text tracking-tight">₹{totalPayable.toLocaleString()}</span>
+                      <span className="text-sm font-bold tracking-widest text-white/60 uppercase">Total Payable</span>
+                      <span className="text-2xl font-light text-white tracking-tight">₹{totalPayable.toLocaleString()}</span>
                     </div>
                     <button 
                       onClick={(e) => handlePaySalary(e, staff.id, totalPayable, staffName)}
@@ -245,30 +245,30 @@ export default function Staff() {
       {/* Edit / Add Staff Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="glass-panel w-full max-w-md flex flex-col animate-in zoom-in-95 duration-200 bg-background border border-border shadow-2xl">
-            <div className="flex justify-between items-center p-6 border-b border-border bg-white rounded-t-2xl">
-              <h3 className="text-xl font-light tracking-tight text-text">{editingStaff?.id ? 'Edit Staff Details' : 'Add New Staff'}</h3>
-              <button onClick={() => setIsEditModalOpen(false)} className="p-2 hover:bg-black/5 rounded-full transition-colors text-secondary-foreground hover:text-text"><X className="w-5 h-5"/></button>
+          <div className="glass-panel w-full max-w-md flex flex-col animate-in zoom-in-95 duration-200 bg-background border border-white/10 shadow-2xl">
+            <div className="flex justify-between items-center p-6 border-b border-white/10 bg-black/40 rounded-t-2xl">
+              <h3 className="text-xl font-light tracking-tight text-white">{editingStaff?.id ? 'Edit Staff Details' : 'Add New Staff'}</h3>
+              <button onClick={() => setIsEditModalOpen(false)} className="p-2 hover:bg-black/5 rounded-full transition-colors text-white/60 hover:text-white"><X className="w-5 h-5"/></button>
             </div>
-            <form onSubmit={handleSaveStaff} className="flex flex-col flex-1 bg-white">
+            <form onSubmit={handleSaveStaff} className="flex flex-col flex-1 bg-black/40">
               <div className="p-6 space-y-5">
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Full Name</label>
+                  <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Full Name</label>
                   <input 
                     type="text" 
                     required 
                     value={editingStaff?.name || ''} 
                     onChange={e => setEditingStaff({...editingStaff, name: e.target.value})}
-                    className="glass-input bg-white w-full px-4 py-3 border-border text-text shadow-sm"
+                    className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 text-white shadow-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Gender</label>
+                  <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Gender</label>
                   <select 
                     value={editingStaff?.gender || 'Female'} 
                     onChange={e => setEditingStaff({...editingStaff, gender: e.target.value})}
-                    className="glass-input bg-white w-full px-4 py-3 appearance-none border-border text-text shadow-sm"
+                    className="glass-input bg-black/40 w-full px-4 py-3 appearance-none border-white/10 text-white shadow-sm"
                   >
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -278,17 +278,17 @@ export default function Staff() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Base Salary</label>
+                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Base Salary</label>
                     <input 
                       type="number" 
                       required 
                       value={editingStaff?.salary || 15000} 
                       onChange={e => setEditingStaff({...editingStaff, salary: Number(e.target.value)})}
-                      className="glass-input bg-white w-full px-4 py-3 border-border text-text shadow-sm"
+                      className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 text-white shadow-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Commission Rate (%)</label>
+                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Commission Rate (%)</label>
                     <input 
                       type="number" 
                       required 
@@ -296,16 +296,16 @@ export default function Staff() {
                       max="100"
                       value={editingStaff?.commission_rate ?? 10} 
                       onChange={e => setEditingStaff({...editingStaff, commission_rate: Number(e.target.value)})}
-                      className="glass-input bg-white w-full px-4 py-3 border-border text-text shadow-sm"
+                      className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 text-white shadow-sm"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Status</label>
+                  <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Status</label>
                   <select 
                     value={editingStaff?.status || 'Active'} 
                     onChange={e => setEditingStaff({...editingStaff, status: e.target.value})}
-                    className="glass-input bg-white w-full px-4 py-3 appearance-none border-border text-text shadow-sm"
+                    className="glass-input bg-black/40 w-full px-4 py-3 appearance-none border-white/10 text-white shadow-sm"
                   >
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
@@ -313,7 +313,7 @@ export default function Staff() {
                 </div>
               </div>
               
-              <div className="p-6 border-t border-border bg-black/5 rounded-b-2xl">
+              <div className="p-6 border-t border-white/10 bg-black/5 rounded-b-2xl">
                 <button type="submit" className="btn-primary w-full justify-center">
                   Save Details
                 </button>
@@ -326,23 +326,23 @@ export default function Staff() {
       {/* Staff Profile Modal */}
       {selectedStaffId && selectedStaff && selectedStaffMetrics && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6">
-          <div className="glass-panel w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 bg-background border-border shadow-2xl">
+          <div className="glass-panel w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 bg-background border-white/10 shadow-2xl">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-8 border-b border-border bg-white shrink-0">
+            <div className="flex items-center justify-between p-8 border-b border-white/10 bg-black/40 shrink-0">
               <div className="flex items-center gap-6">
-                <div className="w-16 h-16 rounded-full bg-black/5 flex items-center justify-center border border-border shadow-sm">
-                  <User className="w-8 h-8 text-text" />
+                <div className="w-16 h-16 rounded-full bg-black/5 flex items-center justify-center border border-white/10 shadow-sm">
+                  <User className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-3xl font-light tracking-tight text-text flex items-center">
+                  <h3 className="text-3xl font-light tracking-tight text-white flex items-center">
                     {selectedStaff.name || selectedStaff.staff_name} 
-                    <span className="text-xs font-bold tracking-widest text-secondary-foreground uppercase ml-4 px-3 py-1 bg-black/5 rounded-full border border-border">{selectedStaff.gender}</span>
+                    <span className="text-xs font-bold tracking-widest text-white/60 uppercase ml-4 px-3 py-1 bg-black/5 rounded-full border border-white/10">{selectedStaff.gender}</span>
                   </h3>
-                  <p className="text-sm font-light text-secondary-foreground mt-2 tracking-wide uppercase">Staff Member</p>
+                  <p className="text-sm font-light text-white/60 mt-2 tracking-wide uppercase">Staff Member</p>
                 </div>
               </div>
-              <button onClick={() => setSelectedStaffId(null)} className="p-2 hover:bg-black/5 rounded-full transition-colors text-secondary-foreground hover:text-text"><X className="w-6 h-6"/></button>
+              <button onClick={() => setSelectedStaffId(null)} className="p-2 hover:bg-black/5 rounded-full transition-colors text-white/60 hover:text-white"><X className="w-6 h-6"/></button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-8 bg-transparent custom-scrollbar">
@@ -352,29 +352,29 @@ export default function Staff() {
                 <div className="lg:col-span-1 space-y-6">
                   
                   {/* Monthly Summary */}
-                  <div className="bg-white p-6 rounded-2xl border border-border relative overflow-hidden shadow-sm">
+                  <div className="bg-black/40 p-6 rounded-2xl border border-white/10 relative overflow-hidden shadow-sm">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl"></div>
-                    <h4 className="text-lg font-light text-text mb-6 flex items-center tracking-wide"><Briefcase className="w-5 h-5 mr-3 text-secondary-foreground"/> Monthly Summary</h4>
+                    <h4 className="text-lg font-light text-white mb-6 flex items-center tracking-wide"><Briefcase className="w-5 h-5 mr-3 text-white/60"/> Monthly Summary</h4>
                     <div className="space-y-4 relative z-10">
-                      <div className="flex justify-between items-center text-sm border-b border-border pb-3">
-                        <span className="font-light text-secondary-foreground">Customers Served</span>
-                        <span className="font-medium text-text">{selectedStaffMetrics.customersServed}</span>
+                      <div className="flex justify-between items-center text-sm border-b border-white/10 pb-3">
+                        <span className="font-light text-white/60">Customers Served</span>
+                        <span className="font-medium text-white">{selectedStaffMetrics.customersServed}</span>
                       </div>
-                      <div className="flex justify-between items-center text-sm border-b border-border pb-3">
-                        <span className="font-light text-secondary-foreground">Service Revenue</span>
-                        <span className="font-medium text-text">₹{selectedStaffMetrics.totalServiceRevenue.toLocaleString()}</span>
+                      <div className="flex justify-between items-center text-sm border-b border-white/10 pb-3">
+                        <span className="font-light text-white/60">Service Revenue</span>
+                        <span className="font-medium text-white">₹{selectedStaffMetrics.totalServiceRevenue.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between items-center text-sm border-b border-border pb-3">
-                        <span className="font-light text-secondary-foreground">Commission ({selectedStaff.commission_rate ?? 10}%)</span>
+                      <div className="flex justify-between items-center text-sm border-b border-white/10 pb-3">
+                        <span className="font-light text-white/60">Commission ({selectedStaff.commission_rate ?? 10}%)</span>
                         <span className="font-medium text-success">₹{selectedStaffMetrics.commission.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between items-center text-sm border-b border-border pb-3">
-                        <span className="font-light text-secondary-foreground">Base Salary</span>
-                        <span className="font-medium text-text">₹{(selectedStaff.salary || 15000).toLocaleString()}</span>
+                      <div className="flex justify-between items-center text-sm border-b border-white/10 pb-3">
+                        <span className="font-light text-white/60">Base Salary</span>
+                        <span className="font-medium text-white">₹{(selectedStaff.salary || 15000).toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between items-center pt-4">
-                        <span className="font-bold tracking-widest text-secondary-foreground uppercase text-xs">Total Payout</span>
-                        <span className="font-light text-text text-2xl tracking-tight">₹{((selectedStaff.salary || 15000) + selectedStaffMetrics.commission).toLocaleString()}</span>
+                        <span className="font-bold tracking-widest text-white/60 uppercase text-xs">Total Payout</span>
+                        <span className="font-light text-white text-2xl tracking-tight">₹{((selectedStaff.salary || 15000) + selectedStaffMetrics.commission).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
@@ -383,17 +383,17 @@ export default function Staff() {
 
                 {/* Right Column: Service History */}
                 <div className="lg:col-span-2">
-                  <div className="bg-white p-6 rounded-2xl border border-border h-full shadow-sm">
-                    <h4 className="text-lg font-light text-text mb-6 flex items-center tracking-wide"><FileText className="w-5 h-5 mr-3 text-secondary-foreground"/> Service History (Current Month)</h4>
+                  <div className="bg-black/40 p-6 rounded-2xl border border-white/10 h-full shadow-sm">
+                    <h4 className="text-lg font-light text-white mb-6 flex items-center tracking-wide"><FileText className="w-5 h-5 mr-3 text-white/60"/> Service History (Current Month)</h4>
                     
                     {selectedStaffMetrics.staffVisits.length === 0 ? (
-                      <div className="text-center py-12 text-secondary-foreground border border-dashed border-border rounded-2xl font-light bg-black/5">
+                      <div className="text-center py-12 text-white/60 border border-dashed border-white/10 rounded-2xl font-light bg-black/5">
                         No customers served this month.
                       </div>
                     ) : (
                       <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left text-text">
-                          <thead className="bg-black/5 text-secondary-foreground text-xs uppercase font-bold tracking-wider border-b border-border">
+                        <table className="w-full text-sm text-left text-white">
+                          <thead className="bg-black/5 text-white/60 text-xs uppercase font-bold tracking-wider border-b border-white/10">
                             <tr>
                               <th className="px-4 py-4 rounded-tl-lg">Date</th>
                               <th className="px-4 py-4">Customer</th>
@@ -412,10 +412,10 @@ export default function Staff() {
                               
                               return (
                                 <tr key={v.id} className="hover:bg-black/5 transition-colors font-light">
-                                  <td className="px-4 py-4 whitespace-nowrap text-secondary-foreground">{v.visit_date ? format(new Date(v.visit_date), 'dd MMM yyyy') : ''}</td>
-                                  <td className="px-4 py-4 font-medium text-text">{v.customers?.name || 'Walk-in'}</td>
-                                  <td className="px-4 py-4 text-secondary-foreground">{srvNames}</td>
-                                  <td className="px-4 py-4 text-text">₹{srvTotal.toLocaleString()}</td>
+                                  <td className="px-4 py-4 whitespace-nowrap text-white/60">{v.visit_date ? format(new Date(v.visit_date), 'dd MMM yyyy') : ''}</td>
+                                  <td className="px-4 py-4 font-medium text-white">{v.customers?.name || 'Walk-in'}</td>
+                                  <td className="px-4 py-4 text-white/60">{srvNames}</td>
+                                  <td className="px-4 py-4 text-white">₹{srvTotal.toLocaleString()}</td>
                                   <td className="px-4 py-4 text-right font-medium text-success">₹{Number(commAmt).toFixed(2)}</td>
                                 </tr>
                               );

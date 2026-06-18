@@ -123,7 +123,7 @@ export default function Services() {
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-1">
         <div className="glass-card p-6">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-white/10 p-3 rounded-2xl border border-white/20">
+            <div className="flex-shrink-0 bg-black/40/5 p-3 rounded-2xl border border-white/20">
               <Scissors className="h-6 w-6 text-white" />
             </div>
             <div className="ml-5 w-0 flex-1">
@@ -164,7 +164,7 @@ export default function Services() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-white">
-              <thead className="bg-white/5 text-white/50 text-xs uppercase font-bold tracking-wider border-b border-white/10">
+              <thead className="bg-black/40/5 text-white/50 text-xs uppercase font-bold tracking-wider border-b border-white/10">
                 <tr>
                   <th className="px-6 py-5">Service Name</th>
                   <th className="px-6 py-5">Price</th>
@@ -188,7 +188,7 @@ export default function Services() {
                       </td>
                     </tr>
                     {items.map((service) => (
-                      <tr key={service.id} className="hover:bg-white/5 transition-colors group">
+                      <tr key={service.id} className="hover:bg-black/40/5 transition-colors group">
                         <td className="px-6 py-4">
                           <div className="font-medium text-white text-base">{service.service_name}</div>
                         </td>
@@ -197,7 +197,7 @@ export default function Services() {
                         </td>
                         <td className="px-6 py-4 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => openEditModal(service)} className="p-2 text-white/70 hover:bg-white/10 hover:text-white rounded-xl transition-colors">
+                            <button onClick={() => openEditModal(service)} className="p-2 text-white/70 hover:bg-black/40/5 hover:text-white rounded-xl transition-colors">
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button onClick={() => handleDelete(service.id)} className="p-2 text-danger hover:bg-danger/10 rounded-xl transition-colors">
@@ -220,7 +220,7 @@ export default function Services() {
           <div className="glass-panel w-full max-w-md flex flex-col animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-6 border-b border-white/10">
               <h3 className="text-xl font-light tracking-tight text-white">{serviceToEdit ? 'Edit Service' : 'Add New Service'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white/10 rounded-full text-white/50 transition-colors">
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-black/40/5 rounded-full text-white/50 transition-colors">
                 <X className="w-5 h-5"/>
               </button>
             </div>

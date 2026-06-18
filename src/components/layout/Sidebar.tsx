@@ -47,8 +47,8 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center mr-3 shadow-sm border border-primary/30">
           <Scissors className="text-primary-foreground w-5 h-5" />
         </div>
-        <h1 className="text-xl font-bold tracking-tight text-text">
-          WOW <span className="text-secondary-foreground font-medium">SALON</span>
+        <h1 className="text-xl font-bold tracking-tight text-white">
+          WOW <span className="text-white/60 font-medium">SALON</span>
         </h1>
       </div>
 
@@ -56,7 +56,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
       <div className="flex flex-1 flex-col overflow-y-auto custom-scrollbar px-4 py-6 bg-transparent">
         <nav className="flex-1 space-y-2">
           <div className="px-4 pb-2">
-            <p className="text-xs font-semibold uppercase tracking-widest text-secondary-foreground/60">Menu</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-white/60/60">Menu</p>
           </div>
           {navigation.map((item) => {
             const Icon = item.icon;
@@ -69,7 +69,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
                       'relative group flex items-center rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-300',
                       isActive 
                         ? 'text-primary-foreground font-bold bg-primary/20 border border-primary/30 shadow-sm' 
-                        : 'text-secondary-foreground hover:bg-black/5 hover:text-text'
+                        : 'text-white/60 hover:bg-black/5 hover:text-white'
                     )
                   }
                 >
@@ -78,7 +78,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
                       <div className="relative flex items-center z-10 w-full">
                         <Icon
                           className={cn("mr-3 h-5 w-5 flex-shrink-0 transition-all duration-300 group-hover:scale-110", 
-                            isActive ? "text-primary-foreground" : "text-secondary-foreground group-hover:text-text"
+                            isActive ? "text-primary-foreground" : "text-white/60 group-hover:text-white"
                           )}
                           aria-hidden="true"
                         />
@@ -94,15 +94,15 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
       </div>
 
       {/* Footer Actions */}
-      <div className="p-4 border-t border-black/5 bg-white/40 space-y-3 relative">
+      <div className="p-4 border-t border-black/5 bg-black/40/40 space-y-3 relative">
         {profile && (
-          <div className="flex items-center gap-3 px-3 py-2 bg-white/60 rounded-xl border border-black/5 shadow-sm">
+          <div className="flex items-center gap-3 px-3 py-2 bg-black/40/60 rounded-xl border border-black/5 shadow-sm">
             <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20">
               <UserIcon className="w-4 h-4 text-primary-foreground" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-text truncate">{profile.email.split('@')[0]}</p>
-              <p className="text-xs font-medium text-secondary-foreground truncate uppercase tracking-wider">{profile.role}</p>
+              <p className="text-sm font-bold text-white truncate">{profile.email.split('@')[0]}</p>
+              <p className="text-xs font-medium text-white/60 truncate uppercase tracking-wider">{profile.role}</p>
             </div>
           </div>
         )}

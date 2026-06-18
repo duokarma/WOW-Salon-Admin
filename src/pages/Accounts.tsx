@@ -208,28 +208,28 @@ export default function Accounts() {
     <div className="space-y-6 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-4xl font-light tracking-tight text-text">Accounts Overview</h2>
-          <p className="text-secondary-foreground font-light mt-1 tracking-wide">Financial summary, P&L, and expense tracking.</p>
+          <h2 className="text-4xl font-light tracking-tight text-white">Accounts Overview</h2>
+          <p className="text-white/60 font-light mt-1 tracking-wide">Financial summary, P&L, and expense tracking.</p>
         </div>
         <div className="flex flex-wrap gap-3 items-center">
-          <div className="flex items-center gap-2 bg-white px-3 py-2 border border-border shadow-sm rounded-lg">
-            <Calendar className="w-4 h-4 text-secondary-foreground" />
+          <div className="flex items-center gap-2 bg-black/40 px-3 py-2 border border-white/10 shadow-sm rounded-lg">
+            <Calendar className="w-4 h-4 text-white/60" />
             <input 
               type="date" 
               value={startDate}
               onChange={e => setStartDate(e.target.value)}
-              className="bg-transparent text-sm text-text outline-none font-medium"
+              className="bg-transparent text-sm text-white outline-none font-medium"
             />
-            <span className="text-secondary-foreground mx-1">to</span>
+            <span className="text-white/60 mx-1">to</span>
             <input 
               type="date" 
               value={endDate}
               onChange={e => setEndDate(e.target.value)}
-              className="bg-transparent text-sm text-text outline-none font-medium"
+              className="bg-transparent text-sm text-white outline-none font-medium"
             />
           </div>
 
-          <button onClick={exportCustomerCSV} className="btn-secondary flex items-center bg-white border-border shadow-sm">
+          <button onClick={exportCustomerCSV} className="btn-secondary flex items-center bg-black/40 border-white/10 shadow-sm">
             <Download className="w-4 h-4 mr-2" /> Customers CSV
           </button>
           <button onClick={exportFinanceCSV} className="btn-primary flex items-center shadow-sm">
@@ -239,20 +239,20 @@ export default function Accounts() {
       </div>
 
       {isLoading ? (
-        <div className="p-12 text-center text-secondary-foreground">
+        <div className="p-12 text-center text-white/60">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           Loading accounts data...
         </div>
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="glass-card p-6 flex flex-col justify-center border border-border bg-white/50">
+            <div className="glass-card p-6 flex flex-col justify-center border border-white/10 bg-black/40">
               <div className="flex justify-between items-start">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-secondary-foreground">Total Revenue</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-white/60">Total Revenue</h3>
                 <div className="bg-success/10 p-2 rounded-lg border border-success/20"><ArrowUpRight className="h-5 w-5 text-success" /></div>
               </div>
               <div className="mt-4 flex items-center gap-2">
-                <span className="text-4xl font-light text-text flex items-center tracking-tight"><IndianRupee className="w-6 h-6 mr-1 text-secondary-foreground" />{totalRevenue.toLocaleString()}</span>
+                <span className="text-4xl font-light text-white flex items-center tracking-tight"><IndianRupee className="w-6 h-6 mr-1 text-white/60" />{totalRevenue.toLocaleString()}</span>
               </div>
             </div>
             
@@ -282,20 +282,20 @@ export default function Accounts() {
               </div>
             </div>
 
-            <div className="glass-card p-6 relative overflow-hidden flex flex-col justify-center group border border-border bg-white">
+            <div className="glass-card p-6 relative overflow-hidden flex flex-col justify-center group border border-white/10 bg-black/40">
               <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:scale-110 transition-transform duration-500">
-                 <IndianRupee className="w-24 h-24 text-text" />
+                 <IndianRupee className="w-24 h-24 text-white" />
               </div>
               <div className="relative z-10">
                 <div className="flex justify-between items-start">
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-secondary-foreground">Net Profit</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-white/60">Net Profit</h3>
                 </div>
                 <div className="mt-4 flex items-center gap-2">
                   <span className={`text-4xl font-light tracking-tight flex items-center ${netProfit >= 0 ? 'text-success' : 'text-danger'}`}>
                     <IndianRupee className={`w-6 h-6 mr-1 ${netProfit >= 0 ? 'text-success/50' : 'text-danger/50'}`} />{netProfit.toLocaleString()}
                   </span>
                 </div>
-                <p className="text-xs font-light mt-2 text-secondary-foreground italic">Rev - (Op. Exp + Inventory)</p>
+                <p className="text-xs font-light mt-2 text-white/60 italic">Rev - (Op. Exp + Inventory)</p>
               </div>
             </div>
           </div>
@@ -303,10 +303,10 @@ export default function Accounts() {
           <div className="grid lg:grid-cols-2 gap-6">
             
             {/* Pie Chart */}
-            <div className="glass-card p-6 border border-border bg-white/50">
-              <h3 className="text-xl font-light text-text mb-6 tracking-tight">Expense Breakdown</h3>
+            <div className="glass-card p-6 border border-white/10 bg-black/40">
+              <h3 className="text-xl font-light text-white mb-6 tracking-tight">Expense Breakdown</h3>
               {expenseData.length === 0 ? (
-                <div className="h-[300px] flex items-center justify-center text-secondary-foreground text-sm italic font-light">
+                <div className="h-[300px] flex items-center justify-center text-white/60 text-sm italic font-light">
                   No expenses recorded for this period.
                 </div>
               ) : (
@@ -337,21 +337,21 @@ export default function Accounts() {
             </div>
 
             {/* Recent Transactions List */}
-            <div className="glass-card p-6 flex flex-col h-full max-h-[420px] border border-border bg-white/50">
+            <div className="glass-card p-6 flex flex-col h-full max-h-[420px] border border-white/10 bg-black/40">
               <div className="flex justify-between items-center mb-6 shrink-0">
-                <h3 className="text-xl font-light text-text tracking-tight">Recent Transactions</h3>
-                <span className="text-xs font-bold px-3 py-1.5 bg-white text-text border border-border rounded-lg shadow-sm">Period</span>
+                <h3 className="text-xl font-light text-white tracking-tight">Recent Transactions</h3>
+                <span className="text-xs font-bold px-3 py-1.5 bg-black/40 text-white border border-white/10 rounded-lg shadow-sm">Period</span>
               </div>
               
               <div className="space-y-4 overflow-y-auto custom-scrollbar pr-2 flex-1">
                 {recentTransactions.length === 0 ? (
-                  <p className="text-sm text-center text-secondary-foreground italic font-light mt-10">No transactions found.</p>
+                  <p className="text-sm text-center text-white/60 italic font-light mt-10">No transactions found.</p>
                 ) : (
                   recentTransactions.map(tx => (
-                    <div key={`${tx.type}-${tx.id}`} className="flex justify-between items-center pb-4 border-b border-border last:border-0 last:pb-0 group">
+                    <div key={`${tx.type}-${tx.id}`} className="flex justify-between items-center pb-4 border-b border-white/10 last:border-0 last:pb-0 group">
                       <div>
-                        <p className="font-medium text-base text-text">{tx.title}</p>
-                        <p className="text-xs font-light tracking-wide text-secondary-foreground mt-1 uppercase">{format(tx.date, 'dd MMM yyyy, hh:mm a')}</p>
+                        <p className="font-medium text-base text-white">{tx.title}</p>
+                        <p className="text-xs font-light tracking-wide text-white/60 mt-1 uppercase">{format(tx.date, 'dd MMM yyyy, hh:mm a')}</p>
                       </div>
                       <span className={`font-bold text-sm px-3 py-1 rounded-lg border ${tx.type === 'income' ? 'text-success bg-success/10 border-success/20' : 'text-danger bg-danger/10 border-danger/20'}`}>
                         {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString()}

@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 
 const FeatureItem = ({ icon: Icon, title, desc }: { icon: any, title: string, desc: string }) => (
   <div className="flex items-center gap-5 group">
-    <div className="w-14 h-14 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md flex items-center justify-center transition-colors group-hover:bg-white/10">
+    <div className="w-14 h-14 rounded-2xl border border-white/10 bg-black/40/5 backdrop-blur-md flex items-center justify-center transition-colors group-hover:bg-black/40/5">
       <Icon className="w-5 h-5 text-white/80" strokeWidth={1.5} />
     </div>
     <div>
@@ -97,7 +97,7 @@ export default function Login() {
             <FeatureItem icon={Calendar} title="Grow Your Business" desc="Data-driven decisions that matter" />
           </div>
 
-          <div className="rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-md p-7 relative mt-4">
+          <div className="rounded-[2rem] border border-white/10 bg-black/40/5 backdrop-blur-md p-7 relative mt-4">
             <Quote className="absolute top-5 left-5 w-5 h-5 text-white/20" />
             <Quote className="absolute bottom-5 right-5 w-5 h-5 text-white/20 rotate-180" />
             <p className="text-white/80 text-[13px] leading-relaxed mb-4 relative z-10 px-6 pt-2">
@@ -215,7 +215,7 @@ export default function Login() {
             <Lock className="w-3 h-3 text-white/40" /> 
             © 2026 WOW Salon. All rights reserved.
           </span>
-          <span className="w-px h-3 bg-white/20"></span>
+          <span className="w-px h-3 bg-black/40/20"></span>
           <span className="flex gap-4">
             <span className="text-white/80 font-medium cursor-default">Powered by Duokarma</span>
           </span>

@@ -155,8 +155,8 @@ export default function Inventory() {
     <div className="space-y-8 relative max-w-7xl mx-auto pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-4xl font-light tracking-tight text-text">Inventory</h2>
-          <p className="text-secondary-foreground mt-2 font-light tracking-wide">Manage your product stock quantities directly.</p>
+          <h2 className="text-4xl font-light tracking-tight text-white">Inventory</h2>
+          <p className="text-white/60 mt-2 font-light tracking-wide">Manage your product stock quantities directly.</p>
         </div>
         <button onClick={openAddModal} className="btn-primary">
           <Plus className="mr-2 h-4 w-4" />
@@ -164,33 +164,33 @@ export default function Inventory() {
         </button>
       </div>
 
-      <div className="flex items-center w-full max-w-md glass-panel bg-white px-4 py-3 focus-within:ring-1 focus-within:ring-primary/30 transition-all shadow-sm">
-        <Search className="h-5 w-5 text-secondary-foreground mr-3" />
+      <div className="flex items-center w-full max-w-md glass-panel bg-black/40 px-4 py-3 focus-within:ring-1 focus-within:ring-primary/30 transition-all shadow-sm">
+        <Search className="h-5 w-5 text-white/60 mr-3" />
         <input
           type="text"
           placeholder="Search products by name..."
-          className="bg-transparent outline-none w-full text-sm text-text placeholder-secondary-foreground/50"
+          className="bg-transparent outline-none w-full text-sm text-white placeholder-secondary-foreground/50"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      <div className="glass-card overflow-hidden bg-white/50 border border-border shadow-sm">
+      <div className="glass-card overflow-hidden bg-black/40 border border-white/10 shadow-sm">
         {isLoading ? (
-          <div className="p-12 text-center text-secondary-foreground">
+          <div className="p-12 text-center text-white/60">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
             Loading inventory...
           </div>
         ) : error ? (
           <div className="p-12 text-center text-danger">
             <p>{error}</p>
-            <button onClick={loadProducts} className="mt-4 text-sm font-semibold underline text-text">Try Again</button>
+            <button onClick={loadProducts} className="mt-4 text-sm font-semibold underline text-white">Try Again</button>
           </div>
         ) : (
           <>
             <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-sm text-left text-text">
-                <thead className="bg-white text-secondary-foreground text-xs uppercase font-bold tracking-wider border-b border-border shadow-sm">
+              <table className="w-full text-sm text-left text-white">
+                <thead className="bg-black/40 text-white/60 text-xs uppercase font-bold tracking-wider border-b border-white/10 shadow-sm">
                   <tr>
                     <th className="px-6 py-5">Product Name</th>
                     <th className="px-6 py-5 text-center">Cost</th>
@@ -205,22 +205,22 @@ export default function Inventory() {
                 <tbody className="divide-y divide-border">
                   {products.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="text-center py-16 text-secondary-foreground">
-                        <Package className="h-10 w-10 mx-auto mb-4 text-secondary-foreground/30" />
-                        <p className="text-base font-light tracking-wide text-text">No products found</p>
+                      <td colSpan={8} className="text-center py-16 text-white/60">
+                        <Package className="h-10 w-10 mx-auto mb-4 text-white/60/30" />
+                        <p className="text-base font-light tracking-wide text-white">No products found</p>
                       </td>
                     </tr>
                   )}
                   {products.map(item => (
-                    <tr key={item.id} className="hover:bg-white/50 transition-colors group font-light">
+                    <tr key={item.id} className="hover:bg-black/40 transition-colors group font-light">
                       <td className="px-6 py-4">
-                        <div className="font-medium text-text text-base">{item.name}</div>
+                        <div className="font-medium text-white text-base">{item.name}</div>
                       </td>
-                      <td className="px-6 py-4 text-center text-secondary-foreground">₹{item.purchase_price || 0}</td>
-                      <td className="px-6 py-4 text-center text-secondary-foreground">₹{item.selling_price || 0}</td>
-                      <td className="px-6 py-4 text-center text-secondary-foreground">{item.purchased_quantity}</td>
-                      <td className="px-6 py-4 text-center text-secondary-foreground">{item.sold_quantity}</td>
-                      <td className="px-6 py-4 text-center text-secondary-foreground">{item.salon_consumption}</td>
+                      <td className="px-6 py-4 text-center text-white/60">₹{item.purchase_price || 0}</td>
+                      <td className="px-6 py-4 text-center text-white/60">₹{item.selling_price || 0}</td>
+                      <td className="px-6 py-4 text-center text-white/60">{item.purchased_quantity}</td>
+                      <td className="px-6 py-4 text-center text-white/60">{item.sold_quantity}</td>
+                      <td className="px-6 py-4 text-center text-white/60">{item.salon_consumption}</td>
                       <td className="px-6 py-4 text-center">
                         <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-bold border ${item.current_stock <= 0 ? 'bg-danger/10 text-danger border-danger/20' : 'bg-success/10 text-success border-success/20'}`}>
                           {item.current_stock}
@@ -228,7 +228,7 @@ export default function Inventory() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => openEditModal(item)} className="p-2 text-secondary-foreground hover:bg-black/5 hover:text-text rounded-xl transition-colors">
+                          <button onClick={() => openEditModal(item)} className="p-2 text-white/60 hover:bg-black/5 hover:text-white rounded-xl transition-colors">
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button onClick={() => handleDelete(item.id)} className="p-2 text-danger hover:bg-danger/10 rounded-xl transition-colors">
@@ -244,22 +244,22 @@ export default function Inventory() {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-border bg-white flex items-center justify-between">
-                <span className="text-sm text-secondary-foreground font-light">
+              <div className="px-6 py-4 border-t border-white/10 bg-black/40 flex items-center justify-between">
+                <span className="text-sm text-white/60 font-light">
                   Showing {(page - 1) * limit + 1} to {Math.min(page * limit, totalCount)} of {totalCount}
                 </span>
                 <div className="flex gap-2">
                   <button 
                     onClick={() => setPage(p => Math.max(1, p - 1))}
                     disabled={page === 1}
-                    className="p-2 rounded-lg border border-border text-secondary-foreground hover:bg-black/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 rounded-lg border border-white/10 text-white/60 hover:bg-black/5 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <button 
                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
-                    className="p-2 rounded-lg border border-border text-secondary-foreground hover:bg-black/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 rounded-lg border border-white/10 text-white/60 hover:bg-black/5 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -272,53 +272,53 @@ export default function Inventory() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="glass-panel bg-background w-full max-w-md flex flex-col animate-in zoom-in-95 duration-200 shadow-2xl border border-border">
-            <div className="flex items-center justify-between p-6 border-b border-border bg-white rounded-t-2xl">
-              <h3 className="text-xl font-light tracking-tight text-text">{productToEdit ? 'Edit Product' : 'Add New Product'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-black/5 rounded-full text-secondary-foreground transition-colors">
+          <div className="glass-panel bg-background w-full max-w-md flex flex-col animate-in zoom-in-95 duration-200 shadow-2xl border border-white/10">
+            <div className="flex items-center justify-between p-6 border-b border-white/10 bg-black/40 rounded-t-2xl">
+              <h3 className="text-xl font-light tracking-tight text-white">{productToEdit ? 'Edit Product' : 'Add New Product'}</h3>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-black/5 rounded-full text-white/60 transition-colors">
                 <X className="w-5 h-5"/>
               </button>
             </div>
-            <form onSubmit={handleSave} className="flex flex-col flex-1 bg-white">
+            <form onSubmit={handleSave} className="flex flex-col flex-1 bg-black/40">
               <div className="p-6 space-y-5">
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Product Name *</label>
-                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="glass-input bg-white w-full px-4 py-3 border-border shadow-sm text-text" placeholder="e.g. L'Oreal Shampoo" />
+                  <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Product Name *</label>
+                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" placeholder="e.g. L'Oreal Shampoo" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Purchase Price (Cost)</label>
-                    <input type="number" min="0" value={formData.purchase_price} onChange={e => setFormData({...formData, purchase_price: Number(e.target.value)})} className="glass-input bg-white w-full px-4 py-3 border-border shadow-sm text-text" />
+                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Purchase Price (Cost)</label>
+                    <input type="number" min="0" value={formData.purchase_price} onChange={e => setFormData({...formData, purchase_price: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Selling Price</label>
-                    <input type="number" min="0" value={formData.selling_price} onChange={e => setFormData({...formData, selling_price: Number(e.target.value)})} className="glass-input bg-white w-full px-4 py-3 border-border shadow-sm text-text" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Purchased Qty</label>
-                    <input type="number" min="0" value={formData.purchased_quantity} onChange={e => setFormData({...formData, purchased_quantity: Number(e.target.value)})} className="glass-input bg-white w-full px-4 py-3 border-border shadow-sm text-text" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Sold Qty</label>
-                    <input type="number" min="0" value={formData.sold_quantity} onChange={e => setFormData({...formData, sold_quantity: Number(e.target.value)})} className="glass-input bg-white w-full px-4 py-3 border-border shadow-sm text-text" />
+                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Selling Price</label>
+                    <input type="number" min="0" value={formData.selling_price} onChange={e => setFormData({...formData, selling_price: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Salon Consumption</label>
-                    <input type="number" min="0" value={formData.salon_consumption} onChange={e => setFormData({...formData, salon_consumption: Number(e.target.value)})} className="glass-input bg-white w-full px-4 py-3 border-border shadow-sm text-text" />
+                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Purchased Qty</label>
+                    <input type="number" min="0" value={formData.purchased_quantity} onChange={e => setFormData({...formData, purchased_quantity: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold tracking-widest text-secondary-foreground uppercase mb-2">Current Stock</label>
-                    <input type="number" disabled value={formData.current_stock} className="glass-input bg-black/5 w-full px-4 py-3 border-border text-secondary-foreground cursor-not-allowed" title="Auto-calculated (Purchased - Sold - Consumed)" />
+                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Sold Qty</label>
+                    <input type="number" min="0" value={formData.sold_quantity} onChange={e => setFormData({...formData, sold_quantity: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
                   </div>
                 </div>
-                <p className="text-xs text-secondary-foreground italic mt-2">Current Stock is auto-calculated as (Purchased Qty - Sold Qty - Salon Consumption).</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Salon Consumption</label>
+                    <input type="number" min="0" value={formData.salon_consumption} onChange={e => setFormData({...formData, salon_consumption: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Current Stock</label>
+                    <input type="number" disabled value={formData.current_stock} className="glass-input bg-black/5 w-full px-4 py-3 border-white/10 text-white/60 cursor-not-allowed" title="Auto-calculated (Purchased - Sold - Consumed)" />
+                  </div>
+                </div>
+                <p className="text-xs text-white/60 italic mt-2">Current Stock is auto-calculated as (Purchased Qty - Sold Qty - Salon Consumption).</p>
               </div>
-              <div className="p-6 border-t border-border bg-black/5 rounded-b-2xl flex justify-end gap-3">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary bg-white border-border text-text">Cancel</button>
+              <div className="p-6 border-t border-white/10 bg-black/5 rounded-b-2xl flex justify-end gap-3">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary bg-black/40 border-white/10 text-white">Cancel</button>
                 <button type="submit" className="btn-primary">{productToEdit ? 'Save Changes' : 'Add Product'}</button>
               </div>
             </form>

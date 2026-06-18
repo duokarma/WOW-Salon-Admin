@@ -8,7 +8,7 @@ export default function AppLayout() {
   const location = useLocation();
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background text-text selection:bg-primary/30 font-sans p-4 gap-6 relative">
+    <div className="flex h-screen w-full overflow-hidden bg-background text-white selection:bg-primary/30 font-sans p-4 gap-6 relative">
       
       {/* Fixed Sidebar Container */}
       <div className="h-full w-56 shrink-0 relative z-10">
