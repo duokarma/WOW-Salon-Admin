@@ -114,7 +114,7 @@ export default function Login() {
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
           className="w-full max-w-md lg:w-[40%] flex justify-center py-6 lg:py-10"
         >
-          <div className="liquid-glass w-full rounded-[2.5rem] p-8 sm:p-10 relative overflow-hidden shadow-[0_20px_80px_rgba(0,0,0,0.8)] backdrop-blur-3xl border border-white/10">
+          <div className="w-full bg-black/40 border border-white/10 backdrop-blur-3xl rounded-[2.5rem] p-8 sm:p-10 relative overflow-hidden shadow-[0_20px_80px_rgba(0,0,0,0.8)]">
             
             <div className="text-center mb-8 relative z-10">
               <div className="mx-auto w-[72px] h-[72px] bg-[#F4E3C5] rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(244,227,197,0.3)]">
