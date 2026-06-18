@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Lock, User, Scissors, Sparkles, SlidersHorizontal, Calendar, Quote, Headphones, Leaf, ArrowRight } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
-import { useStore } from '../store/useStore';
+import { Eye, EyeOff, Lock, User, Mail, Scissors, Sparkles, SlidersHorizontal, Calendar, Quote, ArrowRight } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
 
 const FeatureItem = ({ icon: Icon, title, desc }: { icon: any, title: string, desc: string }) => (
   <div className="flex items-center gap-5 group">
@@ -18,43 +18,45 @@ const FeatureItem = ({ icon: Icon, title, desc }: { icon: any, title: string, de
 );
 
 export default function Login() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
   const navigate = useNavigate();
-  const login = useStore(state => state.login);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !password) {
-      toast.error('Please enter both username and password.');
+    if (!email || !password) {
+      toast.error('Please enter both email and password.');
       return;
     }
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      const success = login(username, password);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
       
-      if (success) {
-        toast.success('Login successful! Redirecting...', {
-          duration: 1000,
-          style: { background: '#F4E3C5', color: '#000000', borderRadius: '12px', fontWeight: 'bold' },
-          iconTheme: { primary: '#000000', secondary: '#F4E3C5' },
-        });
-        setTimeout(() => {
-          navigate('/');
-        }, 1000);
-      } else {
-        toast.error('Invalid credentials. Please try again.', {
-          style: { background: '#EF4444', color: '#fff', borderRadius: '12px', fontWeight: 'bold' }
-        });
-        setIsLoading(false);
-      }
-    }, 1000);
+      toast.success('Login successful! Redirecting...', {
+        duration: 1000,
+        style: { background: '#F4E3C5', color: '#000000', borderRadius: '12px', fontWeight: 'bold' },
+        iconTheme: { primary: '#000000', secondary: '#F4E3C5' },
+      });
+      setTimeout(() => {
+        navigate('/');
+      }, 500);
+    } catch (err: any) {
+      toast.error(err.message || 'Invalid credentials. Please try again.', {
+        style: { background: '#EF4444', color: '#fff', borderRadius: '12px', fontWeight: 'bold' }
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -129,18 +131,18 @@ export default function Login() {
 
             <form onSubmit={handleLogin} className="space-y-6 relative z-10">
               <div className="space-y-2.5">
-                <label className="text-[9px] font-bold text-white/60 uppercase tracking-[0.15em] pl-1">Username</label>
+                <label className="text-[9px] font-bold text-white/60 uppercase tracking-[0.15em] pl-1">Email Address</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                    <User className="h-4 w-4 text-white/40 group-focus-within:text-[#F4E3C5] transition-colors duration-300" />
+                    <Mail className="h-4 w-4 text-white/40 group-focus-within:text-[#F4E3C5] transition-colors duration-300" />
                   </div>
                   <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="w-full bg-black/40 border border-white/10 text-white placeholder-white/20 rounded-2xl pl-12 pr-4 py-4 focus:outline-none focus:border-[#F4E3C5]/40 transition-all duration-300 text-[13px]"
-                    placeholder="Enter your username"
-                    autoComplete="username"
+                    placeholder="Enter your email"
+                    autoComplete="email"
                   />
                 </div>
               </div>
@@ -191,7 +193,7 @@ export default function Login() {
             </form>
             
             <div className="mt-8 text-center relative z-10">
-              <p className="text-[9px] text-white/40 uppercase tracking-[0.2em] font-medium">Default credentials: admin / admin123</p>
+              <p className="text-[9px] text-white/40 uppercase tracking-[0.2em] font-medium">Secured by Supabase</p>
             </div>
           </div>
         </motion.div>

@@ -11,6 +11,8 @@ import Staff from './pages/Staff';
 import Accounts from './pages/Accounts';
 import Expenses from './pages/Expenses';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { AuthProvider } from './contexts/AuthContext';
+import { Toaster } from 'react-hot-toast';
 
 // Placeholders for other pages
 const Placeholder = ({ title }: { title: string }) => (
@@ -19,34 +21,34 @@ const Placeholder = ({ title }: { title: string }) => (
   </div>
 );
 
-import { Toaster } from 'react-hot-toast';
-
 function App() {
   return (
     <ErrorBoundary>
       <Toaster position="top-right" />
-      <Router>
-        <Routes>
-          {/* Public Route */}
-          <Route path="/login" element={<Login />} />
+      <AuthProvider>
+        <Router>
+          <Routes>
+            {/* Public Route */}
+            <Route path="/login" element={<Login />} />
 
-          {/* Protected Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<AppLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="calendar" element={<Calendar />} />
-              <Route path="customers" element={<Customers />} />
-              <Route path="services" element={<Services />} />
-              <Route path="inventory" element={<Inventory />} />
-              <Route path="staff" element={<Staff />} />
-              <Route path="expenses" element={<Expenses />} />
-              <Route path="accounts" element={<Accounts />} />
-              <Route path="reports" element={<Placeholder title="Reports" />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<AppLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="calendar" element={<Calendar />} />
+                <Route path="customers" element={<Customers />} />
+                <Route path="services" element={<Services />} />
+                <Route path="inventory" element={<Inventory />} />
+                <Route path="staff" element={<Staff />} />
+                <Route path="expenses" element={<Expenses />} />
+                <Route path="accounts" element={<Accounts />} />
+                <Route path="reports" element={<Placeholder title="Reports" />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Route>
             </Route>
-          </Route>
-        </Routes>
-      </Router>
+          </Routes>
+        </Router>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

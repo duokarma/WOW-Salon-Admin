@@ -4,44 +4,44 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
-    /* BODY Background (Pure Black) */
-    --background: 0, 0%, 0%; 
-    --foreground: 0, 0%, 100%;
+    color-scheme: light;
+    /* BODY Background: Warm Off White (#FAF9F6) */
+    --background: 45, 20%, 97%; 
+    /* Deep Charcoal Text (#36454F) */
+    --foreground: 204, 19%, 26%;
     
-    /* SIDEBAR (Glassy dark) */
-    --sidebar: 0, 0%, 3%; 
-    --sidebar-border: 0, 0%, 10%; 
+    /* SIDEBAR: Ivory (#FFFFF0) */
+    --sidebar: 60, 100%, 97%; 
+    --sidebar-border: 45, 15%, 90%; 
     
-    /* CARDS */
-    --card: 0, 0%, 2%; 
-    --border: 0, 0%, 10%; 
+    /* CARDS: Pure White or Ivory */
+    --card: 0, 0%, 100%; 
+    --border: 45, 15%, 90%; 
     
     /* Text */
-    --text: 0, 0%, 100%; 
-    --secondary-foreground: 0, 0%, 65%;
+    --text: 204, 19%, 26%; 
+    --secondary-foreground: 204, 10%, 45%;
     
     /* Secondary Background */
-    --secondary: 0, 0%, 5%; 
+    --secondary: 45, 20%, 94%; 
     
     /* Accents */
-    /* Champagne Gold */
-    --primary: 43, 44%, 65%; 
-    --primary-foreground: 0, 0%, 5%; 
-    --primary-hover: 43, 44%, 75%; 
+    /* Champagne Gold (#F7E7CE) */
+    --primary: 37, 65%, 89%; 
+    --primary-foreground: 204, 19%, 26%; 
+    --primary-hover: 37, 65%, 83%; 
     
-    /* Platinum Silver */
-    --secondary-accent: 0, 0%, 80%; 
+    --secondary-accent: 0, 0%, 90%; 
     
-    --accent: 0, 0%, 10%; 
-    --accent-foreground: 45, 30%, 90%; /* Luxury Ivory */
-    --muted: 0, 0%, 8%; 
-    --muted-foreground: 0, 0%, 60%; 
+    --accent: 37, 65%, 95%; 
+    --accent-foreground: 204, 19%, 26%; 
+    --muted: 45, 10%, 95%; 
+    --muted-foreground: 204, 10%, 45%; 
     
-    /* Semantic Colors (Refined & Subtle) */
-    --success: 43, 44%, 65%; /* Replaced neon green with Champagne Gold */
-    --warning: 30, 40%, 60%; /* Warm muted bronze/orange instead of neon amber */
-    --danger: 0, 40%, 60%; /* Muted brick red instead of neon red */
+    /* Semantic Colors */
+    --success: 140, 40%, 45%;
+    --warning: 35, 60%, 55%;
+    --danger: 0, 60%, 55%;
   }
 
   body {
@@ -60,63 +60,37 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsla(var(--border), 0.5);
+    background: hsla(var(--border), 1);
     border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsla(var(--border), 1);
+    background: hsla(var(--secondary-foreground), 0.5);
   }
   
-  /* Input overrides for dark theme */
+  /* Input overrides for light theme */
   input[type="text"], input[type="number"], input[type="email"], input[type="tel"], input[type="password"], input[type="date"], select, textarea {
-    @apply bg-black/20 border border-white/[0.05] text-white focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/20;
-  }
-  
-  /* Date picker icon invert for dark mode */
-  input[type="date"]::-webkit-calendar-picker-indicator {
-      filter: invert(1);
-      opacity: 0.5;
-      cursor: pointer;
-  }
-  input[type="date"]::-webkit-calendar-picker-indicator:hover {
-      opacity: 0.8;
+    @apply bg-white border border-border text-text focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-sm;
   }
 }
 
 @layer utilities {
+  /* Frosted Cream Glass Utilities */
   .liquid-glass {
-    background: rgba(255, 255, 255, 0.005);
-    background-blend-mode: luminosity;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: none;
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 4px 24px rgba(0,0,0,0.4);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
     position: relative;
     overflow: hidden;
   }
-  .liquid-glass::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(180deg,
-      rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 20%,
-      rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%,
-      rgba(255,255,255,0.05) 80%, rgba(255,255,255,0.1) 100%);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
 
-  /* Premium Glass Utilities */
   .glass-panel {
-    @apply bg-white/[0.02] border border-white/[0.05] shadow-[0_4px_30px_rgba(0,0,0,0.2)] backdrop-blur-xl rounded-2xl;
+    @apply bg-white/80 border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl rounded-2xl;
   }
 
   .glass-sidebar {
-    @apply bg-black/40 border-r border-white/[0.05] shadow-[4px_0_24px_rgba(0,0,0,0.2)] backdrop-blur-2xl;
+    @apply bg-white/80 border-r border-black/5 shadow-[4px_0_24px_rgba(0,0,0,0.02)] backdrop-blur-2xl;
   }
 
   .glass-card {
@@ -124,16 +98,16 @@
   }
   
   .glass-card-hover {
-    @apply hover:bg-white/[0.06] hover:border-white/[0.1] hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)];
+    @apply hover:bg-white hover:border-white hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)];
   }
 
-  /* Glass buttons */
+  /* Buttons */
   .btn-primary {
-    @apply bg-white text-black font-semibold rounded-xl px-5 py-2.5 hover:bg-gray-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] flex items-center justify-center;
+    @apply bg-[#F7E7CE] text-[#36454F] font-semibold rounded-xl px-5 py-2.5 hover:bg-[#eadebe] transition-all shadow-sm flex items-center justify-center;
   }
   
   .btn-secondary {
-    @apply bg-white/5 border border-white/10 text-white font-semibold rounded-xl px-5 py-2.5 hover:bg-white/10 transition-all flex items-center justify-center;
+    @apply bg-white border border-border text-text font-semibold rounded-xl px-5 py-2.5 hover:bg-gray-50 transition-all shadow-sm flex items-center justify-center;
   }
   
   .btn-danger {
@@ -141,6 +115,6 @@
   }
 
   .premium-gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-white to-white/50;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#36454F] to-[#5b6a75];
   }
 }
