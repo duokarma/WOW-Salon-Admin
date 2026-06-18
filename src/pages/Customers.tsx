@@ -20,9 +20,7 @@ const customerSchema = z.object({
   phone: z.string().min(10, "Valid phone number is required"),
   dobDay: z.string().optional(),
   dobMonth: z.string().optional(),
-  dobYear: z.string().optional(),
-  services_taken: z.string().optional(),
-  amountPaid: z.string().optional()
+  dobYear: z.string().optional()
 });
 type CustomerFormData = z.infer<typeof customerSchema>;
 
@@ -49,6 +47,8 @@ export default function Customers() {
   // Modals state
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
+  const [customerServices, setCustomerServices] = useState<{serviceId: string}[]>([]);
+  const [customerStaffId, setCustomerStaffId] = useState<string>('');
   
   const [selectedCustomerForHistory, setSelectedCustomerForHistory] = useState<number | null>(null);
   const [selectedHistory, setSelectedHistory] = useState<any[]>([]);
@@ -106,21 +106,31 @@ export default function Customers() {
 
   const openAddModal = () => {
     setCustomerToEdit(null);
-    reset({ name: '', phone: '', dobDay: '', dobMonth: '', dobYear: '', services_taken: '', amountPaid: '' });
+    setCustomerServices([]);
+    setCustomerStaffId('');
+    reset({ name: '', phone: '', dobDay: '', dobMonth: '', dobYear: '' });
     setIsCustomerModalOpen(true);
   };
 
   const openEditModal = (customer: Customer) => {
     setCustomerToEdit(customer);
     const dateObj = customer.dob ? new Date(customer.dob) : null;
+    
+    // Match existing services by name
+    const matchedServices = customer.services_taken 
+      ? customer.services_taken.map(name => {
+          const s = services.find(x => x.service_name === name);
+          return s ? { serviceId: s.id } : null;
+        }).filter(Boolean) as {serviceId: string}[]
+      : [];
+    setCustomerServices(matchedServices);
+
     reset({
       name: customer.name,
       phone: customer.phone,
       dobDay: dateObj ? format(dateObj, 'dd') : '',
       dobMonth: dateObj ? format(dateObj, 'MM') : '',
-      dobYear: dateObj ? format(dateObj, 'yyyy') : '',
-      services_taken: customer.services_taken ? customer.services_taken.join(', ') : '',
-      amountPaid: customer.amountPaid ? customer.amountPaid.toString() : ''
+      dobYear: dateObj ? format(dateObj, 'yyyy') : ''
     });
     setIsCustomerModalOpen(true);
   };
@@ -131,13 +141,38 @@ export default function Customers() {
         ? `${data.dobYear}-${data.dobMonth}-${data.dobDay}` 
         : undefined;
 
-      const parsedData = {
+      if (!customerToEdit) {
+        if (customerServices.length === 0) {
+          toast.error("Please select at least one service.");
+          return;
+        }
+        if (!customerStaffId) {
+          toast.error("Please select a staff member.");
+          return;
+        }
+      }
+
+      let serviceTotal = 0;
+      const parsedServices = customerServices.map(cs => {
+        const s = services.find(x => x.id === cs.serviceId);
+        if (s) {
+          serviceTotal += Number(s.price);
+          return s.service_name;
+        }
+        return '';
+      }).filter(Boolean);
+
+      const parsedData: any = {
         name: data.name,
         phone: data.phone,
         dob: parsedDob,
-        services_taken: data.services_taken ? data.services_taken.split(',').map(s => s.trim()).filter(Boolean) : [],
-        amountPaid: data.amountPaid ? Number(data.amountPaid) : 0
+        services_taken: parsedServices,
+        amountPaid: serviceTotal
       };
+      
+      if (!customerToEdit && customerStaffId) {
+        parsedData.staff_served = [staff.find(s => s.id === customerStaffId)?.name || ''];
+      }
 
       if (customerToEdit) {
         const updated = await customerService.updateCustomer(customerToEdit.id, parsedData);
@@ -146,7 +181,39 @@ export default function Customers() {
       } else {
         const newCust = await customerService.addCustomer(parsedData);
         store.addCustomer(newCust);
-        toast.success('Customer added successfully');
+        
+        // --- Create Visit & Commission automatically ---
+        const commissionAmount = serviceTotal * 0.10; // 10%
+        
+        const { data: visitData, error: visitErr } = await supabase.from('customer_visits').insert([{
+          customer_id: newCust.id,
+          service_total: serviceTotal,
+          product_total: 0,
+          grand_total: serviceTotal,
+          staff_id: customerStaffId
+        }]).select().single();
+
+        if (visitErr) throw visitErr;
+
+        const vServicesData = customerServices.map(cs => {
+          const s = services.find(x => x.id === cs.serviceId)!;
+          return { service_id: s.id, service_name: s.service_name, price: Number(s.price) };
+        });
+
+        if (vServicesData.length > 0) {
+          await supabase.from('visit_services').insert(
+            vServicesData.map(vs => ({ visit_id: visitData.id, ...vs }))
+          );
+        }
+
+        await supabase.from('staff_commissions').insert([{
+          staff_id: customerStaffId,
+          visit_id: visitData.id,
+          service_amount: serviceTotal,
+          commission_amount: commissionAmount
+        }]);
+
+        toast.success('Customer added and visit recorded successfully!');
       }
       setIsCustomerModalOpen(false);
       loadData();
@@ -510,13 +577,63 @@ export default function Customers() {
                     </select>
                   </div>
                 </div>
+                {!customerToEdit && (
+                  <div>
+                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-3">Select Staff Member *</label>
+                    <select 
+                      value={customerStaffId} 
+                      onChange={(e) => setCustomerStaffId(e.target.value)}
+                      className="glass-input w-full px-4 py-3.5 appearance-none mb-2"
+                    >
+                      <option value="" className="bg-black">-- Choose Staff --</option>
+                      {staff.map(s => <option key={s.id} value={s.id} className="bg-black">{s.name || s.staff_name}</option>)}
+                    </select>
+                  </div>
+                )}
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Services Taken</label>
-                  <input type="text" {...register("services_taken")} className="glass-input w-full px-4 py-3" placeholder="e.g. Haircut, Spa" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Amount Paid (₹)</label>
-                  <input type="number" {...register("amountPaid")} className="glass-input w-full px-4 py-3" placeholder="e.g. 500" />
+                  <div className="flex justify-between items-center mb-3">
+                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase">Services Taken</label>
+                    <button type="button" onClick={() => setCustomerServices([...customerServices, {serviceId: ''}])} className="text-xs font-bold text-white bg-white/10 hover:bg-white/20 border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
+                      + Add Service
+                    </button>
+                  </div>
+                  {customerServices.length === 0 ? (
+                    <div className="text-sm text-white/30 font-light italic p-6 bg-white/5 rounded-2xl border border-dashed border-white/20 text-center">No services added. Click above to add.</div>
+                  ) : (
+                    <div className="space-y-3">
+                      {customerServices.map((cs, idx) => (
+                        <div key={idx} className="flex items-center gap-3">
+                          <select 
+                            value={cs.serviceId} 
+                            onChange={(e) => {
+                              const newSvcs = [...customerServices];
+                              newSvcs[idx].serviceId = e.target.value;
+                              setCustomerServices(newSvcs);
+                            }}
+                            className="glass-input flex-1 px-4 py-3 appearance-none"
+                          >
+                            <option value="" className="bg-black">-- Select Service --</option>
+                            {Object.entries(groupedServices).map(([category, items]) => (
+                              <optgroup key={category} label={category} className="bg-black text-white/50">
+                                {items.map(s => <option key={s.id} value={s.id} className="text-white bg-black">{s.service_name} - ₹{s.price}</option>)}
+                              </optgroup>
+                            ))}
+                          </select>
+                          <button type="button" onClick={() => setCustomerServices(customerServices.filter((_, i) => i !== idx))} className="p-3 text-danger hover:bg-danger/20 rounded-xl bg-danger/10 border border-danger/20 transition-colors">
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {customerServices.length > 0 && (
+                    <div className="mt-4 bg-white/5 p-4 rounded-xl border border-white/10 flex justify-between items-center">
+                      <span className="text-xs font-bold tracking-widest text-white/50 uppercase">Total Amount</span>
+                      <span className="text-xl font-light text-white">
+                        ₹{customerServices.reduce((sum, cs) => sum + Number(services.find(s => s.id === cs.serviceId)?.price || 0), 0).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="p-6 border-t border-white/10 bg-black/20 rounded-b-2xl flex justify-end gap-3">
