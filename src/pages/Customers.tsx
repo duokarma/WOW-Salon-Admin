@@ -154,7 +154,7 @@ export default function Customers() {
 
       let serviceTotal = 0;
       const parsedServices = customerServices.map(cs => {
-        const s = services.find(x => x.id === cs.serviceId);
+        const s = services.find(x => x.id.toString() === cs.serviceId.toString());
         if (s) {
           serviceTotal += Number(s.price);
           return s.service_name;
@@ -171,7 +171,7 @@ export default function Customers() {
       };
       
       if (!customerToEdit && customerStaffId) {
-        parsedData.staff_served = [staff.find(s => s.id === customerStaffId)?.name || ''];
+        parsedData.staff_served = [staff.find(s => s.id.toString() === customerStaffId.toString())?.name || ''];
       }
 
       if (customerToEdit) {
@@ -196,7 +196,7 @@ export default function Customers() {
         if (visitErr) throw visitErr;
 
         const vServicesData = customerServices.map(cs => {
-          const s = services.find(x => x.id === cs.serviceId)!;
+          const s = services.find(x => x.id.toString() === cs.serviceId.toString())!;
           return { service_id: s.id, service_name: s.service_name, price: Number(s.price) };
         });
 
@@ -258,14 +258,14 @@ export default function Customers() {
       // Calculate totals
       let serviceTotal = 0;
       const vServicesData = visitServices.map(vs => {
-        const s = services.find(x => x.id === vs.serviceId)!;
+        const s = services.find(x => x.id.toString() === vs.serviceId.toString())!;
         serviceTotal += Number(s.price);
         return { service_id: s.id, service_name: s.service_name, price: Number(s.price) };
       });
 
       let productTotal = 0;
       const vProductsData = visitProducts.map(vp => {
-        const p = products.find(x => x.id === vp.productId)!;
+        const p = products.find(x => x.id.toString() === vp.productId.toString())!;
         const linePrice = Number(p.selling_price || p.sellingPrice || 0) * vp.quantity;
         productTotal += linePrice;
         return { product_id: p.id, product_name: p.name, quantity: vp.quantity, price: linePrice };
@@ -318,7 +318,7 @@ export default function Customers() {
       const currentServices = customerForVisit.services_taken || [];
       const currentStaff = customerForVisit.staff_served || [];
       const newServices = [...new Set([...currentServices, ...vServicesData.map(vs => vs.service_name)])];
-      const newStaffList = [...new Set([...currentStaff, staff.find(s => s.id === visitStaffId)?.name || ''])].filter(Boolean);
+      const newStaffList = [...new Set([...currentStaff, staff.find(s => s.id.toString() === visitStaffId.toString())?.name || ''])].filter(Boolean);
 
       await customerService.updateCustomer(customerForVisit.id, {
         services_taken: newServices,
@@ -630,7 +630,7 @@ export default function Customers() {
                     <div className="mt-4 bg-white/5 p-4 rounded-xl border border-white/10 flex justify-between items-center">
                       <span className="text-xs font-bold tracking-widest text-white/50 uppercase">Total Amount</span>
                       <span className="text-xl font-light text-white">
-                        ₹{customerServices.reduce((sum, cs) => sum + Number(services.find(s => s.id === cs.serviceId)?.price || 0), 0).toLocaleString()}
+                        ₹{customerServices.reduce((sum, cs) => sum + Number(services.find(s => s.id.toString() === cs.serviceId.toString())?.price || 0), 0).toLocaleString()}
                       </span>
                     </div>
                   )}
@@ -765,8 +765,8 @@ export default function Customers() {
                   <span className="tracking-wide uppercase text-white/70">Grand Total</span>
                   <span className="text-3xl font-light tracking-tight">
                     ₹{
-                      visitServices.reduce((sum, vs) => sum + Number(services.find(s => s.id === vs.serviceId)?.price || 0), 0) +
-                      visitProducts.reduce((sum, vp) => sum + (Number(products.find(p => p.id === vp.productId)?.selling_price || products.find(p => p.id === vp.productId)?.sellingPrice || 0) * vp.quantity), 0)
+                      visitServices.reduce((sum, vs) => sum + Number(services.find(s => s.id.toString() === vs.serviceId.toString())?.price || 0), 0) +
+                      visitProducts.reduce((sum, vp) => sum + (Number(products.find(p => p.id.toString() === vp.productId.toString())?.selling_price || products.find(p => p.id.toString() === vp.productId.toString())?.sellingPrice || 0) * vp.quantity), 0)
                     }
                   </span>
                 </div>
