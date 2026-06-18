@@ -11,6 +11,7 @@ import { z } from 'zod';
 
 const serviceSchema = z.object({
   service_name: z.string().min(2, "Name is required"),
+  category: z.string().min(1, "Category is required"),
   price: z.coerce.number({ invalid_type_error: "Price is required" }).min(0, "Price must be positive")
 });
 
@@ -51,7 +52,7 @@ export default function Services() {
 
   const openAddModal = () => {
     setServiceToEdit(null);
-    reset({ service_name: '', price: '' as any });
+    reset({ service_name: '', category: 'Hair Services', price: '' as any });
     setIsModalOpen(true);
   };
 
@@ -59,6 +60,7 @@ export default function Services() {
     setServiceToEdit(service);
     reset({
       service_name: service.service_name,
+      category: service.category || 'Other',
       price: service.price
     });
     setIsModalOpen(true);
@@ -94,6 +96,13 @@ export default function Services() {
   const filteredServices = services.filter((s) => {
     return s.service_name.toLowerCase().includes(searchTerm.toLowerCase());
   });
+
+  const groupedServices = filteredServices.reduce((acc, s) => {
+    const cat = s.category || 'Other';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(s);
+    return acc;
+  }, {} as Record<string, typeof services>);
 
   return (
     <div className="space-y-8 relative max-w-7xl mx-auto">
@@ -171,25 +180,34 @@ export default function Services() {
                     </td>
                   </tr>
                 )}
-                {filteredServices.map((service) => (
-                  <tr key={service.id} className="hover:bg-white/5 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-white text-base">{service.service_name}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-light text-white text-lg">₹{service.price.toLocaleString()}</div>
-                    </td>
-                    <td className="px-6 py-4 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openEditModal(service)} className="p-2 text-white/70 hover:bg-white/10 hover:text-white rounded-xl transition-colors">
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => handleDelete(service.id)} className="p-2 text-danger hover:bg-danger/10 rounded-xl transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                {Object.entries(groupedServices).map(([category, items]) => (
+                  <React.Fragment key={category}>
+                    <tr className="bg-black/40 border-y border-white/10">
+                      <td colSpan={3} className="px-6 py-3 text-xs font-bold tracking-widest text-[#F4E3C5] uppercase">
+                        {category}
+                      </td>
+                    </tr>
+                    {items.map((service) => (
+                      <tr key={service.id} className="hover:bg-white/5 transition-colors group">
+                        <td className="px-6 py-4">
+                          <div className="font-medium text-white text-base">{service.service_name}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="font-light text-white text-lg">₹{service.price.toLocaleString()}</div>
+                        </td>
+                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => openEditModal(service)} className="p-2 text-white/70 hover:bg-white/10 hover:text-white rounded-xl transition-colors">
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleDelete(service.id)} className="p-2 text-danger hover:bg-danger/10 rounded-xl transition-colors">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
@@ -213,6 +231,18 @@ export default function Services() {
                   <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Service Name *</label>
                   <input type="text" {...register("service_name")} className="glass-input w-full px-4 py-3" placeholder="e.g. Haircut" />
                   {errors.service_name && <p className="text-danger text-xs mt-1.5">{errors.service_name.message}</p>}
+                </div>
+                <div>
+                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Category *</label>
+                  <select {...register("category")} className="glass-input w-full px-4 py-3 appearance-none">
+                    <option value="Hair Services" className="bg-black">Hair Services</option>
+                    <option value="Hair Treatments" className="bg-black">Hair Treatments</option>
+                    <option value="Hair Colour Services" className="bg-black">Hair Colour Services</option>
+                    <option value="Hair Smoothing Services" className="bg-black">Hair Smoothing Services</option>
+                    <option value="Beauty Services" className="bg-black">Beauty Services</option>
+                    <option value="Other" className="bg-black">Other</option>
+                  </select>
+                  {errors.category && <p className="text-danger text-xs mt-1.5">{errors.category.message}</p>}
                 </div>
                 <div>
                   <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Price (₹) *</label>

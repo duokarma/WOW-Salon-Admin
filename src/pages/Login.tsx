@@ -70,14 +70,14 @@ export default function Login() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-12 w-full max-w-[1400px] mx-auto px-6 py-10 lg:px-12 lg:py-0">
+      <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-8 w-full max-w-[1400px] mx-auto px-6 py-4 lg:px-12 lg:py-0">
         
         {/* Left Column */}
         <motion.div 
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="hidden lg:flex w-full lg:w-[30%] flex-col gap-12"
+          className="hidden lg:flex w-full lg:w-[30%] flex-col gap-8"
         >
           <div>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-black/40 backdrop-blur-md mb-8">
@@ -110,13 +110,13 @@ export default function Login() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-          className="w-full max-w-md lg:w-[40%] flex justify-center py-10 lg:py-20"
+          className="w-full max-w-md lg:w-[40%] flex justify-center py-6 lg:py-10"
         >
-          <div className="liquid-glass w-full rounded-[2.5rem] p-10 sm:p-12 relative overflow-hidden shadow-[0_20px_80px_rgba(0,0,0,0.8)] backdrop-blur-3xl border border-white/10">
+          <div className="liquid-glass w-full rounded-[2.5rem] p-8 sm:p-10 relative overflow-hidden shadow-[0_20px_80px_rgba(0,0,0,0.8)] backdrop-blur-3xl border border-white/10">
             
-            <div className="text-center mb-10 relative z-10">
-              <div className="mx-auto w-[88px] h-[88px] bg-[#F4E3C5] rounded-[1.75rem] flex items-center justify-center mb-8 shadow-[0_0_40px_rgba(244,227,197,0.3)]">
-                <Scissors className="text-black w-10 h-10 transform -rotate-45" strokeWidth={1.5} />
+            <div className="text-center mb-8 relative z-10">
+              <div className="mx-auto w-[72px] h-[72px] bg-[#F4E3C5] rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(244,227,197,0.3)]">
+                <Scissors className="text-black w-8 h-8 transform -rotate-45" strokeWidth={1.5} />
               </div>
               <h1 className="text-3xl tracking-tight text-white mb-3">WOW <span className="font-bold">SALON</span></h1>
               <p className="text-[#F4E3C5]/80 text-[9px] uppercase tracking-[0.35em] font-bold">Exclusive Access</p>
@@ -217,26 +217,8 @@ export default function Login() {
           </div>
         </motion.div>
 
-        {/* Right Column */}
-        <motion.div 
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
-          className="hidden lg:flex w-[30%] flex-col items-end justify-end h-[600px]"
-        >
-          <div className="mt-auto mb-16 max-w-[280px] text-left flex flex-col items-start mr-8">
-            <div className="w-[100px] h-[100px] rounded-full border border-white/10 flex items-center justify-center mb-8 relative">
-              {/* Subtle inner glow for the circle */}
-              <div className="absolute inset-0 rounded-full shadow-[inset_0_0_20px_rgba(255,255,255,0.05)]"></div>
-              <Leaf className="w-10 h-10 text-white/60 font-light" strokeWidth={1} />
-            </div>
-            <h3 className="text-[32px] font-serif text-[#F4E3C5] leading-[1.1] tracking-wide mb-6">
-              Beauty is the<br />harmony of purpose<br />and passion.
-            </h3>
-            {/* Small decorative line */}
-            <div className="h-[1px] w-16 bg-white/20"></div>
-          </div>
-        </motion.div>
+        {/* Empty Right Column for Balance */}
+        <div className="hidden lg:block w-[30%]"></div>
 
       </div>
 
@@ -254,9 +236,7 @@ export default function Login() {
           </span>
           <span className="w-px h-3 bg-white/20"></span>
           <span className="flex gap-4">
-            <span className="hover:text-white transition-colors cursor-pointer">Secure</span> • 
-            <span className="hover:text-white transition-colors cursor-pointer">Reliable</span> • 
-            <span className="hover:text-white transition-colors cursor-pointer">Premium</span>
+            <span className="text-white/80 font-medium cursor-default">Powered by Duokarma</span>
           </span>
         </div>
       </motion.div>
