@@ -15,6 +15,8 @@ export default function Inventory() {
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
     name: '',
+    purchase_price: 0,
+    selling_price: 0,
     purchased_quantity: 0,
     sold_quantity: 0,
     salon_consumption: 0,
@@ -46,7 +48,7 @@ export default function Inventory() {
 
   const openAddModal = () => {
     setProductToEdit(null);
-    setFormData({ name: '', purchased_quantity: 0, sold_quantity: 0, salon_consumption: 0, current_stock: 0 });
+    setFormData({ name: '', purchase_price: 0, selling_price: 0, purchased_quantity: 0, sold_quantity: 0, salon_consumption: 0, current_stock: 0 });
     setIsModalOpen(true);
   };
 
@@ -54,6 +56,8 @@ export default function Inventory() {
     setProductToEdit(product);
     setFormData({
       name: product.name,
+      purchase_price: product.purchase_price || 0,
+      selling_price: product.selling_price || 0,
       purchased_quantity: product.purchased_quantity || 0,
       sold_quantity: product.sold_quantity || 0,
       salon_consumption: product.salon_consumption || 0,
@@ -72,6 +76,8 @@ export default function Inventory() {
     try {
       const payload = {
         name: formData.name,
+        purchase_price: Number(formData.purchase_price),
+        selling_price: Number(formData.selling_price),
         purchased_quantity: Number(formData.purchased_quantity),
         sold_quantity: Number(formData.sold_quantity),
         salon_consumption: Number(formData.salon_consumption),
@@ -152,6 +158,8 @@ export default function Inventory() {
               <thead className="bg-white/5 text-white/50 text-xs uppercase font-bold tracking-wider border-b border-white/10">
                 <tr>
                   <th className="px-6 py-5">Product Name</th>
+                  <th className="px-6 py-5 text-center">Cost</th>
+                  <th className="px-6 py-5 text-center">Price</th>
                   <th className="px-6 py-5 text-center">Purchased Qty</th>
                   <th className="px-6 py-5 text-center">Sold Qty</th>
                   <th className="px-6 py-5 text-center">Salon Consumption</th>
@@ -173,6 +181,8 @@ export default function Inventory() {
                     <td className="px-6 py-4">
                       <div className="font-medium text-white text-base">{item.name}</div>
                     </td>
+                    <td className="px-6 py-4 text-center text-white/70">₹{item.purchase_price || 0}</td>
+                    <td className="px-6 py-4 text-center text-white/70">₹{item.selling_price || 0}</td>
                     <td className="px-6 py-4 text-center text-white/70">{item.purchased_quantity}</td>
                     <td className="px-6 py-4 text-center text-white/70">{item.sold_quantity}</td>
                     <td className="px-6 py-4 text-center text-white/70">{item.salon_consumption}</td>
@@ -213,6 +223,16 @@ export default function Inventory() {
                 <div>
                   <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Product Name *</label>
                   <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="glass-input w-full px-4 py-3" placeholder="e.g. L'Oreal Shampoo" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Purchase Price (Cost)</label>
+                    <input type="number" min="0" value={formData.purchase_price} onChange={e => setFormData({...formData, purchase_price: Number(e.target.value)})} className="glass-input w-full px-4 py-3" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Selling Price</label>
+                    <input type="number" min="0" value={formData.selling_price} onChange={e => setFormData({...formData, selling_price: Number(e.target.value)})} className="glass-input w-full px-4 py-3" />
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>

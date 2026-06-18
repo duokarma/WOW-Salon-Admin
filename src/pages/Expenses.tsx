@@ -1,19 +1,20 @@
-import React, { useState, useMemo } from 'react';
-import { useStore } from '../store/useStore';
-import { Plus, Search, Filter, IndianRupee, X, Calendar, Edit2, Trash2, PieChart } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { Plus, Search, IndianRupee, X, Edit2, Trash2, PieChart, Package, TrendingUp } from 'lucide-react';
 import { format, isSameMonth, isSameYear, isToday } from 'date-fns';
-import type { Expense } from '../types';
+import toast from 'react-hot-toast';
 
 const EXPENSE_CATEGORIES = [
-  'Electricity', 'Water', 'Rent', 'Internet', 'Other Expenses'
+  'Electricity', 'Water', 'Rent', 'Internet', 'Inventory Purchases', 'Other Expenses'
 ];
 
 const PAYMENT_METHODS = ['Cash', 'UPI', 'Bank Transfer', 'Card'];
 const STATUSES = ['Paid', 'Pending', 'Partially Paid'];
 
 export default function Expenses() {
-  const store = useStore();
-  const expenses = store.expenses || [];
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
@@ -29,18 +30,43 @@ export default function Expenses() {
     title: '',
     amount: '',
     category: '',
-    date: format(new Date(), 'yyyy-MM-dd'),
+    day: format(new Date(), 'dd'),
+    month: format(new Date(), 'MM'),
+    year: format(new Date(), 'yyyy'),
     notes: '',
     paymentMethod: 'UPI',
     status: 'Paid'
   });
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const [expRes, prodRes] = await Promise.all([
+        supabase.from('expenses').select('*').order('date', { ascending: false }),
+        supabase.from('products').select('*')
+      ]);
+      if (expRes.data) setExpenses(expRes.data);
+      if (prodRes.data) setProducts(prodRes.data);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load expenses');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const resetForm = () => {
     setFormData({
       title: '',
       amount: '',
       category: '',
-      date: format(new Date(), 'yyyy-MM-dd'),
+      day: format(new Date(), 'dd'),
+      month: format(new Date(), 'MM'),
+      year: format(new Date(), 'yyyy'),
       notes: '',
       paymentMethod: 'UPI',
       status: 'Paid'
@@ -48,67 +74,99 @@ export default function Expenses() {
     setEditingExpenseId(null);
   };
 
-  const handleOpenEdit = (expense: Expense) => {
+  const handleOpenEdit = (expense: any) => {
+    const d = new Date(expense.date);
     setFormData({
       title: expense.title,
       amount: expense.amount.toString(),
       category: expense.category,
-      date: format(new Date(expense.date), 'yyyy-MM-dd'),
+      day: format(d, 'dd'),
+      month: format(d, 'MM'),
+      year: format(d, 'yyyy'),
       notes: expense.notes || '',
-      paymentMethod: expense.paymentMethod,
+      paymentMethod: expense.payment_method || expense.paymentMethod || 'UPI',
       status: expense.status
     });
     setEditingExpenseId(expense.id);
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title || !formData.amount || !formData.category || !formData.date) {
-      alert("Please fill all required fields.");
+    if (!formData.title || !formData.amount || !formData.category || !formData.day || !formData.month || !formData.year) {
+      toast.error("Please fill all required fields.");
       return;
     }
 
-    if (editingExpenseId) {
-      store.updateExpense(editingExpenseId, {
-        title: formData.title,
-        amount: parseFloat(formData.amount),
-        category: formData.category,
-        date: new Date(formData.date).toISOString(),
-        notes: formData.notes,
-        paymentMethod: formData.paymentMethod as any,
-        status: formData.status as any
-      });
-    } else {
-      store.addExpense({
-        id: `exp_${Date.now()}`,
-        title: formData.title,
-        amount: parseFloat(formData.amount),
-        category: formData.category,
-        date: new Date(formData.date).toISOString(),
-        notes: formData.notes,
-        paymentMethod: formData.paymentMethod as any,
-        status: formData.status as any
-      });
-    }
+    const dateStr = `${formData.year}-${formData.month}-${formData.day}`;
 
-    setIsModalOpen(false);
-    resetForm();
+    const payload = {
+      title: formData.title,
+      amount: parseFloat(formData.amount),
+      category: formData.category,
+      date: new Date(dateStr).toISOString(),
+      notes: formData.notes,
+      payment_method: formData.paymentMethod,
+      status: formData.status
+    };
+
+    try {
+      if (editingExpenseId) {
+        const { error } = await supabase.from('expenses').update(payload).eq('id', editingExpenseId);
+        if (error) throw error;
+        toast.success("Expense updated");
+      } else {
+        const { error } = await supabase.from('expenses').insert([payload]);
+        if (error) throw error;
+        toast.success("Expense added");
+      }
+      setIsModalOpen(false);
+      resetForm();
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save expense');
+    }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this expense?")) {
-      store.deleteExpense(id);
+      try {
+        await supabase.from('expenses').delete().eq('id', id);
+        toast.success("Expense deleted");
+        loadData();
+      } catch (err) {
+        toast.error('Failed to delete expense');
+      }
     }
   };
 
   // Calculations
   const now = new Date();
   
-  const todayExpenses = expenses.filter(e => isToday(new Date(e.date))).reduce((sum, e) => sum + e.amount, 0);
-  const monthExpenses = expenses.filter(e => isSameMonth(new Date(e.date), now)).reduce((sum, e) => sum + e.amount, 0);
-  const yearExpenses = expenses.filter(e => isSameYear(new Date(e.date), now)).reduce((sum, e) => sum + e.amount, 0);
-  const pendingPayments = expenses.filter(e => e.status !== 'Paid').reduce((sum, e) => sum + e.amount, 0);
+  const todayExpenses = expenses.filter(e => isToday(new Date(e.date))).reduce((sum, e) => sum + Number(e.amount), 0);
+  const monthExpenses = expenses.filter(e => isSameMonth(new Date(e.date), now)).reduce((sum, e) => sum + Number(e.amount), 0);
+  const yearExpenses = expenses.filter(e => isSameYear(new Date(e.date), now)).reduce((sum, e) => sum + Number(e.amount), 0);
+  const pendingPayments = expenses.filter(e => e.status !== 'Paid').reduce((sum, e) => sum + Number(e.amount), 0);
+
+  // Inventory Calculations
+  let totalSpentInventory = 0;
+  let currentStockValue = 0;
+  let costOfConsumed = 0;
+  let retailRevenue = 0;
+  let retailCost = 0;
+
+  products.forEach(p => {
+    const cost = Number(p.purchase_price) || 0;
+    const price = Number(p.selling_price) || 0;
+    
+    totalSpentInventory += (Number(p.purchased_quantity) || 0) * cost;
+    currentStockValue += (Number(p.current_stock) || 0) * cost;
+    costOfConsumed += (Number(p.salon_consumption) || 0) * cost;
+    retailRevenue += (Number(p.sold_quantity) || 0) * price;
+    retailCost += (Number(p.sold_quantity) || 0) * cost;
+  });
+
+  const retailProfit = retailRevenue - retailCost;
 
   // Filtering
   const filteredExpenses = expenses.filter(e => {
@@ -117,7 +175,7 @@ export default function Expenses() {
     const matchesStatus = filterStatus ? e.status === filterStatus : true;
     const matchesMonth = filterMonth ? format(new Date(e.date), 'yyyy-MM') === filterMonth : true;
     return matchesSearch && matchesCategory && matchesStatus && matchesMonth;
-  }).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  });
 
   // Analytics (Category-wise for current month)
   const categoryAnalytics = useMemo(() => {
@@ -125,7 +183,7 @@ export default function Expenses() {
     const breakdown: Record<string, number> = {};
     currentMonthExpenses.forEach(e => {
       if (!breakdown[e.category]) breakdown[e.category] = 0;
-      breakdown[e.category] += e.amount;
+      breakdown[e.category] += Number(e.amount);
     });
     return Object.entries(breakdown).sort((a,b) => b[1] - a[1]);
   }, [expenses]);
@@ -134,8 +192,8 @@ export default function Expenses() {
     <div className="space-y-8 pb-10 relative max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-4xl font-light tracking-tight text-white">Expense Management</h2>
-          <p className="text-white/50 mt-2 font-light tracking-wide">Track and analyze all salon expenditures.</p>
+          <h2 className="text-4xl font-light tracking-tight text-white">Expense & Analytics</h2>
+          <p className="text-white/50 mt-2 font-light tracking-wide">Track expenses and monitor inventory profitability.</p>
         </div>
         <button 
           onClick={() => { resetForm(); setIsModalOpen(true); }}
@@ -144,6 +202,33 @@ export default function Expenses() {
           <Plus className="mr-2 h-4 w-4" />
           Add Expense
         </button>
+      </div>
+
+      {/* Inventory Analytics Cards */}
+      <div className="glass-card p-6 border-warning/20">
+        <h4 className="text-xl font-light tracking-wide text-white mb-6 flex items-center"><Package className="w-5 h-5 mr-3 text-warning"/> Inventory Accounting</h4>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-1">Total Capital Invested</p>
+            <p className="text-2xl font-light text-white">₹{totalSpentInventory.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-white/50 mb-1">Current Stock Value</p>
+            <p className="text-2xl font-light text-white">₹{currentStockValue.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-danger mb-1">Salon Consumption (Cost)</p>
+            <p className="text-2xl font-light text-danger">₹{costOfConsumed.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-success mb-1">Retail Revenue</p>
+            <p className="text-2xl font-light text-success">₹{retailRevenue.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-success mb-1">Net Retail Profit</p>
+            <p className="text-2xl font-light text-success font-bold">₹{retailProfit.toLocaleString()}</p>
+          </div>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -212,7 +297,9 @@ export default function Expenses() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {filteredExpenses.length === 0 ? (
+                  {isLoading ? (
+                    <tr><td colSpan={7} className="text-center py-16 text-white/50">Loading expenses...</td></tr>
+                  ) : filteredExpenses.length === 0 ? (
                     <tr><td colSpan={7} className="text-center py-16 text-white/50 font-light text-lg">No expenses found.</td></tr>
                   ) : (
                     filteredExpenses.map(e => (
@@ -222,8 +309,8 @@ export default function Expenses() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="bg-white/5 text-white border border-white/10 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">{e.category}</span>
                         </td>
-                        <td className="px-6 py-4 font-bold text-white whitespace-nowrap">₹{e.amount.toLocaleString()}</td>
-                        <td className="px-6 py-4 text-white/50 whitespace-nowrap">{e.paymentMethod}</td>
+                        <td className="px-6 py-4 font-bold text-white whitespace-nowrap">₹{Number(e.amount).toLocaleString()}</td>
+                        <td className="px-6 py-4 text-white/50 whitespace-nowrap">{e.payment_method || e.paymentMethod}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border ${
                             e.status === 'Paid' ? 'bg-success/10 text-success border-success/20' :
@@ -288,17 +375,37 @@ export default function Expenses() {
                   <input type="text" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="glass-input w-full px-4 py-3" placeholder="E.g., June Water Bill" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Amount *</label>
-                    <div className="relative flex items-center">
-                      <IndianRupee className="w-4 h-4 text-white/40 absolute left-4" />
-                      <input type="number" required min="0" step="0.01" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="glass-input w-full pl-10 pr-4 py-3" placeholder="0.00" />
-                    </div>
+                <div>
+                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Amount *</label>
+                  <div className="relative flex items-center">
+                    <IndianRupee className="w-4 h-4 text-white/40 absolute left-4" />
+                    <input type="number" required min="0" step="0.01" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className="glass-input w-full pl-10 pr-4 py-3" placeholder="0.00" />
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Date *</label>
-                    <input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="glass-input w-full px-4 py-3" />
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Date *</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    <select required value={formData.day} onChange={e => setFormData({...formData, day: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer">
+                      <option value="" className="bg-black text-white/50">Day</option>
+                      {Array.from({length: 31}, (_, i) => i + 1).map(d => (
+                        <option key={d} value={d.toString().padStart(2, '0')} className="bg-black text-white">{d.toString().padStart(2, '0')}</option>
+                      ))}
+                    </select>
+                    <select required value={formData.month} onChange={e => setFormData({...formData, month: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer">
+                      <option value="" className="bg-black text-white/50">Month</option>
+                      {Array.from({length: 12}, (_, i) => i + 1).map(m => (
+                        <option key={m} value={m.toString().padStart(2, '0')} className="bg-black text-white">
+                          {format(new Date(2000, m - 1, 1), 'MMM')}
+                        </option>
+                      ))}
+                    </select>
+                    <select required value={formData.year} onChange={e => setFormData({...formData, year: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer">
+                      <option value="" className="bg-black text-white/50">Year</option>
+                      {Array.from({length: 10}, (_, i) => new Date().getFullYear() - i).map(y => (
+                        <option key={y} value={y.toString()} className="bg-black text-white">{y}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 

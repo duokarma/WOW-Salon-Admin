@@ -38,6 +38,8 @@ export interface Service {
 export interface Product {
   id: number;
   name: string;
+  purchase_price: number;
+  selling_price: number;
   purchased_quantity: number;
   sold_quantity: number;
   salon_consumption: number;
