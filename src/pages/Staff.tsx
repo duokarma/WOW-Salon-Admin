@@ -54,9 +54,7 @@ export default function Staff() {
     try {
       const staffData = {
         name: editingStaff.name || editingStaff.staff_name,
-        phone: editingStaff.phone,
         gender: editingStaff.gender,
-        joining_date: editingStaff.joining_date || editingStaff.joiningDate || new Date().toISOString().split('T')[0],
         salary: editingStaff.salary || 15000,
         status: editingStaff.status || 'Active'
       };
@@ -201,15 +199,7 @@ export default function Staff() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-sm text-white/50 font-light" onClick={e => e.stopPropagation()}>
-                    <div className="flex items-center">
-                      <Phone className="w-3.5 h-3.5 mr-2" /> {staff.phone || 'N/A'}
-                    </div>
-                    <div className="flex items-center">
-                      <CalendarIcon className="w-3.5 h-3.5 mr-2" /> 
-                      {staff.joining_date || staff.joiningDate ? format(new Date(staff.joining_date || staff.joiningDate), 'dd MMM yyyy') : 'N/A'}
-                    </div>
-                  </div>
+
                 </div>
 
                 <div className="p-6 flex-1 flex flex-col justify-between bg-black/20" onClick={e => e.stopPropagation()}>
@@ -271,15 +261,7 @@ export default function Staff() {
                     className="glass-input w-full px-4 py-3"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Phone Number</label>
-                  <input 
-                    type="tel" 
-                    value={editingStaff?.phone || ''} 
-                    onChange={e => setEditingStaff({...editingStaff, phone: e.target.value})}
-                    className="glass-input w-full px-4 py-3"
-                  />
-                </div>
+
                 <div>
                   <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Gender</label>
                   <select 
@@ -292,16 +274,7 @@ export default function Staff() {
                     <option value="Other" className="bg-black">Other</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Joining Date</label>
-                  <input 
-                    type="date" 
-                    required 
-                    value={editingStaff?.joining_date || editingStaff?.joiningDate || ''} 
-                    onChange={e => setEditingStaff({...editingStaff, joining_date: e.target.value})}
-                    className="glass-input w-full px-4 py-3"
-                  />
-                </div>
+
                 <div>
                   <label className="block text-xs font-bold tracking-widest text-white/50 uppercase mb-2">Base Salary</label>
                   <input 
@@ -351,7 +324,7 @@ export default function Staff() {
                     {selectedStaff.name || selectedStaff.staff_name} 
                     <span className="text-xs font-bold tracking-widest text-white/50 uppercase ml-4 px-3 py-1 bg-white/5 rounded-full border border-white/10">{selectedStaff.gender}</span>
                   </h3>
-                  <p className="text-sm font-light text-white/50 mt-2 tracking-wide uppercase">{selectedStaff.phone || 'N/A'} • Joined {selectedStaff.joining_date || selectedStaff.joiningDate ? format(new Date(selectedStaff.joining_date || selectedStaff.joiningDate), 'dd MMM yyyy') : 'N/A'}</p>
+                  <p className="text-sm font-light text-white/50 mt-2 tracking-wide uppercase">Staff Member</p>
                 </div>
               </div>
               <button onClick={() => setSelectedStaffId(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white"><X className="w-6 h-6"/></button>
