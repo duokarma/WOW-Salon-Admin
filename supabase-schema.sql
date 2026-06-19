@@ -313,3 +313,12 @@ INSERT INTO public.staff (name, gender, salary, commission_rate) VALUES
 ('Priya (Beautician)', 'Female', 20000, 10),
 ('Amit (Hair Expert)', 'Male', 22000, 10);
 
+--------------------------------------------------------
+-- 8. ENABLE REALTIME
+--------------------------------------------------------
+BEGIN;
+  DROP PUBLICATION IF EXISTS supabase_realtime;
+  CREATE PUBLICATION supabase_realtime;
+COMMIT;
+
+ALTER PUBLICATION supabase_realtime ADD TABLE public.customers;
