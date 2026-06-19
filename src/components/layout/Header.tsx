@@ -32,32 +32,58 @@ export default function Header({ toggleSidebar, isSidebarOpen = true }: HeaderPr
       
       const ctx = new AudioContext();
       
-      // If the browser suspends audio (autoplay blocked), don't play or mark as played.
-      // Wait for the click interaction listener to trigger it.
       if (ctx.state === 'suspended') {
-         console.warn('Audio autoplay suspended. Waiting for user interaction.');
-         // Try to resume it just in case we are in a valid gesture context
          ctx.resume().catch(() => {});
          if (ctx.state === 'suspended') return;
       }
       
-      const osc = ctx.createOscillator();
-      const gainNode = ctx.createGain();
+      // Creating a richer, premium hotel chime
+      const masterGain = ctx.createGain();
+      masterGain.gain.value = 0.4;
+      masterGain.connect(ctx.destination);
+
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.value = 880; // A5
+      osc1.connect(gain1);
+      gain1.connect(masterGain);
       
-      osc.connect(gainNode);
-      gainNode.connect(ctx.destination);
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.value = 1760; // A6
+      osc2.connect(gain2);
+      gain2.connect(masterGain);
+
+      const osc3 = ctx.createOscillator();
+      const gain3 = ctx.createGain();
+      osc3.type = 'triangle';
+      osc3.frequency.value = 3520; // A7
+      osc3.connect(gain3);
+      gain3.connect(masterGain);
+
+      const now = ctx.currentTime;
       
-      // Soft glass tone parameters
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, ctx.currentTime); // A5
-      osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.1); // Slide up to A6
+      gain1.gain.setValueAtTime(0, now);
+      gain1.gain.linearRampToValueAtTime(1, now + 0.02);
+      gain1.gain.exponentialRampToValueAtTime(0.01, now + 2.5);
+
+      gain2.gain.setValueAtTime(0, now);
+      gain2.gain.linearRampToValueAtTime(0.5, now + 0.02);
+      gain2.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
+
+      gain3.gain.setValueAtTime(0, now);
+      gain3.gain.linearRampToValueAtTime(0.2, now + 0.01);
+      gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc3.start(now);
       
-      gainNode.gain.setValueAtTime(0, ctx.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.05);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
-      
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 1.5);
+      osc1.stop(now + 2.5);
+      osc2.stop(now + 1.5);
+      osc3.stop(now + 0.3);
 
       setHasPlayedAudio(true);
       sessionStorage.setItem('birthday_audio_played', 'true');
@@ -88,16 +114,13 @@ export default function Header({ toggleSidebar, isSidebarOpen = true }: HeaderPr
         });
 
         setBirthdays((prev) => {
-          // If this is a realtime update and we have new birthdays, reset unread state
           if (isRealtimeUpdate && birthdaysToday.length > prev.length) {
             setUnreadCount(birthdaysToday.length);
-            // Re-allow audio if a NEW birthday was added during the session
             if (hasPlayedAudio) {
                setHasPlayedAudio(false);
                sessionStorage.removeItem('birthday_audio_played');
             }
           } else if (!isRealtimeUpdate) {
-             // Initial load
              const lastReadCount = parseInt(sessionStorage.getItem('birthday_read_count') || '0', 10);
              if (birthdaysToday.length > lastReadCount) {
                 setUnreadCount(birthdaysToday.length);
@@ -111,33 +134,16 @@ export default function Header({ toggleSidebar, isSidebarOpen = true }: HeaderPr
     }
   }, [hasPlayedAudio]);
 
+  // 1. Initial Fetch, Realtime & Midnight Timer
   useEffect(() => {
     fetchBirthdays();
 
-    // Supabase Realtime Subscription
-    const channel = supabase.channel('customers-changes')
+    const channel = supabase.channel('customers-changes-header')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, (payload) => {
         fetchBirthdays(true);
       })
       .subscribe();
 
-    // Close dropdown on outside click
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-
-    // Play chime on first interaction if we have unread and haven't played
-    const handleFirstInteraction = () => {
-      if (unreadCount > 0 && !hasPlayedAudio) {
-        playPremiumChime();
-      }
-    };
-    document.addEventListener('click', handleFirstInteraction);
-
-    // Midnight Refresh
     const now = new Date();
     const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
     const msUntilMidnight = midnight.getTime() - now.getTime();
@@ -146,19 +152,39 @@ export default function Header({ toggleSidebar, isSidebarOpen = true }: HeaderPr
     }, msUntilMidnight);
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('click', handleFirstInteraction);
       supabase.removeChannel(channel);
       clearTimeout(timer);
     };
-  }, [fetchBirthdays, playPremiumChime, unreadCount, hasPlayedAudio]);
+  }, [fetchBirthdays]);
 
-  // Attempt to play on mount if there's unread
+  // 2. Dropdown Outside Click
   useEffect(() => {
-     if (unreadCount > 0 && !hasPlayedAudio) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // 3. Audio interaction listeners
+  useEffect(() => {
+    const handleFirstInteraction = () => {
+      if (birthdays.length > 0 && !hasPlayedAudio) {
+        playPremiumChime();
+      }
+    };
+    document.addEventListener('click', handleFirstInteraction);
+    return () => document.removeEventListener('click', handleFirstInteraction);
+  }, [birthdays.length, hasPlayedAudio, playPremiumChime]);
+
+  // Attempt to play on mount if there's birthdays
+  useEffect(() => {
+     if (birthdays.length > 0 && !hasPlayedAudio) {
         playPremiumChime();
      }
-  }, [unreadCount, hasPlayedAudio, playPremiumChime]);
+  }, [birthdays.length, hasPlayedAudio, playPremiumChime]);
 
   const handleDropdownToggle = () => {
     const newState = !isDropdownOpen;
