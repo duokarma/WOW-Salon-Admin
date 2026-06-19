@@ -29,7 +29,18 @@ export default function Header({ toggleSidebar, isSidebarOpen = true }: HeaderPr
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioContext) return;
+      
       const ctx = new AudioContext();
+      
+      // If the browser suspends audio (autoplay blocked), don't play or mark as played.
+      // Wait for the click interaction listener to trigger it.
+      if (ctx.state === 'suspended') {
+         console.warn('Audio autoplay suspended. Waiting for user interaction.');
+         // Try to resume it just in case we are in a valid gesture context
+         ctx.resume().catch(() => {});
+         if (ctx.state === 'suspended') return;
+      }
+      
       const osc = ctx.createOscillator();
       const gainNode = ctx.createGain();
       
@@ -124,7 +135,7 @@ export default function Header({ toggleSidebar, isSidebarOpen = true }: HeaderPr
         playPremiumChime();
       }
     };
-    document.addEventListener('click', handleFirstInteraction, { once: true });
+    document.addEventListener('click', handleFirstInteraction);
 
     // Midnight Refresh
     const now = new Date();
