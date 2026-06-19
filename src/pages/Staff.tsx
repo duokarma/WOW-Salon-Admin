@@ -84,6 +84,14 @@ export default function Staff() {
     }
   };
 
+  const handleCommissionChange = async (id: string, newRate: string) => {
+    const val = parseInt(newRate, 10);
+    if (!isNaN(val) && val >= 0 && val <= 100) {
+      setStaffList(prev => prev.map(s => s.id === id ? { ...s, commission_rate: val } : s));
+      await supabase.from('staff').update({ commission_rate: val }).eq('id', id);
+    }
+  };
+
   const handlePaySalary = async (e: React.MouseEvent, staffId: string, amount: number, name: string) => {
     e.stopPropagation();
     if (confirm(`Pay ₹${amount} to ${name}?`)) {
@@ -91,7 +99,7 @@ export default function Staff() {
         await supabase.from('expenses').insert([{
           title: `Salary & Commission - ${name}`,
           amount,
-          category: 'Staff Salary',
+          category: 'Salary',
           date: new Date().toISOString(),
           notes: `Auto-generated payment for ${format(new Date(), 'MMMM yyyy')}`,
         }]);
@@ -217,9 +225,21 @@ export default function Staff() {
                         />
                       </div>
                     </div>
-                    <div className="flex justify-between items-center bg-black/40 p-4 rounded-xl border border-white/10 shadow-sm">
-                      <span className="text-xs font-bold tracking-widest text-white/60 uppercase">Commission ({commissionRate}%)</span>
-                      <span className="font-light text-success text-lg">+ ₹{metrics.commission.toLocaleString()}</span>
+                    <div className="flex justify-between items-center bg-black/40 p-4 rounded-xl border border-white/10 shadow-sm relative">
+                      <div className="flex flex-col flex-1">
+                        <label className="text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Commission Rate (%)</label>
+                        <input 
+                          type="number" 
+                          min="0" max="100"
+                          className="glass-input w-24 px-3 py-1.5 bg-black/40 text-white border-white/10 text-sm"
+                          value={commissionRate}
+                          onChange={(e) => handleCommissionChange(staff.id, e.target.value)}
+                        />
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Earned</span>
+                        <span className="font-light text-success text-lg">+ ₹{metrics.commission.toLocaleString()}</span>
+                      </div>
                     </div>
                   </div>
 
