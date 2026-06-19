@@ -5,7 +5,8 @@ import {
   Users, 
   PackageOpen, 
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  Gift
 } from 'lucide-react';
 import { isSameDay } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -28,24 +29,40 @@ export default function Dashboard() {
   const [visits, setVisits] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [birthdays, setBirthdays] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     setLoading(true);
     try {
+      const todayDate = new Date();
+      const currentMonth = todayDate.getMonth() + 1;
+      const currentDay = todayDate.getDate();
+
       const [
         { data: visitsData },
         { data: expensesData },
-        { data: productsData }
+        { data: productsData },
+        { data: customersData }
       ] = await Promise.all([
         supabase.from('customer_visits').select('*').eq('is_deleted', false).order('visit_date', { ascending: false }),
         supabase.from('expenses').select('*').eq('is_deleted', false).order('date', { ascending: false }),
-        supabase.from('products').select('*').eq('is_deleted', false)
+        supabase.from('products').select('*').eq('is_deleted', false),
+        supabase.from('customers').select('id, name, phone, dob').eq('is_deleted', false).not('dob', 'is', null)
       ]);
 
       setVisits(visitsData || []);
       setExpenses(expensesData || []);
       setProducts(productsData || []);
+
+      if (customersData) {
+        const birthdaysToday = customersData.filter(c => {
+          if (!c.dob) return false;
+          const [year, month, day] = c.dob.split('-');
+          return parseInt(month, 10) === currentMonth && parseInt(day, 10) === currentDay;
+        });
+        setBirthdays(birthdaysToday);
+      }
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
     } finally {
@@ -61,6 +78,7 @@ export default function Dashboard() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'customer_visits' }, fetchData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, fetchData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, fetchData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, fetchData)
       .subscribe();
 
     return () => {
@@ -90,6 +108,14 @@ export default function Dashboard() {
 
   // --- Low Stock Products ---
   const lowStockProducts = products.filter(p => (Number(p.current_stock) || 0) <= 5).slice(0, 10);
+
+  const sendWhatsAppGreeting = (customer: any) => {
+    if (!customer.phone) return;
+    const cleanPhone = customer.phone.replace(/\D/g, '');
+    const message = `Happy Birthday ${customer.name}.\n\nWishing you happiness, good health and success throughout the year.\n\nThank you for being a valued customer of WOW Salon.\n\nRegards,\nWOW Salon`;
+    const url = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+  };
 
   const StatCard = ({ title, todayValue, lifetimeValue, lifetimeLabel, icon: Icon, colorClass }: any) => (
     <motion.div variants={itemVariants} className="glass-card p-5 flex flex-col justify-between relative overflow-hidden group">
@@ -131,6 +157,34 @@ export default function Dashboard() {
          </div>
       ) : (
         <>
+          {/* Birthdays Section */}
+          {birthdays.length > 0 && (
+            <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {birthdays.map((customer) => (
+                <motion.div key={customer.id} variants={itemVariants} className="glass-card p-5 flex flex-col justify-between group relative overflow-hidden">
+                   <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/[0.02] rounded-full blur-3xl group-hover:bg-white/[0.04] transition-all duration-500"></div>
+                   
+                   <div className="flex items-center gap-4 mb-6 relative z-10">
+                     <div className="p-3 rounded-2xl bg-black/40/[0.03] border border-white/5 shadow-sm backdrop-blur-md">
+                       <Gift className="w-6 h-6 text-white/80" />
+                     </div>
+                     <div>
+                       <h3 className="text-white text-lg font-medium tracking-wide mb-1">{customer.name}</h3>
+                       <p className="text-white/40 text-[10px] font-bold tracking-widest uppercase">Birthday Today</p>
+                     </div>
+                   </div>
+                   
+                   <button 
+                     onClick={() => sendWhatsAppGreeting(customer)}
+                     className="relative z-10 w-full py-2.5 rounded-xl border border-white/10 bg-white/5 text-white/90 hover:bg-white/10 hover:border-white/20 hover:text-white transition-all duration-300 text-sm font-medium shadow-sm"
+                   >
+                     Send Wish
+                   </button>
+                </motion.div>
+              ))}
+            </div>
+          )}
+
           {/* Key Daily Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard 
