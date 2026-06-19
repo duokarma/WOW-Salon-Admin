@@ -86,15 +86,15 @@ export default function CalendarView() {
                 <div 
                   key={i} 
                   onClick={() => setSelectedDate(day)}
-                  className={`rounded-xl border p-2 flex flex-col cursor-pointer transition-all duration-300 ${isSelected ? 'bg-black/40 text-black border-white shadow-lg scale-[1.05]' : 'bg-black/40/5 border-white/10 hover:border-white/30 hover:bg-black/40/5'}`}
+                  className={`rounded-xl border p-2 flex flex-col cursor-pointer transition-all duration-300 ${isSelected ? 'bg-white/10 border-white text-white shadow-[0_0_20px_rgba(255,255,255,0.1)] scale-[1.05]' : 'bg-black/40 border-white/10 hover:border-white/30 hover:bg-white/5'}`}
                 >
-                  <span className={`text-sm font-bold mb-1 ${isSelected ? 'text-black' : 'text-white'}`}>{format(day, 'd')}</span>
+                  <span className={`text-sm font-bold mb-1 ${isSelected ? 'text-white' : 'text-white/70'}`}>{format(day, 'd')}</span>
                   {dayVisits.length > 0 && (
                     <div className="text-xs space-y-1 mt-auto">
-                      <div className={`font-semibold flex items-center ${isSelected ? 'text-black' : 'text-success'}`}>
+                      <div className={`font-semibold flex items-center ${isSelected ? 'text-green-400' : 'text-success'}`}>
                          ₹{dayRevenue.toLocaleString()}
                       </div>
-                      <div className={`flex items-center ${isSelected ? 'text-black/60' : 'text-white/50'}`}>
+                      <div className={`flex items-center ${isSelected ? 'text-white/90' : 'text-white/50'}`}>
                         <Users className="w-3 h-3 mr-1"/> {dayVisits.length}
                       </div>
                     </div>

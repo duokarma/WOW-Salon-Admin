@@ -337,7 +337,8 @@ export default function Accounts() {
                       </Pie>
                       <RechartsTooltip 
                         formatter={(value: any) => `₹${value}`} 
-                        contentStyle={{ backgroundColor: '#fff', borderColor: '#eaeaea', borderRadius: '12px', color: '#333', boxShadow: '0 4px 15px rgba(0, 0, 0, 0.05)' }}
+                        contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff', boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(10px)' }}
+                        itemStyle={{ color: '#fff' }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
