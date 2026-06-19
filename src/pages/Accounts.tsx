@@ -132,7 +132,7 @@ export default function Accounts() {
         return;
       }
       
-      const headers = ['ID', 'Name', 'Phone', 'Date of Birth', 'Services Taken', 'Staff Served', 'Amount Paid', 'Created At'];
+      const headers = ['ID', 'Name', 'Phone', 'Date of Birth', 'Services Taken', 'Staff Served', 'Amount Paid'];
       const rows = data.map(c => [
         c.id,
         `"${c.name}"`,
@@ -140,8 +140,7 @@ export default function Accounts() {
         c.dob || '',
         `"${(c.services_taken || []).join(', ')}"`,
         `"${(c.staff_served || []).join(', ')}"`,
-        c.amount_paid || 0,
-        c.created_at
+        c.amount_paid || 0
       ]);
       
       const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
