@@ -97,11 +97,10 @@ export default function Staff() {
     if (confirm(`Pay ₹${amount} to ${name}?`)) {
       try {
         await supabase.from('expenses').insert([{
-          title: `Salary & Commission - ${name}`,
+          title: `Salary & Commission - ${name} (Auto-generated payment for ${format(new Date(), 'MMM yyyy')})`,
           amount,
           category: 'Salary',
-          date: new Date().toISOString(),
-          notes: `Auto-generated payment for ${format(new Date(), 'MMMM yyyy')}`,
+          date: new Date().toISOString()
         }]);
         toast.success('Salary Paid and Expense Recorded!');
       } catch (err) {

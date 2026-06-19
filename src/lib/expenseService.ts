@@ -15,9 +15,6 @@ export const expenseService = {
     if (category) {
       query = query.eq('category', category);
     }
-    if (status) {
-      query = query.eq('status', status);
-    }
     if (month) {
       // month is in YYYY-MM format
       const startDate = new Date(`${month}-01`);
@@ -56,17 +53,13 @@ export const expenseService = {
         .select('amount')
         .eq('is_deleted', false)
         .gte('date', startOfYear(now).toISOString())
-        .lte('date', endOfYear(now).toISOString()),
-      supabase.from('expenses')
-        .select('amount')
-        .eq('is_deleted', false)
-        .neq('status', 'Paid')
+        .lte('date', endOfYear(now).toISOString())
     ]);
 
     const todayExpenses = (todayRes.data || []).reduce((sum, e) => sum + Number(e.amount), 0);
     const monthExpenses = (monthRes.data || []).reduce((sum, e) => sum + Number(e.amount), 0);
     const yearExpenses = (yearRes.data || []).reduce((sum, e) => sum + Number(e.amount), 0);
-    const pendingPayments = (pendingRes.data || []).reduce((sum, e) => sum + Number(e.amount), 0);
+    const pendingPayments = 0;
 
     // Monthly category breakdown
     const categoryBreakdown: Record<string, number> = {};

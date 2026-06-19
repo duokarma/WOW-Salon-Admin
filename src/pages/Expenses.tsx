@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
 const EXPENSE_CATEGORIES = [
-  'Electricity', 'Water', 'Rent', 'Internet', 'Inventory Purchases', 'Other Expenses'
+  'Electricity', 'Water', 'Rent', 'Internet', 'Salary', 'Inventory', 'Other Expenses'
 ];
 
 const PAYMENT_METHODS = ['Cash', 'UPI', 'Bank Transfer', 'Card'];
@@ -125,10 +125,7 @@ export default function Expenses() {
       title: formData.title,
       amount: parseFloat(formData.amount),
       category: formData.category,
-      date: new Date(dateStr).toISOString(),
-      notes: formData.notes,
-      payment_method: formData.paymentMethod,
-      status: formData.status
+      date: new Date(dateStr).toISOString()
     };
 
     try {
@@ -427,33 +424,32 @@ export default function Expenses() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Category *</label>
-                  <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none bg-black/40">
-                    <option value="" className="text-white">-- Select Category --</option>
-                    {EXPENSE_CATEGORIES.map(c => <option key={c} value={c} className="text-white">{c}</option>)}
+                  <select 
+                    required 
+                    value={formData.category} 
+                    onChange={e => setFormData({...formData, category: e.target.value})}
+                    className="glass-input bg-black/40 w-full px-4 py-3 appearance-none border-white/10 text-white shadow-sm"
+                  >
+                    <option value="" disabled>Select category</option>
+                    {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Payment Method</label>
-                    <select required value={formData.paymentMethod} onChange={e => setFormData({...formData, paymentMethod: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none bg-black/40">
-                      {PAYMENT_METHODS.map(m => <option key={m} value={m} className="text-white">{m}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Status</label>
-                    <select required value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="glass-input w-full px-4 py-3 appearance-none bg-black/40">
-                      {STATUSES.map(s => <option key={s} value={s} className="text-white">{s}</option>)}
-                    </select>
-                  </div>
-                </div>
-
                 <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Notes (Optional)</label>
-                  <textarea rows={3} value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="glass-input w-full px-4 py-3 resize-none" placeholder="Any additional details..."></textarea>
+                  <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Amount (₹) *</label>
+                  <input 
+                    type="number" 
+                    required 
+                    min="0"
+                    value={formData.amount} 
+                    onChange={e => setFormData({...formData, amount: e.target.value})}
+                    className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 text-white shadow-sm"
+                    placeholder="Enter amount"
+                  />
                 </div>
+              </div>
 
               </div>
               <div className="p-6 border-t border-white/10 bg-black/40 rounded-b-2xl flex justify-end gap-3">
