@@ -78,18 +78,18 @@ export const generateInvoicePDF = (data: InvoiceData) => {
   // Totals
   doc.setFontSize(10);
   doc.text('Subtotal:', 140, startY);
-  doc.text(`Rs. ${data.subtotal.toFixed(2)}`, 180, startY, { align: 'right' });
+  doc.text(`Rs. ${data.subtotal.toFixed(2)}`, 196, startY, { align: 'right' });
   
   if (data.discount > 0) {
     startY += 8;
     doc.text('Discount:', 140, startY);
-    doc.text(`- Rs. ${data.discount.toFixed(2)}`, 180, startY, { align: 'right' });
+    doc.text(`- Rs. ${data.discount.toFixed(2)}`, 196, startY, { align: 'right' });
   }
 
   if (data.tax > 0) {
     startY += 8;
     doc.text('Tax:', 140, startY);
-    doc.text(`+ Rs. ${data.tax.toFixed(2)}`, 180, startY, { align: 'right' });
+    doc.text(`+ Rs. ${data.tax.toFixed(2)}`, 196, startY, { align: 'right' });
   }
 
   startY += 10;
@@ -97,7 +97,7 @@ export const generateInvoicePDF = (data: InvoiceData) => {
   doc.setFont('helvetica', 'bold');
   doc.text('Grand Total:', 140, startY);
   doc.setTextColor(212, 175, 55);
-  doc.text(`Rs. ${data.grandTotal.toFixed(2)}`, 180, startY, { align: 'right' });
+  doc.text(`Rs. ${data.grandTotal.toFixed(2)}`, 196, startY, { align: 'right' });
 
   // Footer
   doc.setFontSize(10);
