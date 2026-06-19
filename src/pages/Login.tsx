@@ -22,7 +22,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -41,7 +41,7 @@ export default function Login() {
       });
 
       if (error) throw error;
-      
+
       toast.success('Login successful! Redirecting...', {
         duration: 1000,
         style: { background: '#F4E3C5', color: '#000000', borderRadius: '12px', fontWeight: 'bold' },
@@ -64,18 +64,18 @@ export default function Login() {
       {/* Background Image Setup */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-black/40 z-10"></div>
-        <img 
-          src="/bg-waves.png" 
-          alt="Luxury Background" 
+        <img
+          src="/bg-waves.png"
+          alt="Luxury Background"
           className="w-full h-full object-cover object-center opacity-80"
         />
       </div>
 
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-8 w-full max-w-[1400px] mx-auto px-6 py-4 lg:px-12 lg:py-0">
-        
+
         {/* Left Column */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
@@ -90,7 +90,7 @@ export default function Login() {
             <h1 className="text-6xl xl:text-7xl font-serif text-[#F4E3C5] tracking-wide mb-5">WOW SALON</h1>
             <p className="text-white/60 text-[13px] tracking-wide">Manage your salon. Elevate every experience.</p>
           </div>
-          
+
           <div className="space-y-6">
             <FeatureItem icon={SlidersHorizontal} title="Smart Dashboard" desc="Real-time insights at a glance" />
             <FeatureItem icon={User} title="Customer First" desc="Build stronger relationships" />
@@ -108,21 +108,21 @@ export default function Login() {
         </motion.div>
 
         {/* Center Column: Login Card */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
           className="w-full max-w-md lg:w-[40%] flex justify-center py-6 lg:py-10"
         >
           <div className="w-full bg-black/40 border border-white/10 backdrop-blur-3xl rounded-[2.5rem] p-8 sm:p-10 relative overflow-hidden shadow-[0_20px_80px_rgba(0,0,0,0.8)]">
-            
+
             <div className="text-center mb-8 relative z-10">
               <div className="mx-auto w-[72px] h-[72px] bg-[#F4E3C5] rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(244,227,197,0.3)]">
                 <Scissors className="text-black w-8 h-8 transform -rotate-45" strokeWidth={1.5} />
               </div>
               <h1 className="text-3xl tracking-tight text-white mb-3">WOW <span className="font-bold">SALON</span></h1>
               <p className="text-[#F4E3C5]/80 text-[9px] uppercase tracking-[0.35em] font-bold">Exclusive Access</p>
-              
+
               {/* Thin glowing line */}
               <div className="mt-4 flex justify-center">
                 <div className="h-[1px] w-24 bg-gradient-to-r from-transparent via-[#F4E3C5]/40 to-transparent"></div>
@@ -191,9 +191,9 @@ export default function Login() {
                 )}
               </button>
             </form>
-            
+
             <div className="mt-8 text-center relative z-10">
-              <p className="text-[9px] text-white/40 uppercase tracking-[0.2em] font-medium">Secured by Supabase</p>
+              <p className="text-[9px] text-white/40 uppercase tracking-[0.2em] font-medium">DATA IS SECURED</p>
             </div>
           </div>
         </motion.div>
@@ -204,7 +204,7 @@ export default function Login() {
       </div>
 
       {/* Footer */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.6 }}
@@ -212,7 +212,7 @@ export default function Login() {
       >
         <div className="inline-flex items-center gap-6 px-8 py-3.5 rounded-full border border-white/10 bg-black/40 backdrop-blur-md text-[11px] text-white/50 tracking-wide">
           <span className="flex items-center gap-2">
-            <Lock className="w-3 h-3 text-white/40" /> 
+            <Lock className="w-3 h-3 text-white/40" />
             © 2026 WOW Salon. All rights reserved.
           </span>
           <span className="w-px h-3 bg-black/40/20"></span>
