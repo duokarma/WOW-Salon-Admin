@@ -54,11 +54,10 @@ export default function Staff() {
     e.preventDefault();
     try {
       const staffData = {
-        staff_name: editingStaff.name || editingStaff.staff_name,
+        name: editingStaff.name || editingStaff.staff_name,
         gender: editingStaff.gender,
         salary: editingStaff.salary || 15000,
-        commission_rate: editingStaff.commission_rate ?? 10,
-        status: editingStaff.status || 'Active'
+        commission_rate: editingStaff.commission_rate ?? 10
       };
 
       if (editingStaff.id) {
@@ -319,17 +318,7 @@ export default function Staff() {
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Status</label>
-                  <select 
-                    value={editingStaff?.status || 'Active'} 
-                    onChange={e => setEditingStaff({...editingStaff, status: e.target.value})}
-                    className="glass-input bg-black/40 w-full px-4 py-3 appearance-none border-white/10 text-white shadow-sm"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                </div>
+
               </div>
               
               <div className="p-6 border-t border-white/10 bg-black/5 rounded-b-2xl">
