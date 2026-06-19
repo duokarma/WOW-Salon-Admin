@@ -61,17 +61,19 @@ export default function Staff() {
       };
 
       if (editingStaff.id) {
-        await supabase.from('staff').update(staffData).eq('id', editingStaff.id);
+        const { error } = await supabase.from('staff').update(staffData).eq('id', editingStaff.id);
+        if (error) throw error;
         toast.success('Staff updated successfully!');
       } else {
-        await supabase.from('staff').insert([staffData]);
+        const { error } = await supabase.from('staff').insert([staffData]);
+        if (error) throw error;
         toast.success('Staff added successfully!');
       }
       setIsEditModalOpen(false);
       fetchData();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving staff:', err);
-      toast.error('Failed to save staff details.');
+      toast.error(err.message || 'Failed to save staff details.');
     }
   };
 
