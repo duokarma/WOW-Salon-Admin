@@ -54,7 +54,7 @@ export default function Staff() {
     e.preventDefault();
     try {
       const staffData = {
-        name: editingStaff.name || editingStaff.staff_name,
+        staff_name: editingStaff.name || editingStaff.staff_name,
         gender: editingStaff.gender,
         salary: editingStaff.salary || 15000,
         commission_rate: editingStaff.commission_rate ?? 10,
