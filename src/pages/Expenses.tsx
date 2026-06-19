@@ -266,10 +266,6 @@ export default function Expenses() {
               <option value="" className="text-white">All Categories</option>
               {EXPENSE_CATEGORIES.map(c => <option key={c} value={c} className="text-white">{c}</option>)}
             </select>
-            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="glass-input px-4 py-3 appearance-none bg-black/40">
-              <option value="" className="text-white">All Statuses</option>
-              {STATUSES.map(s => <option key={s} value={s} className="text-white">{s}</option>)}
-            </select>
           </div>
 
           <div className="glass-card overflow-hidden">
@@ -281,16 +277,14 @@ export default function Expenses() {
                     <th className="px-6 py-4">Description</th>
                     <th className="px-6 py-4">Category</th>
                     <th className="px-6 py-4">Amount</th>
-                    <th className="px-6 py-4">Payment</th>
-                    <th className="px-6 py-4">Status</th>
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {isLoading ? (
-                    <tr><td colSpan={7} className="text-center py-16 text-white/60">Loading expenses...</td></tr>
+                    <tr><td colSpan={5} className="text-center py-16 text-white/60">Loading expenses...</td></tr>
                   ) : expenses.length === 0 ? (
-                    <tr><td colSpan={7} className="text-center py-16 text-white/60 font-light text-lg">No expenses found.</td></tr>
+                    <tr><td colSpan={5} className="text-center py-16 text-white/60 font-light text-lg">No expenses found.</td></tr>
                   ) : (
                     expenses.map(e => (
                       <tr key={e.id} className="hover:bg-black/40 transition-colors group font-light">
@@ -300,16 +294,6 @@ export default function Expenses() {
                           <span className="bg-black/40 text-white border border-white/10 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">{e.category}</span>
                         </td>
                         <td className="px-6 py-4 font-bold text-white whitespace-nowrap">₹{Number(e.amount).toLocaleString()}</td>
-                        <td className="px-6 py-4 text-white/60 whitespace-nowrap">{e.payment_method || e.paymentMethod}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border ${
-                            e.status === 'Paid' ? 'bg-success/10 text-success border-success/20' :
-                            e.status === 'Pending' ? 'bg-danger/10 text-danger border-danger/20' :
-                            'bg-warning/10 text-warning border-warning/20'
-                          }`}>
-                            {e.status}
-                          </span>
-                        </td>
                         <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                           <button onClick={() => handleOpenEdit(e)} className="p-2 text-white/60 hover:bg-black/5 hover:text-white rounded-xl transition-colors"><Edit2 className="w-4 h-4"/></button>
                           <button onClick={() => handleDelete(e.id)} className="p-2 text-danger hover:bg-danger/10 rounded-xl transition-colors"><Trash2 className="w-4 h-4"/></button>
