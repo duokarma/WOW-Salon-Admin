@@ -58,7 +58,7 @@ export default function Header() {
   const sendWhatsAppGreeting = (customer: any) => {
     if (!customer.phone) return;
     const cleanPhone = customer.phone.replace(/\D/g, '');
-    const message = `Happy Birthday ${customer.name}! 🎈 Wishing you a wonderful day from WOW Salon! As a gift, enjoy 10% off your next visit. We hope to see you soon!`;
+    const message = `Happy Birthday ${customer.name}! \u{1F388} Wishing you a wonderful day from WOW Salon! As a gift, enjoy 10% off your next visit. We hope to see you soon!`;
     const url = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
@@ -100,7 +100,7 @@ export default function Header() {
                         </div>
                         <div className="flex-1">
                           <p className="text-sm text-white mb-1">
-                            It's <span className="font-bold text-[#F4E3C5]">{customer.name}'s</span> Birthday today! 🎂
+                            It's <span className="font-bold text-[#F4E3C5]">{customer.name}'s</span> Birthday today! {'\u{1F382}'}
                           </p>
                           <button 
                             onClick={() => sendWhatsAppGreeting(customer)}
