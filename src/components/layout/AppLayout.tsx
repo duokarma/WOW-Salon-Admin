@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './Sidebar';
@@ -6,18 +6,28 @@ import Header from './Header';
 
 export default function AppLayout() {
   const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background text-white selection:bg-primary/30 font-sans p-4 gap-6 relative">
       
       {/* Fixed Sidebar Container */}
-      <div className="h-full w-56 shrink-0 relative z-10">
-        <Sidebar />
+      <div 
+        className={`h-full shrink-0 relative z-10 transition-all duration-300 ease-in-out ${
+          isSidebarOpen ? 'w-56 opacity-100 mr-0' : 'w-0 opacity-0 -ml-6 overflow-hidden'
+        }`}
+      >
+        <div className="w-56 h-full">
+          <Sidebar />
+        </div>
       </div>
 
       {/* Main Content Container */}
-      <div className="flex flex-1 flex-col h-full rounded-[24px] overflow-hidden relative z-10">
-        <Header />
+      <div className="flex flex-1 flex-col h-full rounded-[24px] overflow-hidden relative z-10 transition-all duration-300 ease-in-out">
+        <Header 
+          toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+          isSidebarOpen={isSidebarOpen} 
+        />
         
         <main className="flex-1 overflow-y-auto px-4 md:px-8 pb-12 pt-6 custom-scrollbar relative">
           <div className="mx-auto max-w-[1400px]">

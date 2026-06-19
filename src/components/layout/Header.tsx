@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Calendar as CalendarIcon, Bell, Gift } from 'lucide-react';
+import { Calendar as CalendarIcon, Bell, Gift, Menu, ChevronLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { format } from 'date-fns';
 
-export default function Header() {
+interface HeaderProps {
+  toggleSidebar?: () => void;
+  isSidebarOpen?: boolean;
+}
+
+export default function Header({ toggleSidebar, isSidebarOpen = true }: HeaderProps) {
   const [birthdays, setBirthdays] = useState<any[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -64,7 +69,20 @@ export default function Header() {
   };
 
   return (
-    <header className="flex h-24 shrink-0 items-center justify-end px-4 md:px-8 sticky top-0 z-20 backdrop-blur-md bg-black/40 border-b border-white/5">
+    <header className="flex h-24 shrink-0 items-center justify-between px-4 md:px-8 sticky top-0 z-20 backdrop-blur-md bg-black/40 border-b border-white/5">
+      
+      {/* Left Side: Sidebar Toggle */}
+      <div className="flex items-center">
+        {toggleSidebar && (
+          <button 
+            onClick={toggleSidebar} 
+            className="p-2.5 mr-4 bg-black/40 border border-white/10 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors shadow-sm"
+          >
+            {isSidebarOpen ? <ChevronLeft className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        )}
+      </div>
+
       <div className="flex items-center gap-6">
         
         {/* Notifications */}
