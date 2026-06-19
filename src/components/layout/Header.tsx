@@ -29,21 +29,27 @@ export default function Header() {
 
   const fetchBirthdays = async () => {
     try {
-      // Find today's MM-DD to search in dob string
       const todayDate = new Date();
-      const month = String(todayDate.getMonth() + 1).padStart(2, '0');
-      const day = String(todayDate.getDate()).padStart(2, '0');
-      const searchStr = `%-expr`; // We actually need %-MM-DD
-      const mmdd = `-${month}-${day}`;
+      const currentMonth = todayDate.getMonth() + 1;
+      const currentDay = todayDate.getDate();
 
       const { data, error } = await supabase
         .from('customers')
-        .select('*')
+        .select('id, name, phone, dob')
         .eq('is_deleted', false)
-        .like('dob', `%${mmdd}`);
+        .not('dob', 'is', null);
 
       if (error) throw error;
-      setBirthdays(data || []);
+
+      if (data) {
+        // Filter in memory to avoid PostgreSQL date type LIKE errors
+        const birthdaysToday = data.filter(c => {
+          if (!c.dob) return false;
+          const [year, month, day] = c.dob.split('-');
+          return parseInt(month, 10) === currentMonth && parseInt(day, 10) === currentDay;
+        });
+        setBirthdays(birthdaysToday);
+      }
     } catch (err) {
       console.error('Failed to fetch birthdays:', err);
     }
