@@ -62,6 +62,7 @@ export default function Customers() {
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
   const [customerServices, setCustomerServices] = useState<{serviceId: string}[]>([]);
+  const [customerProducts, setCustomerProducts] = useState<{productId: string, quantity: number}[]>([]);
   const [customerStaffId, setCustomerStaffId] = useState<string>('');
   
   const [selectedCustomerForHistory, setSelectedCustomerForHistory] = useState<number | null>(null);
@@ -135,6 +136,7 @@ export default function Customers() {
   const openAddModal = () => {
     setCustomerToEdit(null);
     setCustomerServices([]);
+    setCustomerProducts([]);
     setCustomerStaffId('');
     reset({ name: '', phone: '', dobDay: '', dobMonth: '', dobYear: '' });
     setIsCustomerModalOpen(true);
@@ -158,6 +160,14 @@ export default function Customers() {
         }).filter(Boolean) as {serviceId: string}[]
       : [];
     setCustomerServices(matchedServices);
+
+    const matchedProducts = customer.products_bought
+      ? customer.products_bought.map(name => {
+          const p = products.find(x => x.name === name);
+          return p ? { productId: p.id, quantity: 1 } : null;
+        }).filter(Boolean) as {productId: string, quantity: number}[]
+      : [];
+    setCustomerProducts(matchedProducts);
 
     reset({
       name: customer.name,
@@ -197,12 +207,25 @@ export default function Customers() {
         return '';
       }).filter(Boolean);
 
+      let productTotal = 0;
+      const parsedProducts = customerProducts.map(cp => {
+        const p = products.find(x => x.id.toString() === cp.productId.toString());
+        if (p) {
+          productTotal += Number(p.selling_price || p.sellingPrice || 0) * cp.quantity;
+          return p.name;
+        }
+        return '';
+      }).filter(Boolean);
+
+      const grandTotal = serviceTotal + productTotal;
+
       const parsedData: any = {
         name: data.name,
         phone: data.phone,
         dob: parsedDob,
         services_taken: parsedServices,
-        amountPaid: serviceTotal
+        products_bought: parsedProducts,
+        amountPaid: grandTotal
       };
       
       if (!customerToEdit && customerStaffId) {
@@ -223,8 +246,8 @@ export default function Customers() {
         const { data: visitData, error: visitErr } = await supabase.from('customer_visits').insert([{
           customer_id: newCust.id,
           service_total: serviceTotal,
-          product_total: 0,
-          grand_total: serviceTotal,
+          product_total: productTotal,
+          grand_total: grandTotal,
           staff_id: customerStaffId
         }]).select().single();
 
@@ -239,6 +262,23 @@ export default function Customers() {
           await supabase.from('visit_services').insert(
             vServicesData.map(vs => ({ visit_id: visitData.id, ...vs }))
           );
+        }
+
+        const vProductsData = customerProducts.map(cp => {
+          const p = products.find(x => x.id.toString() === cp.productId.toString())!;
+          return { product_id: p.id, product_name: p.name, quantity: cp.quantity, price: Number(p.selling_price || p.sellingPrice || 0) * cp.quantity };
+        });
+
+        if (vProductsData.length > 0) {
+          await supabase.from('visit_products').insert(
+            vProductsData.map(vp => ({ visit_id: visitData.id, ...vp }))
+          );
+          for (const vp of vProductsData) {
+            const p = products.find(x => x.id === vp.product_id)!;
+            const newQty = (Number(p.current_stock || p.currentStock) || 0) - vp.quantity;
+            const newSold = (Number(p.sold_quantity || p.soldQuantity) || 0) + vp.quantity;
+            await supabase.from('products').update({ current_stock: newQty, sold_quantity: newSold }).eq('id', p.id);
+          }
         }
 
         await supabase.from('staff_commissions').insert([{
@@ -338,8 +378,9 @@ export default function Customers() {
         );
         for (const vp of vProductsData) {
           const p = products.find(x => x.id === vp.product_id)!;
-          const newQty = (Number(p.stock_quantity || p.stockQuantity) || 0) - vp.quantity;
-          await supabase.from('products').update({ stock_quantity: newQty }).eq('id', p.id);
+          const newQty = (Number(p.current_stock || p.currentStock) || 0) - vp.quantity;
+          const newSold = (Number(p.sold_quantity || p.soldQuantity) || 0) + vp.quantity;
+          await supabase.from('products').update({ current_stock: newQty, sold_quantity: newSold }).eq('id', p.id);
         }
       }
 
@@ -351,15 +392,19 @@ export default function Customers() {
         commission_amount: commissionAmount
       }]);
 
-      // Update Customer arrays (services_taken, staff_served)
+      // Update Customer arrays (services_taken, staff_served, products_bought)
       const currentServices = customerForVisit.services_taken || [];
+      const currentProducts = customerForVisit.products_bought || [];
       const currentStaff = customerForVisit.staff_served || [];
       const newServices = [...new Set([...currentServices, ...vServicesData.map(vs => vs.service_name)])];
+      const newProductsList = [...new Set([...currentProducts, ...vProductsData.map(vp => vp.product_name)])];
       const newStaffList = [...new Set([...currentStaff, staff.find(s => s.id.toString() === visitStaffId.toString())?.name || ''])].filter(Boolean);
 
       await customerService.updateCustomer(customerForVisit.id, {
         services_taken: newServices,
-        staff_served: newStaffList
+        products_bought: newProductsList,
+        staff_served: newStaffList,
+        amountPaid: (customerForVisit.amountPaid || 0) + grandTotal
       });
 
       toast.success('Visit recorded successfully!');
@@ -686,15 +731,69 @@ export default function Customers() {
                       ))}
                     </div>
                   )}
-                  {customerServices.length > 0 && (
-                    <div className="mt-4 bg-black/5 p-4 rounded-xl border border-white/10 flex justify-between items-center">
-                      <span className="text-xs font-bold tracking-widest text-white/60 uppercase">Total Amount</span>
-                      <span className="text-xl font-light text-white">
-                        ₹{customerServices.reduce((sum, cs) => sum + Number(services.find(s => s.id.toString() === cs.serviceId.toString())?.price || 0), 0).toLocaleString()}
+                  {/* Products Purchased Section */}
+                  <div className="mt-5">
+                    <div className="flex justify-between items-center mb-3">
+                      <label className="block text-xs font-bold tracking-widest text-white/60 uppercase">Products Purchased</label>
+                      <button type="button" onClick={() => setCustomerProducts([...customerProducts, {productId: '', quantity: 1}])} className="text-xs font-bold text-[#D4AF37] bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/20 px-3 py-1.5 rounded-lg transition-colors flex items-center">
+                        <Package className="w-3 h-3 mr-1" /> Add Product
+                      </button>
+                    </div>
+                    {customerProducts.length === 0 ? (
+                      <div className="text-sm text-white/60/60 font-light italic p-6 bg-black/5 rounded-2xl border border-dashed border-white/10 text-center">No products added. Click above to add.</div>
+                    ) : (
+                      <div className="space-y-3">
+                        {customerProducts.map((cp, idx) => (
+                          <div key={idx} className="flex items-center gap-3">
+                            <select 
+                              value={cp.productId} 
+                              onChange={(e) => {
+                                const newProds = [...customerProducts];
+                                newProds[idx].productId = e.target.value;
+                                setCustomerProducts(newProds);
+                              }}
+                              className="glass-input flex-1 px-4 py-3 appearance-none bg-black/40 min-w-0"
+                            >
+                              <option value="" className="text-white/60">-- Select Product --</option>
+                              {products.filter(p => p.current_stock > 0 || p.currentStock > 0 || cp.productId === p.id.toString()).map(p => (
+                                <option key={p.id} value={p.id} className="text-white">
+                                  {p.name} - ₹{p.selling_price || p.sellingPrice} (Stock: {p.current_stock || p.currentStock})
+                                </option>
+                              ))}
+                            </select>
+                            <input 
+                              type="number" 
+                              min="1"
+                              max={products.find(p => p.id.toString() === cp.productId)?.current_stock || 99}
+                              value={cp.quantity || ''}
+                              onChange={(e) => {
+                                const newProds = [...customerProducts];
+                                newProds[idx].quantity = parseInt(e.target.value) || 1;
+                                setCustomerProducts(newProds);
+                              }}
+                              className="glass-input w-20 px-3 py-3 text-center bg-black/40"
+                              placeholder="Qty"
+                            />
+                            <button type="button" onClick={() => setCustomerProducts(customerProducts.filter((_, i) => i !== idx))} className="p-3 text-danger hover:bg-danger/20 rounded-xl bg-danger/10 border border-danger/20 transition-colors shrink-0">
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {(customerServices.length > 0 || customerProducts.length > 0) && (
+                    <div className="mt-6 bg-black/20 p-5 rounded-xl border border-[#D4AF37]/30 flex justify-between items-center shadow-[0_0_15px_rgba(212,175,55,0.05)]">
+                      <span className="text-xs font-bold tracking-widest text-[#D4AF37] uppercase">Total Amount</span>
+                      <span className="text-2xl font-light text-white">
+                        ₹{(
+                          customerServices.reduce((sum, cs) => sum + Number(services.find(s => s.id.toString() === cs.serviceId.toString())?.price || 0), 0) +
+                          customerProducts.reduce((sum, cp) => sum + (Number(products.find(p => p.id.toString() === cp.productId.toString())?.selling_price || products.find(p => p.id.toString() === cp.productId.toString())?.sellingPrice || 0) * cp.quantity), 0)
+                        ).toLocaleString()}
                       </span>
                     </div>
                   )}
-                </div>
               </div>
               <div className="p-6 border-t border-white/10 bg-black/40 rounded-b-2xl shrink-0 flex justify-end gap-3">
                 <button type="button" onClick={() => setIsCustomerModalOpen(false)} className="btn-secondary">Cancel</button>

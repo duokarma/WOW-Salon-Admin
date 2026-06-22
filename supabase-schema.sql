@@ -77,6 +77,7 @@ CREATE TABLE public.customers (
     phone TEXT,
     dob DATE,
     services_taken TEXT[],
+    products_bought TEXT[],
     staff_served TEXT[],
     amount_paid NUMERIC DEFAULT 0,
     is_deleted BOOLEAN DEFAULT false,
