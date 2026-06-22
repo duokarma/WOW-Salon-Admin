@@ -794,6 +794,7 @@ export default function Customers() {
                       </span>
                     </div>
                   )}
+                </div>
               </div>
               <div className="p-6 border-t border-white/10 bg-black/40 rounded-b-2xl shrink-0 flex justify-end gap-3">
                 <button type="button" onClick={() => setIsCustomerModalOpen(false)} className="btn-secondary">Cancel</button>
