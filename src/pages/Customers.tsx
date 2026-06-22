@@ -752,7 +752,7 @@ export default function Customers() {
                                 newProds[idx].productId = e.target.value;
                                 setCustomerProducts(newProds);
                               }}
-                              className="glass-input flex-1 px-4 py-3 appearance-none bg-black/40 min-w-0"
+                              className="glass-input flex-1 px-4 py-3 appearance-none bg-black/40 w-full"
                             >
                               <option value="" className="text-white/60">-- Select Product --</option>
                               {products.filter(p => p.current_stock > 0 || p.currentStock > 0 || cp.productId === p.id.toString()).map(p => (
@@ -771,7 +771,8 @@ export default function Customers() {
                                 newProds[idx].quantity = parseInt(e.target.value) || 1;
                                 setCustomerProducts(newProds);
                               }}
-                              className="glass-input w-20 px-3 py-3 text-center bg-black/40"
+                              className="glass-input px-3 py-3 text-center bg-black/40 shrink-0"
+                              style={{ width: '80px', flexBasis: '80px' }}
                               placeholder="Qty"
                             />
                             <button type="button" onClick={() => setCustomerProducts(customerProducts.filter((_, i) => i !== idx))} className="p-3 text-danger hover:bg-danger/20 rounded-xl bg-danger/10 border border-danger/20 transition-colors shrink-0">
