@@ -11,13 +11,14 @@ export default function CalendarView() {
   const fetchVisits = async () => {
     const { data, error } = await supabase.from('customer_visits').select(`
       *,
-      customer:customer_id(name),
+      customer:customer_id(name, is_deleted),
       staff:staff_id(name),
       visit_services(*),
       visit_products(*)
-    `);
+    `).eq('is_deleted', false);
     if (!error && data) {
-      setVisits(data);
+      const validVisits = data.filter((v: any) => !v.customer || !v.customer.is_deleted);
+      setVisits(validVisits);
     } else if (error) {
       console.error("Error fetching visits:", error);
     }
