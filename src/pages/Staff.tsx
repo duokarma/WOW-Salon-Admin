@@ -57,7 +57,8 @@ export default function Staff() {
         name: editingStaff.name || editingStaff.staff_name,
         gender: editingStaff.gender,
         salary: editingStaff.salary || 15000,
-        commission_rate: editingStaff.commission_rate ?? 10
+        commission_rate: editingStaff.commission_rate ?? 10,
+        status: editingStaff.status || 'Active'
       };
 
       if (editingStaff.id) {
@@ -283,17 +284,30 @@ export default function Staff() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Gender</label>
-                  <select 
-                    value={editingStaff?.gender || 'Female'} 
-                    onChange={e => setEditingStaff({...editingStaff, gender: e.target.value})}
-                    className="glass-input bg-black/40 w-full px-4 py-3 appearance-none border-white/10 text-white shadow-sm"
-                  >
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Gender</label>
+                    <select 
+                      value={editingStaff?.gender || 'Female'} 
+                      onChange={e => setEditingStaff({...editingStaff, gender: e.target.value})}
+                      className="glass-input bg-black/40 w-full px-4 py-3 appearance-none border-white/10 text-white shadow-sm"
+                    >
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Status</label>
+                    <select 
+                      value={editingStaff?.status || 'Active'} 
+                      onChange={e => setEditingStaff({...editingStaff, status: e.target.value})}
+                      className="glass-input bg-black/40 w-full px-4 py-3 appearance-none border-white/10 text-white shadow-sm"
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
