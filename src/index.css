@@ -87,11 +87,10 @@
   select,
   textarea,
   .glass-input {
-    @apply w-full rounded-xl transition-all duration-300;
+    @apply w-full rounded-xl transition-all duration-300 px-3.5 py-2.5;
     background: #151515;
     border: 1px solid rgba(200, 157, 60, 0.15);
     color: #EAEAEA;
-    padding: 0.625rem 0.875rem;
   }
   input[type="text"]:focus,
   input[type="number"]:focus,
