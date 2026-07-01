@@ -21,7 +21,7 @@ interface Appointment {
   status: AppointmentStatus;
   staff_id: string | null;
   converted_visit_id: string | null;
-  staff?: { name: string } | null;
+  staff?: { name?: string; staff_name?: string } | null;
   appointment_services?: { service_id: number; service_name: string; price: number }[];
 }
 
@@ -71,7 +71,7 @@ export default function Appointments() {
       const [apptRes, svcRes, stfRes, prodRes] = await Promise.all([
         supabase
           .from('appointments')
-          .select('*, staff:staff_id(name), appointment_services(*)')
+          .select('*, staff(*), appointment_services(*)')
           .eq('is_deleted', false)
           .order('appointment_date', { ascending: true }),
         serviceService.getServices(),
@@ -511,13 +511,13 @@ export default function Appointments() {
                     return (
                       <div
                         key={appt.id}
-                        className="glass-card p-5 flex flex-col md:flex-row md:items-center gap-4"
+                        className="glass-card p-5 flex flex-col lg:flex-row lg:items-center gap-4"
                         style={{ opacity: appt.status === 'cancelled' ? 0.55 : 1, borderColor: sc.border }}
                       >
                         {/* Time */}
-                        <div className="shrink-0 w-20 text-center">
-                          <Clock className="w-4 h-4 mx-auto mb-1 text-white/30" />
-                          <span className="text-sm font-bold text-white">{format(parseISO(appt.appointment_date), 'hh:mm a')}</span>
+                        <div className="shrink-0 lg:w-20 lg:text-center">
+                          <Clock className="w-4 h-4 lg:mx-auto mb-1 text-white/30 hidden lg:block" />
+                          <span className="text-sm font-bold text-white"><Clock className="w-4 h-4 inline-block mr-1 lg:hidden text-white/30" />{format(parseISO(appt.appointment_date), 'hh:mm a')}</span>
                         </div>
 
                         {/* Info */}
@@ -530,8 +530,8 @@ export default function Appointments() {
                             >{sc.label}</span>
                           </div>
                           <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-1.5 text-sm text-white/50">
-                            {appt.customer_phone && <span className="flex items-center gap-1"><User className="w-3 h-3" />{appt.customer_phone}</span>}
-                            {appt.staff?.name && <span className="flex items-center gap-1"><Scissors className="w-3 h-3" />{appt.staff.name}</span>}
+                            {appt.customer_phone && <span className="flex items-center gap-1"><User className="w-3 h-3 shrink-0" />{appt.customer_phone}</span>}
+                            {(appt.staff?.name || appt.staff?.staff_name) && <span className="flex items-center gap-1"><Scissors className="w-3 h-3 shrink-0" />{appt.staff.name || appt.staff.staff_name}</span>}
                             {svcs.length > 0 && (
                               <span className="flex items-center gap-1">
                                 {svcs.map(s => s.service_name).join(' · ')}
