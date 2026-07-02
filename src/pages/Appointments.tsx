@@ -410,7 +410,7 @@ export default function Appointments() {
           grand_total: grandTotal,
           original_total: grandTotal,
           discount_amount: 0,
-          // payment_method: checkInPaymentMethod, // TODO: Add this column in Supabase
+          payment_method: checkInPaymentMethod,
           staff_id: checkInStaffId || null,
         }])
         .select()
