@@ -212,6 +212,48 @@ export default function Customers() {
     }
   };
 
+  const handleEditVisit = async (visitId: string, currentDate: string, currentTotal: number, customerId: string) => {
+    const rawDate = currentDate.split('T')[0];
+    const newDateStr = window.prompt("Enter new date for this visit (YYYY-MM-DD):", rawDate);
+    if (!newDateStr) return;
+    
+    // Basic date validation
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(newDateStr)) {
+      toast.error("Invalid date format. Please use YYYY-MM-DD.");
+      return;
+    }
+
+    const newTotalStr = window.prompt("Enter new Grand Total (₹):", String(currentTotal));
+    if (!newTotalStr) return;
+    const newTotal = Number(newTotalStr);
+    if (isNaN(newTotal) || newTotal < 0) {
+      toast.error("Invalid amount.");
+      return;
+    }
+
+    // Set time to noon UTC to avoid timezone shifting issues
+    const newDate = `${newDateStr}T12:00:00Z`;
+
+    try {
+      // If total changed, update customer amount_paid
+      const difference = newTotal - currentTotal;
+      if (difference !== 0) {
+        const { data: cust } = await supabase.from('customers').select('amount_paid').eq('id', customerId).single();
+        if (cust) {
+           await supabase.from('customers').update({ amount_paid: Number(cust.amount_paid || 0) + difference }).eq('id', customerId);
+        }
+      }
+
+      await supabase.from('customer_visits').update({ visit_date: newDate, grand_total: newTotal }).eq('id', visitId);
+      
+      setSelectedHistory(prev => prev.map(v => v.id === visitId ? { ...v, visit_date: newDate, grand_total: newTotal } : v));
+      toast.success("Visit updated!");
+      loadData(); // refresh customers list if amount_paid changed
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update visit");
+    }
+  };
+
   const openAddModal = () => {
     setCustomerToEdit(null);
     setCustomerServices([]);
@@ -289,6 +331,18 @@ export default function Customers() {
         : null;
 
       if (!customerToEdit) {
+        const { data: duplicate } = await supabase
+          .from('customers')
+          .select('id, name')
+          .eq('is_deleted', false)
+          .or(`phone.eq.${data.phone},name.ilike.${data.name}`)
+          .maybeSingle();
+
+        if (duplicate) {
+          toast.error(`Customer "${duplicate.name}" already exists with this phone or name! Please use "Record Visit" from their profile instead.`);
+          return;
+        }
+
         if (customerServices.length === 0 && customerProducts.length === 0) {
           toast.error("Please select at least one service or product.");
           return;
@@ -985,7 +1039,7 @@ export default function Customers() {
 
       {/* Record Visit Modal */}
       {isRecordVisitOpen && visitCustomer && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="glass-panel w-full max-w-lg flex flex-col animate-in zoom-in-95 duration-200 max-h-[90vh]">
             <div className="flex items-center justify-between p-6 border-b border-white/10 bg-black/40 rounded-t-2xl shrink-0">
               <div>
@@ -1298,6 +1352,13 @@ export default function Customers() {
                               className="text-xs font-bold px-3 py-1.5 bg-black/5 hover:bg-black/10 text-white rounded-lg border border-white/10 transition-colors flex items-center"
                             >
                               <Download className="w-3 h-3 mr-1" /> Invoice
+                            </button>
+                            <button
+                              onClick={() => handleEditVisit(visit.id, visit.visit_date, visit.grand_total, visit.customer_id)}
+                              className="p-1.5 hover:bg-emerald-400/20 text-emerald-400 rounded-lg transition-colors border border-transparent hover:border-emerald-400/30"
+                              title="Edit Visit Date & Total"
+                            >
+                              <Edit2 className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteVisit(visit.id)}

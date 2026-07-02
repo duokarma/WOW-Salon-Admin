@@ -9,6 +9,54 @@ import { format, isToday, isFuture, startOfMonth, endOfMonth, parseISO, isSameDa
 import toast from 'react-hot-toast';
 import { serviceService } from '../lib/serviceService';
 import type { SalonService } from '../lib/serviceService';
+import Select from 'react-select';
+import CreatableSelect from 'react-select/creatable';
+
+const selectStyles = {
+  control: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderColor: state.isFocused ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+    borderRadius: '0.75rem',
+    padding: '0.3rem',
+    boxShadow: 'none',
+    '&:hover': {
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+    }
+  }),
+  menu: (base: any) => ({
+    ...base,
+    backgroundColor: '#1a1a1a',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    borderRadius: '0.75rem',
+    backdropFilter: 'blur(16px)',
+  }),
+  option: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: state.isFocused ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+    color: 'white',
+    cursor: 'pointer',
+    '&:active': {
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    }
+  }),
+  singleValue: (base: any) => ({
+    ...base,
+    color: 'white',
+  }),
+  input: (base: any) => ({
+    ...base,
+    color: 'white',
+  }),
+  groupHeading: (base: any) => ({
+    ...base,
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: '0.75rem',
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+  }),
+};
 
 type AppointmentStatus = 'scheduled' | 'checked_in' | 'cancelled';
 
@@ -21,7 +69,7 @@ interface Appointment {
   status: AppointmentStatus;
   staff_id: string | null;
   converted_visit_id: string | null;
-  staff?: { name?: string; staff_name?: string } | null;
+  staff?: { name: string } | null;
   appointment_services?: { service_id: number; service_name: string; price: number }[];
 }
 
@@ -36,6 +84,7 @@ export default function Appointments() {
   const [services, setServices] = useState<SalonService[]>([]);
   const [staff, setStaff] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Modal state
@@ -53,10 +102,10 @@ export default function Appointments() {
     notes: '',
   });
   const [formServices, setFormServices] = useState<{ serviceId: string }[]>([{ serviceId: '' }]);
-  const [serviceSearch, setServiceSearch] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [checkingIn, setCheckingIn] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Check-in Modal state
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
@@ -64,24 +113,27 @@ export default function Appointments() {
   const [checkInServices, setCheckInServices] = useState<{serviceId: string}[]>([]);
   const [checkInProducts, setCheckInProducts] = useState<{productId: string, quantity: number}[]>([]);
   const [checkInStaffId, setCheckInStaffId] = useState<string>('');
+  const [checkInPaymentMethod, setCheckInPaymentMethod] = useState<string>('Cash');
 
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [apptRes, svcRes, stfRes, prodRes] = await Promise.all([
+      const [apptRes, svcRes, stfRes, prodRes, custRes] = await Promise.all([
         supabase
           .from('appointments')
-          .select('*, staff(*), appointment_services(*)')
+          .select('*, staff:staff_id(name), appointment_services(*)')
           .eq('is_deleted', false)
           .order('appointment_date', { ascending: true }),
         serviceService.getServices(),
         supabase.from('staff').select('*').eq('is_deleted', false),
         supabase.from('products').select('*').eq('is_deleted', false),
+        supabase.from('customers').select('id, name, phone').eq('is_deleted', false)
       ]);
       if (apptRes.data) setAppointments(apptRes.data as Appointment[]);
       setServices(svcRes);
       if (stfRes.data) setStaff(stfRes.data);
       if (prodRes.data) setProducts(prodRes.data);
+      if (custRes.data) setCustomers(custRes.data);
     } catch (err) {
       toast.error('Failed to load appointments');
     } finally {
@@ -98,18 +150,32 @@ export default function Appointments() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Grouped services for search
-  const groupedServices = useMemo(() => {
-    const q = serviceSearch.toLowerCase();
-    return services.reduce((acc, svc) => {
-      if (!q || svc.service_name.toLowerCase().includes(q) || (svc.category || '').toLowerCase().includes(q)) {
-        const cat = svc.category || 'Other';
-        if (!acc[cat]) acc[cat] = [];
-        acc[cat].push(svc);
-      }
+  // Format services for React Select
+  const serviceOptions = useMemo(() => {
+    const grouped = services.reduce((acc, svc) => {
+      const cat = svc.category || 'Other';
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(svc);
       return acc;
     }, {} as Record<string, SalonService[]>);
-  }, [services, serviceSearch]);
+
+    return Object.entries(grouped).map(([category, items]) => ({
+      label: category,
+      options: items.map(s => ({
+        value: s.id.toString(),
+        label: `${s.service_name} - ₹${s.price}`
+      }))
+    }));
+  }, [services]);
+
+  const customerOptions = useMemo(() => {
+    return customers.map(c => ({
+      value: c.name,
+      label: `${c.name} ${c.phone ? `- ${c.phone}` : ''}`,
+      phone: c.phone || '',
+      originalName: c.name
+    }));
+  }, [customers]);
 
   // Stats
   const todayCount = appointments.filter(a => a.status === 'scheduled' && isToday(parseISO(a.appointment_date))).length;
@@ -122,24 +188,33 @@ export default function Appointments() {
   }).length;
   const cancelledCount = appointments.filter(a => a.status === 'cancelled').length;
 
+  // Filter appointments
+  const filteredAppointments = useMemo(() => {
+    if (!searchTerm.trim()) return appointments;
+    const lower = searchTerm.toLowerCase();
+    return appointments.filter(a => 
+      a.customer_name?.toLowerCase().includes(lower) || 
+      a.customer_phone?.includes(lower)
+    );
+  }, [appointments, searchTerm]);
+
   // Group appointments by date
   const grouped = useMemo(() => {
     const map: Record<string, Appointment[]> = {};
-    [...appointments].sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime())
+    [...filteredAppointments].sort((a, b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime())
       .forEach(appt => {
         const key = format(parseISO(appt.appointment_date), 'yyyy-MM-dd');
         if (!map[key]) map[key] = [];
         map[key].push(appt);
       });
     return map;
-  }, [appointments]);
+  }, [filteredAppointments]);
 
   const openAddModal = () => {
     setRepeatData(null);
     setEditingAppt(null);
     setForm({ customer_name: '', customer_phone: '', date: format(new Date(), 'yyyy-MM-dd'), time: '10:00', staff_id: '', notes: '' });
     setFormServices([{ serviceId: '' }]);
-    setServiceSearch('');
     setIsModalOpen(true);
   };
 
@@ -160,7 +235,6 @@ export default function Appointments() {
     } else {
       setFormServices([{ serviceId: '' }]);
     }
-    setServiceSearch('');
     setIsModalOpen(true);
   };
 
@@ -177,7 +251,6 @@ export default function Appointments() {
     });
     const existingSvcs = (appt.appointment_services || []).map(s => ({ serviceId: s.service_id?.toString() || '' }));
     setFormServices(existingSvcs.length > 0 ? existingSvcs : [{ serviceId: '' }]);
-    setServiceSearch('');
     setIsModalOpen(true);
   };
 
@@ -262,6 +335,7 @@ export default function Appointments() {
     setCheckInServices((appt.appointment_services || []).map(s => ({ serviceId: s.service_id.toString() })));
     setCheckInProducts([]);
     setCheckInStaffId(appt.staff_id?.toString() || '');
+    setCheckInPaymentMethod('Cash');
     setIsCheckInModalOpen(true);
   };
 
@@ -271,26 +345,40 @@ export default function Appointments() {
     setIsCheckInModalOpen(false);
 
     try {
-      // 1. Find or create customer by phone
+      // 1. Find or create customer by phone or name
       let customerId: number | null = null;
+      let existingCust = null;
+
       if (checkInAppt.customer_phone) {
-        const { data: existing } = await supabase
+        const { data: existingPhone } = await supabase
           .from('customers')
           .select('id')
           .eq('phone', checkInAppt.customer_phone)
           .eq('is_deleted', false)
           .maybeSingle();
-        if (existing) {
-          customerId = existing.id;
-        } else {
-          const { data: newCust, error: custErr } = await supabase
-            .from('customers')
-            .insert([{ name: checkInAppt.customer_name, phone: checkInAppt.customer_phone }])
-            .select()
-            .single();
-          if (custErr) throw custErr;
-          customerId = newCust.id;
-        }
+        existingCust = existingPhone;
+      }
+
+      if (!existingCust && checkInAppt.customer_name) {
+        const { data: existingName } = await supabase
+          .from('customers')
+          .select('id')
+          .ilike('name', checkInAppt.customer_name.trim())
+          .eq('is_deleted', false)
+          .maybeSingle();
+        existingCust = existingName;
+      }
+
+      if (existingCust) {
+        customerId = existingCust.id;
+      } else if (checkInAppt.customer_name) {
+        const { data: newCust, error: custErr } = await supabase
+          .from('customers')
+          .insert([{ name: checkInAppt.customer_name.trim(), phone: checkInAppt.customer_phone?.trim() || null }])
+          .select()
+          .single();
+        if (custErr) throw custErr;
+        customerId = newCust.id;
       }
 
       const filledSvcs = checkInServices.filter(s => s.serviceId);
@@ -322,6 +410,7 @@ export default function Appointments() {
           grand_total: grandTotal,
           original_total: grandTotal,
           discount_amount: 0,
+          // payment_method: checkInPaymentMethod, // TODO: Add this column in Supabase
           staff_id: checkInStaffId || null,
         }])
         .select()
@@ -439,7 +528,7 @@ export default function Appointments() {
     const svcs = (appt.appointment_services || []).map(s => s.service_name).join(', ');
     const dateStr = format(parseISO(appt.appointment_date), 'dd MMM yyyy, hh:mm a');
     const staffName = appt.staff?.name || '';
-    const msg = `Hello ${appt.customer_name}! 👋\n\nThis is a reminder for your appointment at TEN11 Salon:\n📅 Date: ${dateStr}\n✂️ Services: ${svcs || 'As discussed'}\n👤 Staff: ${staffName || 'Any available'}\n\nWe look forward to seeing you! 💫`;
+    const msg = `Hello ${appt.customer_name}!\n\nThis is a reminder for your appointment at WOW Salon:\n- Date: ${dateStr}\n- Services: ${svcs || 'As discussed'}\n- Staff: ${staffName || 'Any available'}\n\nWe look forward to seeing you!!!`;
     return `https://wa.me/${appt.customer_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`;
   };
 
@@ -477,6 +566,19 @@ export default function Appointments() {
       </div>
 
       {/* Appointments List */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+          <input
+            type="text"
+            placeholder="Search appointments by name or phone..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="glass-input w-full !pl-12 pr-4 py-3"
+          />
+        </div>
+      </div>
+
       {isLoading ? (
         <div className="glass-card p-16 text-center text-white/50">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4" />
@@ -490,7 +592,7 @@ export default function Appointments() {
         </div>
       ) : (
         <div className="space-y-8">
-          {Object.entries(grouped).map(([dateKey, appts]) => {
+          {Object.entries(grouped).sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime()).map(([dateKey, appts]) => {
             const dateObj = parseISO(dateKey);
             const isDateToday = isToday(dateObj);
             return (
@@ -511,13 +613,13 @@ export default function Appointments() {
                     return (
                       <div
                         key={appt.id}
-                        className="glass-card p-5 flex flex-col lg:flex-row lg:items-center gap-4"
+                        className="glass-card p-5 flex flex-col md:flex-row md:items-center gap-4"
                         style={{ opacity: appt.status === 'cancelled' ? 0.55 : 1, borderColor: sc.border }}
                       >
                         {/* Time */}
-                        <div className="shrink-0 lg:w-20 lg:text-center">
-                          <Clock className="w-4 h-4 lg:mx-auto mb-1 text-white/30 hidden lg:block" />
-                          <span className="text-sm font-bold text-white"><Clock className="w-4 h-4 inline-block mr-1 lg:hidden text-white/30" />{format(parseISO(appt.appointment_date), 'hh:mm a')}</span>
+                        <div className="shrink-0 w-20 text-center">
+                          <Clock className="w-4 h-4 mx-auto mb-1 text-white/30" />
+                          <span className="text-sm font-bold text-white">{format(parseISO(appt.appointment_date), 'hh:mm a')}</span>
                         </div>
 
                         {/* Info */}
@@ -530,8 +632,8 @@ export default function Appointments() {
                             >{sc.label}</span>
                           </div>
                           <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-1.5 text-sm text-white/50">
-                            {appt.customer_phone && <span className="flex items-center gap-1"><User className="w-3 h-3 shrink-0" />{appt.customer_phone}</span>}
-                            {(appt.staff?.name || appt.staff?.staff_name) && <span className="flex items-center gap-1"><Scissors className="w-3 h-3 shrink-0" />{appt.staff.name || appt.staff.staff_name}</span>}
+                            {appt.customer_phone && <span className="flex items-center gap-1"><User className="w-3 h-3" />{appt.customer_phone}</span>}
+                            {appt.staff?.name && <span className="flex items-center gap-1"><Scissors className="w-3 h-3" />{appt.staff.name}</span>}
                             {svcs.length > 0 && (
                               <span className="flex items-center gap-1">
                                 {svcs.map(s => s.service_name).join(' · ')}
@@ -652,12 +754,29 @@ export default function Appointments() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Customer Name *</label>
-                  <input
-                    type="text"
-                    value={form.customer_name}
-                    onChange={e => setForm(f => ({ ...f, customer_name: e.target.value }))}
-                    className="glass-input w-full px-4 py-3"
-                    placeholder="e.g. Priya Sharma"
+                  <CreatableSelect
+                    styles={selectStyles}
+                    options={customerOptions}
+                    placeholder="Search or enter name..."
+                    value={
+                      form.customer_name
+                        ? { value: form.customer_name, label: customerOptions.find(o => o.originalName === form.customer_name)?.label || form.customer_name }
+                        : null
+                    }
+                    onChange={(selected: any) => {
+                      if (selected) {
+                        setForm(f => ({
+                          ...f,
+                          customer_name: selected.value,
+                          customer_phone: selected.phone !== undefined ? selected.phone : f.customer_phone
+                        }));
+                      } else {
+                        setForm(f => ({ ...f, customer_name: '' }));
+                      }
+                    }}
+                    formatCreateLabel={(inputValue) => `New Customer: "${inputValue}"`}
+                    isClearable
+                    classNamePrefix="react-select"
                   />
                 </div>
                 <div>
@@ -685,12 +804,52 @@ export default function Appointments() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Time *</label>
-                  <input
-                    type="time"
-                    value={form.time}
-                    onChange={e => setForm(f => ({ ...f, time: e.target.value }))}
-                    className="glass-input w-full px-4 py-3 bg-black/40"
-                  />
+                  <div className="grid grid-cols-3 gap-2">
+                    <select
+                      value={(() => {
+                        const h = parseInt(form.time.split(':')[0] || '10');
+                        return h === 0 ? '12' : h > 12 ? (h - 12).toString().padStart(2, '0') : h.toString().padStart(2, '0');
+                      })()}
+                      onChange={e => {
+                        const ampm = parseInt(form.time.split(':')[0] || '10') >= 12 ? 'PM' : 'AM';
+                        let newH = parseInt(e.target.value);
+                        if (ampm === 'PM' && newH !== 12) newH += 12;
+                        if (ampm === 'AM' && newH === 12) newH = 0;
+                        setForm(f => ({ ...f, time: `${newH.toString().padStart(2, '0')}:${f.time.split(':')[1] || '00'}` }));
+                      }}
+                      className="glass-input w-full px-2 py-3 bg-black/40 text-center appearance-none"
+                    >
+                      {Array.from({length: 12}, (_, i) => (i + 1).toString().padStart(2, '0')).map(h => (
+                        <option key={h} value={h} className="text-white">{h}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={form.time.split(':')[1] || '00'}
+                      onChange={e => {
+                        setForm(f => ({ ...f, time: `${f.time.split(':')[0] || '10'}:${e.target.value}` }));
+                      }}
+                      className="glass-input w-full px-2 py-3 bg-black/40 text-center appearance-none"
+                    >
+                      {['00', '15', '30', '45'].map(m => (
+                        <option key={m} value={m} className="text-white">{m}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={parseInt(form.time.split(':')[0] || '10') >= 12 ? 'PM' : 'AM'}
+                      onChange={e => {
+                        const currentH = parseInt(form.time.split(':')[0] || '10');
+                        const isPM = e.target.value === 'PM';
+                        let newH = currentH;
+                        if (isPM && currentH < 12) newH += 12;
+                        if (!isPM && currentH >= 12) newH -= 12;
+                        setForm(f => ({ ...f, time: `${newH.toString().padStart(2, '0')}:${f.time.split(':')[1] || '00'}` }));
+                      }}
+                      className="glass-input w-full px-2 py-3 bg-black/40 text-center appearance-none"
+                    >
+                      <option value="AM" className="text-white">AM</option>
+                      <option value="PM" className="text-white">PM</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -722,42 +881,24 @@ export default function Appointments() {
                   </button>
                 </div>
 
-                {/* Search bar */}
-                <div className="flex items-center bg-black/40 border border-white/10 rounded-xl px-3 py-2 mb-3 gap-2 focus-within:border-white/25 transition-colors">
-                  <Search className="w-4 h-4 text-white/30 shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="Search services..."
-                    value={serviceSearch}
-                    onChange={e => setServiceSearch(e.target.value)}
-                    className="bg-transparent outline-none text-sm text-white placeholder-white/30 flex-1"
-                  />
-                  {serviceSearch && (
-                    <button onClick={() => setServiceSearch('')} className="text-white/30 hover:text-white transition-colors">
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-
                 <div className="space-y-2">
                   {formServices.map((fs, idx) => (
                     <div key={idx} className="flex items-center gap-2">
-                      <select
-                        value={fs.serviceId}
-                        onChange={e => {
-                          const updated = [...formServices];
-                          updated[idx].serviceId = e.target.value;
-                          setFormServices(updated);
-                        }}
-                        className="glass-input flex-1 px-4 py-3 appearance-none bg-black/40 text-sm"
-                      >
-                        <option value="">-- Select Service --</option>
-                        {Object.entries(groupedServices).map(([cat, items]) => (
-                          <optgroup key={cat} label={cat}>
-                            {items.map(s => <option key={s.id} value={s.id}>{s.service_name} — ₹{s.price}</option>)}
-                          </optgroup>
-                        ))}
-                      </select>
+                      <div className="flex-1">
+                        <Select
+                          styles={selectStyles}
+                          options={serviceOptions}
+                          placeholder="Search & Select Service..."
+                          value={serviceOptions.flatMap(g => g.options).find(o => o.value === fs.serviceId) || null}
+                          onChange={(selected: any) => {
+                            const updated = [...formServices];
+                            updated[idx].serviceId = selected ? selected.value : '';
+                            setFormServices(updated);
+                          }}
+                          isClearable
+                          classNamePrefix="react-select"
+                        />
+                      </div>
                       <button
                         type="button"
                         onClick={() => setFormServices(formServices.filter((_, i) => i !== idx))}
@@ -767,9 +908,6 @@ export default function Appointments() {
                       </button>
                     </div>
                   ))}
-                  {Object.keys(groupedServices).length === 0 && serviceSearch && (
-                    <p className="text-sm text-white/30 italic text-center py-3">No services match "{serviceSearch}"</p>
-                  )}
                 </div>
               </div>
 
@@ -845,10 +983,21 @@ export default function Appointments() {
                 <div className="space-y-2">
                   {checkInServices.map((cs, idx) => (
                     <div key={idx} className="flex gap-2">
-                      <select value={cs.serviceId} onChange={e => { const updated = [...checkInServices]; updated[idx].serviceId = e.target.value; setCheckInServices(updated); }} className="glass-input flex-1 px-4 py-3 appearance-none bg-black/40 text-sm">
-                        <option value="">-- Select Service --</option>
-                        {services.map(s => <option key={s.id} value={s.id}>{s.service_name} — ₹{s.price}</option>)}
-                      </select>
+                      <div className="flex-1">
+                        <Select
+                          styles={selectStyles}
+                          options={serviceOptions}
+                          placeholder="Search & Select Service..."
+                          value={serviceOptions.flatMap(g => g.options).find(o => o.value === cs.serviceId) || null}
+                          onChange={(selected: any) => {
+                            const updated = [...checkInServices];
+                            updated[idx].serviceId = selected ? selected.value : '';
+                            setCheckInServices(updated);
+                          }}
+                          isClearable
+                          classNamePrefix="react-select"
+                        />
+                      </div>
                       <button onClick={() => setCheckInServices(checkInServices.filter((_, i) => i !== idx))} className="p-2.5 text-danger hover:bg-danger/20 rounded-xl bg-danger/10 border border-danger/20 shrink-0"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   ))}
@@ -884,6 +1033,18 @@ export default function Appointments() {
                     checkInProducts.reduce((sum, p) => sum + (Number(products.find(x => x.id.toString() === p.productId)?.selling_price || products.find(x => x.id.toString() === p.productId)?.sellingPrice || 0) * p.quantity), 0)
                   ).toLocaleString()}
                 </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Payment Method</label>
+                <select
+                  value={checkInPaymentMethod}
+                  onChange={(e) => setCheckInPaymentMethod(e.target.value)}
+                  className="glass-input w-full px-4 py-3 appearance-none bg-black/40"
+                >
+                  <option value="Cash" className="text-white">Cash</option>
+                  <option value="UPI" className="text-white">UPI</option>
+                </select>
               </div>
             </div>
             
