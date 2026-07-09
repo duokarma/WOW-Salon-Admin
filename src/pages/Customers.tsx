@@ -585,7 +585,8 @@ export default function Customers() {
       await supabase.from('customers').update({
         amount_paid: updatedAmountPaid,
         services_taken: newServicesList,
-        staff_served: newStaffList
+        staff_served: newStaffList,
+        updated_at: new Date().toISOString()
       }).eq('id', visitCustomer.id);
 
       toast.success(`Visit recorded for ${visitCustomer.name}! ₹${grandTotal.toLocaleString()}`);

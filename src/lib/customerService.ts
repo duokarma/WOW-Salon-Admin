@@ -39,8 +39,8 @@ export const customerService = {
       anniversary: d.anniversary ? String(d.anniversary) : undefined,
       services_taken: d.services_taken || [],
       staff_served: d.staff_served || [],
-      amountPaid: Number(d.amount_paid || 0),
-      createdAt: String(d.created_at || new Date().toISOString())
+      notes: d.notes ? String(d.notes) : undefined,
+      createdAt: String(d.updated_at || d.created_at || new Date().toISOString())
     }));
 
     return { data: mappedCustomers, count: count || 0 };
@@ -135,7 +135,7 @@ export const customerService = {
       services_taken: data.services_taken || [],
       staff_served: data.staff_served || [],
       amountPaid: Number(data.amount_paid || 0),
-      createdAt: String(data.created_at || new Date().toISOString())
+      createdAt: String(data.updated_at || data.created_at || new Date().toISOString())
     } as Customer;
   },
 
@@ -143,7 +143,7 @@ export const customerService = {
    * Update an existing customer
    */
   async updateCustomer(id: number, updates: CustomerUpdate) {
-    const payload: any = {};
+    const payload: any = { updated_at: new Date().toISOString() };
     if (updates.name !== undefined) payload.name = updates.name;
     if (updates.phone !== undefined) payload.phone = updates.phone;
     if (updates.dob !== undefined) payload.dob = updates.dob || null;
@@ -174,7 +174,7 @@ export const customerService = {
       services_taken: data.services_taken || [],
       staff_served: data.staff_served || [],
       amountPaid: Number(data.amount_paid || 0),
-      createdAt: String(data.created_at || new Date().toISOString())
+      createdAt: String(data.updated_at || data.created_at || new Date().toISOString())
     } as Customer;
   },
 
