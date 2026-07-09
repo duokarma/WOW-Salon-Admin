@@ -140,7 +140,7 @@ export default function Login() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-black/40 border border-white/10 text-white placeholder-white/20 rounded-2xl pl-12 pr-4 py-4 focus:outline-none focus:border-[#F4E3C5]/40 transition-all duration-300 text-[13px]"
+                    className="w-full bg-black/40 border border-white/10 text-white placeholder-white/20 rounded-2xl !pl-12 !pr-4 py-4 focus:outline-none focus:border-[#F4E3C5]/40 transition-all duration-300 text-[13px]"
                     placeholder="Enter your email"
                     autoComplete="email"
                   />
@@ -157,7 +157,7 @@ export default function Login() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-black/40 border border-white/10 text-white placeholder-white/20 rounded-2xl pl-12 pr-12 py-4 focus:outline-none focus:border-[#F4E3C5]/40 transition-all duration-300 text-[13px]"
+                    className="w-full bg-black/40 border border-white/10 text-white placeholder-white/20 rounded-2xl !pl-12 !pr-12 py-4 focus:outline-none focus:border-[#F4E3C5]/40 transition-all duration-300 text-[13px]"
                     placeholder="Enter your password"
                     autoComplete="current-password"
                   />
