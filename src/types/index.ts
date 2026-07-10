@@ -16,6 +16,8 @@ export interface Customer {
   staff_served?: string[];
   amountPaid?: number;
   createdAt: string;
+  eventId?: string;
+  eventType?: 'creation' | 'visit';
 }
 
 export interface Staff {
