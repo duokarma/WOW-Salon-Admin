@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 
 export interface InvoiceData {
+  paymentMethod?: string;
   invoiceNumber: string;
   date: string;
   customerName: string;

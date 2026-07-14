@@ -315,7 +315,7 @@ export default function Customers() {
     setCustomerStaffId('');
     setAddFinalAmount('');
     setAddPaymentMethod('Cash');
-    reset({ name: '', phone: '', dobDay: '', dobMonth: '', dobYear: '', payment_due: '', notes: '', anniversaryDay: '', anniversaryMonth: '', anniversaryYear: '' });
+    reset({ name: '', phone: '', dobDay: '', dobMonth: '', dobYear: '', anniversaryDay: '', anniversaryMonth: '', anniversaryYear: '' });
     setIsCustomerModalOpen(true);
   };
 
@@ -365,8 +365,8 @@ export default function Customers() {
       anniversaryDay: aDay,
       anniversaryMonth: aMonth,
       anniversaryYear: aYear,
-      payment_due: customer.payment_due ? customer.payment_due.toString() : '',
-      notes: customer.notes || ''
+      
+      
     });
     setIsCustomerModalOpen(true);
   };
@@ -767,7 +767,7 @@ export default function Customers() {
     return result;
   }, [customers, filterTime, sortBy]);
 
-  const groupedCustomers = useMemo(() => {
+  const groupedCustomers = useMemo((): Record<string, any[]> => {
     // Deduplicate by customer ID (since customer_timeline view might return multiple events per customer)
     const uniqueCustomersMap = new Map();
     for (const c of processedCustomers) {
@@ -957,7 +957,7 @@ export default function Customers() {
                   </tr>
                 )}
                 
-                {Object.entries(groupedCustomers).map(([groupName, groupCustomers]) => (
+                {Object.entries(groupedCustomers).map(([groupName, groupCustomers]: [string, any[]]) => (
                   <React.Fragment key={groupName}>
                     {/* Group Header */}
                     <tr className="bg-black/60">
@@ -967,7 +967,7 @@ export default function Customers() {
                     </tr>
                     
                     {/* Customers in this group */}
-                    {groupCustomers.map((customer) => {
+                    {groupCustomers.map((customer: any) => {
                       const initials = customer.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
                       
                       return (
@@ -1136,6 +1136,31 @@ export default function Customers() {
                       <option value="" className="text-white/60">Year</option>
                       {Array.from({length: 100}, (_, i) => new Date().getFullYear() - i).map(y => (
                         <option key={y} value={y} className="text-white">{y}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Anniversary */}
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Anniversary (Optional)</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    <select {...register("anniversaryDay")} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer bg-black/40">
+                      <option value="">Day</option>
+                      {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                        <option key={d} value={d.toString().padStart(2, '0')} className="text-white bg-black/90">{d}</option>
+                      ))}
+                    </select>
+                    <select {...register("anniversaryMonth")} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer bg-black/40">
+                      <option value="">Month</option>
+                      {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m, i) => (
+                        <option key={m} value={(i + 1).toString().padStart(2, '0')} className="text-white bg-black/90">{m}</option>
+                      ))}
+                    </select>
+                    <select {...register("anniversaryYear")} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer bg-black/40">
+                      <option value="">Year</option>
+                      {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                        <option key={y} value={y} className="text-white bg-black/90">{y}</option>
                       ))}
                     </select>
                   </div>
@@ -1512,30 +1537,6 @@ export default function Customers() {
             </div>
           </div>
         </div>
-                {/* Anniversary */}
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Anniversary (Optional)</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    <select {...register("anniversaryDay")} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer bg-black/40">
-                      <option value="">Day</option>
-                      {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
-                        <option key={d} value={d.toString().padStart(2, '0')} className="text-white bg-black/90">{d}</option>
-                      ))}
-                    </select>
-                    <select {...register("anniversaryMonth")} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer bg-black/40">
-                      <option value="">Month</option>
-                      {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m, i) => (
-                        <option key={m} value={(i + 1).toString().padStart(2, '0')} className="text-white bg-black/90">{m}</option>
-                      ))}
-                    </select>
-                    <select {...register("anniversaryYear")} className="glass-input w-full px-4 py-3 appearance-none cursor-pointer bg-black/40">
-                      <option value="">Year</option>
-                      {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map(y => (
-                        <option key={y} value={y} className="text-white bg-black/90">{y}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
       )}
 
       {/* View Profile History Modal */}

@@ -66,7 +66,7 @@ export default function Staff() {
   }, [isUnlocked]);
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
+    let timeout: ReturnType<typeof setTimeout>;
     if (isUnlocked) {
       // Auto lock after 4 minutes
       timeout = setTimeout(() => {
