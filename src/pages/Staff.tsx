@@ -187,8 +187,8 @@ export default function Staff() {
   if (!isUnlocked) {
     const handleUnlock = (e: React.FormEvent) => {
       e.preventDefault();
-      // Use fallback '1234' if PIN is not yet set in DB
-      if (pinInput === profile?.pin || (!profile?.pin && pinInput === '1234')) {
+      // Use fallback '2244' if PIN is not yet set in DB
+      if (pinInput === profile?.pin || (!profile?.pin && pinInput === '2244')) {
         setIsUnlocked(true);
         setPinInput('');
       } else {
@@ -219,9 +219,6 @@ export default function Staff() {
             <button type="submit" className="btn-primary w-full justify-center py-3 shadow-md">
               Unlock
             </button>
-            {!profile?.pin && (
-              <p className="text-xs text-warning/80 mt-2 font-light">Default PIN is 1234. Please set it in database.</p>
-            )}
           </form>
         </div>
       </div>
