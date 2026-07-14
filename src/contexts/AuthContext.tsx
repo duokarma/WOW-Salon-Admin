@@ -8,6 +8,7 @@ interface UserProfile {
   id: string;
   role: UserRole;
   email: string;
+  pin?: string;
 }
 
 interface AuthContextType {
