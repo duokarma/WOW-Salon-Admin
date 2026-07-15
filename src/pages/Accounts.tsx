@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { PieChart as PieChartIcon, ArrowUpRight, ArrowDownRight, IndianRupee, Download, Package, Calendar, ChevronDown, ChevronUp, X as XIcon, Info } from 'lucide-react';
+import { PieChart as PieChartIcon, ArrowUpRight, ArrowDownRight, IndianRupee, Download, Package, Calendar, ChevronDown, ChevronUp, X as XIcon, Info , Lock, ShieldAlert } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -8,6 +9,10 @@ import toast from 'react-hot-toast';
 const COLORS = ['#F4E3C5', '#D4AF37', '#996515', '#C5B358', '#E6C200', '#FFDF00'];
 
 export default function Accounts() {
+  const { profile } = useAuth();
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
   
@@ -292,6 +297,71 @@ export default function Accounts() {
       toast.error('Failed to export finance data');
     }
   };
+
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    if (isUnlocked) {
+      timeout = setTimeout(() => {
+        setIsUnlocked(false);
+        setPinInput('');
+        toast('Session locked for security', { icon: '🔒' });
+      }, 240000);
+    }
+    return () => clearTimeout(timeout);
+  }, [isUnlocked]);
+
+  if (profile?.role !== 'Owner') {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh] text-center space-y-4">
+        <div className="w-20 h-20 bg-danger/10 rounded-full flex items-center justify-center mb-4 border border-danger/20">
+          <ShieldAlert className="w-10 h-10 text-danger" />
+        </div>
+        <h2 className="text-3xl font-light text-white tracking-tight">Access Denied</h2>
+        <p className="text-white/60 font-light max-w-md">You do not have permission to view this section. Only Owners can access this area.</p>
+      </div>
+    );
+  }
+
+  if (!isUnlocked) {
+    const handleUnlock = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (pinInput === profile?.pin || (!profile?.pin && pinInput === '2244')) {
+        setIsUnlocked(true);
+        setPinInput('');
+      } else {
+        toast.error('Incorrect PIN');
+        setPinInput('');
+      }
+    };
+
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh]">
+        <div className="glass-panel max-w-sm w-full p-8 flex flex-col items-center text-center animate-in zoom-in-95 duration-300 border border-white/10 shadow-2xl">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6 border border-primary/20">
+            <Lock className="w-8 h-8 text-primary" />
+          </div>
+          <h2 className="text-2xl font-light text-white tracking-tight mb-2">Restricted Access</h2>
+          <p className="text-white/60 font-light mb-8 text-sm">Please enter the Owner PIN to access this section.</p>
+          
+          <form onSubmit={handleUnlock} className="w-full flex flex-col space-y-5">
+            <input 
+              type="password" 
+              maxLength={4}
+              value={pinInput}
+              onChange={(e) => setPinInput(e.target.value)}
+              placeholder="****"
+              className="glass-input w-full text-center tracking-[1em] text-3xl font-mono py-4 bg-black/40 text-white placeholder:text-white/20 border-white/10"
+              autoFocus
+            />
+            <button type="submit" className="btn-primary w-full justify-center py-3 shadow-md">
+              Unlock
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-10">
