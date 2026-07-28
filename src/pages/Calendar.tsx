@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, parseISO } from 'date-fns';
-import { ChevronLeft, ChevronRight, IndianRupee, Users, Package, CalendarCheck, Check, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, IndianRupee, Users, Package, CalendarCheck, Check, Loader2, Lock } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
 type CalendarFilter = 'all' | 'visits' | 'appointments';
@@ -13,6 +14,22 @@ export default function CalendarView() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [filter, setFilter] = useState<CalendarFilter>('all');
   const [checkingIn, setCheckingIn] = useState<string | null>(null);
+
+  const { profile } = useAuth();
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    if (isUnlocked) {
+      timeout = setTimeout(() => {
+        setIsUnlocked(false);
+        setPinInput('');
+        toast('Session locked for security', { icon: '🔒' });
+      }, 240000);
+    }
+    return () => clearTimeout(timeout);
+  }, [isUnlocked]);
 
   const fetchAll = async () => {
     const [vRes, aRes] = await Promise.all([
@@ -26,6 +43,7 @@ export default function CalendarView() {
   };
 
   useEffect(() => {
+    if (!isUnlocked) return;
     fetchAll();
     const channel = supabase
       .channel('calendar-full-updates')
@@ -37,6 +55,47 @@ export default function CalendarView() {
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
+
+  if (!isUnlocked) {
+    const handleUnlock = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (pinInput === profile?.pin || (!profile?.pin && pinInput === '2244')) {
+        setIsUnlocked(true);
+        setPinInput('');
+      } else {
+        toast.error('Incorrect PIN');
+        setPinInput('');
+      }
+    };
+
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh]">
+        <div className="glass-panel max-w-sm w-full p-8 flex flex-col items-center text-center animate-in zoom-in-95 duration-300 border border-white/10 shadow-2xl">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6 border border-primary/20">
+            <Lock className="w-8 h-8 text-primary" />
+          </div>
+          <h2 className="text-2xl font-light text-white tracking-tight mb-2">Restricted Access</h2>
+          <p className="text-white/60 font-light mb-8 text-sm">Please enter the Owner PIN to access Calendar.</p>
+          
+          <form onSubmit={handleUnlock} className="w-full flex flex-col space-y-5">
+            <input 
+              type="password" 
+              maxLength={4}
+              value={pinInput}
+              onChange={(e) => setPinInput(e.target.value)}
+              placeholder="****"
+              className="glass-input w-full text-center tracking-[1em] text-3xl font-mono py-4 bg-black/40 text-white placeholder:text-white/20 border-white/10"
+              autoFocus
+            />
+            <button type="submit" className="btn-primary w-full justify-center py-3 shadow-md">
+              Unlock
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   const startDay = monthStart.getDay();
   const paddingDays = Array.from({ length: startDay }).fill(null);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
