@@ -160,10 +160,9 @@ export default function Header({ toggleSidebar, isSidebarOpen = true }: HeaderPr
 
           {isDropdownOpen && (
             <div
-              className="absolute right-0 mt-3 w-80 rounded-2xl overflow-hidden z-50"
+              className="absolute -right-2 sm:right-0 mt-3 w-[290px] sm:w-80 rounded-2xl overflow-hidden z-50"
               style={{
-                background: 'rgba(17,17,17,0.95)',
-                backdropFilter: 'blur(40px)',
+                background: '#111',
                 border: '1px solid rgba(200, 157, 60,0.15)',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.8), 0 0 30px rgba(200, 157, 60,0.05)',
               }}
