@@ -89,27 +89,13 @@ export const customerService = {
         .eq('is_deleted', false)
         .gte('created_at', startOfMonth.toISOString());
 
-      // 3. Lifetime Revenue & Avg Spend
-      // For highly scaled apps, we would use an RPC here. For now, fetching grand_totals
-      const { data: visitsRaw } = await supabase
-        .from('customer_visits')
-        .select('grand_total, customer:customer_id(is_deleted)')
-        .eq('is_deleted', false);
-        
-      const visits = (visitsRaw || []).filter((v: any) => !v.customer || !v.customer.is_deleted);
-        
-      const totalRevenue = visits.reduce((sum, v) => sum + Number(v.grand_total || 0), 0);
-      const avgSpend = (totalCustomers || 0) > 0 ? totalRevenue / totalCustomers! : 0;
-
       return {
         totalCustomers: totalCustomers || 0,
-        newThisMonth: newThisMonth || 0,
-        totalRevenue,
-        avgSpend
+        newThisMonth: newThisMonth || 0
       };
     } catch (e) {
       console.error('Error fetching customer stats:', e);
-      return { totalCustomers: 0, newThisMonth: 0, totalRevenue: 0, avgSpend: 0 };
+      return { totalCustomers: 0, newThisMonth: 0 };
     }
   },
 

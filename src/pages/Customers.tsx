@@ -95,7 +95,7 @@ export default function Customers() {
   const [services, setServices] = useState<SalonService[]>([]);
   const [staff, setStaff] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [stats, setStats] = useState({ totalCustomers: 0, newThisMonth: 0, totalRevenue: 0, avgSpend: 0 });
+  const [stats, setStats] = useState({ totalCustomers: 0, newThisMonth: 0 });
 
   const groupedServices = useMemo(() => services.reduce((acc, service) => {
     const category = service.category || 'Other';
@@ -826,7 +826,7 @@ export default function Customers() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div className="glass-card p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0 bg-black/40/5 p-3 rounded-2xl border border-white/20">
@@ -849,32 +849,6 @@ export default function Customers() {
               <dl>
                 <dt className="text-xs font-bold tracking-[0.1em] text-white/60 uppercase">New This Month</dt>
                 <dd className="text-3xl font-light text-white mt-1">{stats.newThisMonth}</dd>
-              </dl>
-            </div>
-          </div>
-        </div>
-        <div className="glass-card p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 bg-black/40/5 p-3 rounded-2xl border border-white/20">
-              <IndianRupee className="h-6 w-6 text-white" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-xs font-bold tracking-[0.1em] text-white/60 uppercase">Lifetime Revenue</dt>
-                <dd className="text-3xl font-light text-white mt-1">₹{stats.totalRevenue.toLocaleString()}</dd>
-              </dl>
-            </div>
-          </div>
-        </div>
-        <div className="glass-card p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 bg-black/40/5 p-3 rounded-2xl border border-white/20">
-              <TrendingUp className="h-6 w-6 text-white" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-xs font-bold tracking-[0.1em] text-white/60 uppercase">Average Spend</dt>
-                <dd className="text-3xl font-light text-white mt-1">₹{Math.round(stats.avgSpend).toLocaleString()}</dd>
               </dl>
             </div>
           </div>
