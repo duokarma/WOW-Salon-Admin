@@ -171,14 +171,15 @@ export default function Expenses() {
   let retailCost = 0;
 
   products.forEach(p => {
-    const cost = Number(p.purchase_price) || 0;
+    const retailCostPrice = Number(p.purchase_price) || 0;
+    const salonCostPrice = Number(p.salon_purchase_price) || 0;
     const price = Number(p.selling_price) || 0;
     
-    totalSpentInventory += (Number(p.purchased_quantity) || 0) * cost;
-    currentStockValue += (Number(p.current_stock) || 0) * cost;
-    costOfConsumed += (Number(p.salon_consumption) || 0) * cost;
+    totalSpentInventory += ((Number(p.purchased_quantity) || 0) * retailCostPrice) + ((Number(p.salon_purchased_quantity) || 0) * salonCostPrice);
+    currentStockValue += ((Number(p.current_stock) || 0) * retailCostPrice) + ((Number(p.salon_current_stock) || 0) * salonCostPrice);
+    costOfConsumed += (Number(p.salon_consumption) || 0) * salonCostPrice;
     retailRevenue += (Number(p.sold_quantity) || 0) * price;
-    retailCost += (Number(p.sold_quantity) || 0) * cost;
+    retailCost += (Number(p.sold_quantity) || 0) * retailCostPrice;
   });
 
   const retailProfit = retailRevenue - retailCost;

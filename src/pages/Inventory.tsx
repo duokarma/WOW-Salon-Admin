@@ -25,17 +25,27 @@ export default function Inventory() {
     selling_price: 0,
     purchased_quantity: 0,
     sold_quantity: 0,
+    current_stock: 0,
+    salon_purchase_price: 0,
+    salon_purchased_quantity: 0,
     salon_consumption: 0,
-    current_stock: 0
+    salon_current_stock: 0
   });
 
   // Auto-calculate current stock whenever relevant fields change
   useEffect(() => {
     const purchased = Number(formData.purchased_quantity) || 0;
     const sold = Number(formData.sold_quantity) || 0;
-    const consumed = Number(formData.salon_consumption) || 0;
-    setFormData(prev => ({ ...prev, current_stock: purchased - sold - consumed }));
-  }, [formData.purchased_quantity, formData.sold_quantity, formData.salon_consumption]);
+    
+    const salonPurchased = Number(formData.salon_purchased_quantity) || 0;
+    const salonConsumed = Number(formData.salon_consumption) || 0;
+    
+    setFormData(prev => ({ 
+      ...prev, 
+      current_stock: purchased - sold,
+      salon_current_stock: salonPurchased - salonConsumed
+    }));
+  }, [formData.purchased_quantity, formData.sold_quantity, formData.salon_purchased_quantity, formData.salon_consumption]);
 
   // Debounce search
   useEffect(() => {
@@ -78,7 +88,7 @@ export default function Inventory() {
 
   const openAddModal = () => {
     setProductToEdit(null);
-    setFormData({ name: '', purchase_price: 0, selling_price: 0, purchased_quantity: 0, sold_quantity: 0, salon_consumption: 0, current_stock: 0 });
+    setFormData({ name: '', purchase_price: 0, selling_price: 0, purchased_quantity: 0, sold_quantity: 0, current_stock: 0, salon_purchase_price: 0, salon_purchased_quantity: 0, salon_consumption: 0, salon_current_stock: 0 });
     setIsModalOpen(true);
   };
 
@@ -90,8 +100,11 @@ export default function Inventory() {
       selling_price: product.selling_price || 0,
       purchased_quantity: product.purchased_quantity || 0,
       sold_quantity: product.sold_quantity || 0,
+      current_stock: product.current_stock || 0,
+      salon_purchase_price: product.salon_purchase_price || 0,
+      salon_purchased_quantity: product.salon_purchased_quantity || 0,
       salon_consumption: product.salon_consumption || 0,
-      current_stock: product.current_stock || 0
+      salon_current_stock: product.salon_current_stock || 0
     });
     setIsModalOpen(true);
   };
@@ -110,8 +123,11 @@ export default function Inventory() {
         selling_price: Number(formData.selling_price),
         purchased_quantity: Number(formData.purchased_quantity),
         sold_quantity: Number(formData.sold_quantity),
+        current_stock: Number(formData.current_stock),
+        salon_purchase_price: Number(formData.salon_purchase_price),
+        salon_purchased_quantity: Number(formData.salon_purchased_quantity),
         salon_consumption: Number(formData.salon_consumption),
-        current_stock: Number(formData.current_stock)
+        salon_current_stock: Number(formData.salon_current_stock)
       };
 
       if (productToEdit) {
@@ -192,14 +208,14 @@ export default function Inventory() {
               <table className="w-full text-sm text-left text-white">
                 <thead className="bg-black/40 text-white/60 text-xs uppercase font-bold tracking-wider border-b border-white/10 shadow-sm">
                   <tr>
-                    <th className="px-6 py-5">Product Name</th>
-                    <th className="px-6 py-5 text-center">Cost</th>
-                    <th className="px-6 py-5 text-center">Price</th>
-                    <th className="px-6 py-5 text-center">Purchased Qty</th>
-                    <th className="px-6 py-5 text-center">Sold Qty</th>
-                    <th className="px-6 py-5 text-center">Salon Consumption</th>
-                    <th className="px-6 py-5 text-center">Current Stock</th>
-                    <th className="px-6 py-5 text-right">Actions</th>
+                    <th className="px-4 py-5">Product Name</th>
+                    <th className="px-4 py-5 text-center">Retail Cost/Price</th>
+                    <th className="px-4 py-5 text-center">Retail In/Out</th>
+                    <th className="px-4 py-5 text-center">Retail Stock</th>
+                    <th className="px-4 py-5 text-center">Salon Cost</th>
+                    <th className="px-4 py-5 text-center">Salon In/Out</th>
+                    <th className="px-4 py-5 text-center">Salon Stock</th>
+                    <th className="px-4 py-5 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -213,20 +229,24 @@ export default function Inventory() {
                   )}
                   {products.map(item => (
                     <tr key={item.id} className="hover:bg-black/40 transition-colors group font-light">
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4">
                         <div className="font-medium text-white text-base">{item.name}</div>
                       </td>
-                      <td className="px-6 py-4 text-center text-white/60">₹{item.purchase_price || 0}</td>
-                      <td className="px-6 py-4 text-center text-white/60">₹{item.selling_price || 0}</td>
-                      <td className="px-6 py-4 text-center text-white/60">{item.purchased_quantity}</td>
-                      <td className="px-6 py-4 text-center text-white/60">{item.sold_quantity}</td>
-                      <td className="px-6 py-4 text-center text-white/60">{item.salon_consumption}</td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-4 py-4 text-center text-white/60">₹{item.purchase_price || 0} / ₹{item.selling_price || 0}</td>
+                      <td className="px-4 py-4 text-center text-white/60">{item.purchased_quantity || 0} / {item.sold_quantity || 0}</td>
+                      <td className="px-4 py-4 text-center">
                         <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-bold border ${item.current_stock <= 0 ? 'bg-danger/10 text-danger border-danger/20' : 'bg-success/10 text-success border-success/20'}`}>
                           {item.current_stock}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-4 py-4 text-center text-white/60">₹{item.salon_purchase_price || 0}</td>
+                      <td className="px-4 py-4 text-center text-white/60">{item.salon_purchased_quantity || 0} / {item.salon_consumption || 0}</td>
+                      <td className="px-4 py-4 text-center">
+                        <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-bold border ${(item.salon_current_stock || 0) <= 0 ? 'bg-danger/10 text-danger border-danger/20' : 'bg-success/10 text-success border-success/20'}`}>
+                          {item.salon_current_stock || 0}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 text-right">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button onClick={() => openEditModal(item)} className="p-2 text-white/60 hover:bg-black/5 hover:text-white rounded-xl transition-colors">
                             <Edit2 className="w-4 h-4" />
@@ -279,43 +299,64 @@ export default function Inventory() {
                 <X className="w-5 h-5"/>
               </button>
             </div>
-            <form onSubmit={handleSave} className="flex flex-col flex-1 bg-black/40">
+            <form onSubmit={handleSave} className="flex flex-col flex-1 bg-black/40 overflow-y-auto max-h-[85vh] custom-scrollbar">
               <div className="p-6 space-y-5">
                 <div>
                   <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Product Name *</label>
                   <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" placeholder="e.g. L'Oreal Shampoo" />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Purchase Price (Cost)</label>
-                    <input type="number" min="0" value={formData.purchase_price} onChange={e => setFormData({...formData, purchase_price: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
+                
+                <div className="border border-white/10 p-4 rounded-xl space-y-4 bg-black/20">
+                  <h4 className="text-sm font-bold text-white/80 uppercase tracking-wider">Retail (Selling to Customers)</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Retail Purchase Cost</label>
+                      <input type="number" min="0" value={formData.purchase_price} onChange={e => setFormData({...formData, purchase_price: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Selling Price</label>
+                      <input type="number" min="0" value={formData.selling_price} onChange={e => setFormData({...formData, selling_price: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Selling Price</label>
-                    <input type="number" min="0" value={formData.selling_price} onChange={e => setFormData({...formData, selling_price: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Purchased Qty</label>
-                    <input type="number" min="0" value={formData.purchased_quantity} onChange={e => setFormData({...formData, purchased_quantity: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Sold Qty</label>
-                    <input type="number" min="0" value={formData.sold_quantity} onChange={e => setFormData({...formData, sold_quantity: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Salon Consumption</label>
-                    <input type="number" min="0" value={formData.salon_consumption} onChange={e => setFormData({...formData, salon_consumption: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Current Stock</label>
-                    <input type="number" disabled value={formData.current_stock} className="glass-input bg-black/5 w-full px-4 py-3 border-white/10 text-white/60 cursor-not-allowed" title="Auto-calculated (Purchased - Sold - Consumed)" />
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Purchased Qty</label>
+                      <input type="number" min="0" value={formData.purchased_quantity} onChange={e => setFormData({...formData, purchased_quantity: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Sold Qty</label>
+                      <input type="number" min="0" value={formData.sold_quantity} onChange={e => setFormData({...formData, sold_quantity: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Current Stock</label>
+                      <input type="number" disabled value={formData.current_stock} className="glass-input bg-black/5 w-full px-4 py-3 border-white/10 text-white/60 cursor-not-allowed" />
+                    </div>
                   </div>
                 </div>
-                <p className="text-xs text-white/60 italic mt-2">Current Stock is auto-calculated as (Purchased Qty - Sold Qty - Salon Consumption).</p>
+
+                <div className="border border-white/10 p-4 rounded-xl space-y-4 bg-black/20">
+                  <h4 className="text-sm font-bold text-white/80 uppercase tracking-wider">Salon Use (Professional)</h4>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Salon Purchase Cost</label>
+                      <input type="number" min="0" value={formData.salon_purchase_price} onChange={e => setFormData({...formData, salon_purchase_price: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Purchased Qty</label>
+                      <input type="number" min="0" value={formData.salon_purchased_quantity} onChange={e => setFormData({...formData, salon_purchased_quantity: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Consumed Qty</label>
+                      <input type="number" min="0" value={formData.salon_consumption} onChange={e => setFormData({...formData, salon_consumption: Number(e.target.value)})} className="glass-input bg-black/40 w-full px-4 py-3 border-white/10 shadow-sm text-white" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold tracking-widest text-white/60 uppercase mb-2">Current Stock</label>
+                      <input type="number" disabled value={formData.salon_current_stock} className="glass-input bg-black/5 w-full px-4 py-3 border-white/10 text-white/60 cursor-not-allowed" />
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="p-6 border-t border-white/10 bg-black/5 rounded-b-2xl flex justify-end gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary bg-black/40 border-white/10 text-white">Cancel</button>

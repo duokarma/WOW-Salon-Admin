@@ -48,6 +48,9 @@ export interface Product {
   sold_quantity: number;
   salon_consumption: number;
   current_stock: number;
+  salon_purchase_price?: number;
+  salon_purchased_quantity?: number;
+  salon_current_stock?: number;
   created_at: string;
 }
 

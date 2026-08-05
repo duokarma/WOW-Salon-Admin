@@ -70,6 +70,7 @@ export default function Dashboard() {
         .from('products')
         .update({ 
           current_stock: editingProduct.current_stock,
+          salon_current_stock: editingProduct.salon_current_stock,
           low_stock_threshold: editingProduct.low_stock_threshold || 5
         })
         .eq('id', editingProduct.id);
@@ -255,7 +256,7 @@ export default function Dashboard() {
   const lifetimeProfit = lifetimeRevenue - lifetimeExpensesAmount;
 
   // --- Low Stock Products ---
-  const lowStockProducts = products.filter(p => (Number(p.current_stock) || 0) <= 5).slice(0, 10);
+  const lowStockProducts = products.filter(p => (Number(p.current_stock) || 0) <= 5 || (Number(p.salon_current_stock) || 0) <= 5).slice(0, 10);
 
   // --- Today's Appointments ---
   const todayAppointments = appointments.filter(a => a.appointment_date && isSameDay(parseISO(a.appointment_date), today));
@@ -555,9 +556,15 @@ export default function Dashboard() {
                           <p className="text-[9px] text-white/40 uppercase tracking-[0.1em] mb-1">Threshold</p>
                           <p className="text-xs font-semibold text-white/70">5</p>
                         </div>
-                        <div className="text-right">
-                          <p className="text-[9px] uppercase tracking-[0.1em] font-bold mb-1" style={{ color: '#CF6679' }}>Current Stock</p>
-                          <p className="text-xl font-light" style={{ color: '#CF6679' }}>{product.current_stock || 0}</p>
+                        <div className="text-right flex gap-3">
+                          <div>
+                            <p className="text-[9px] uppercase tracking-[0.1em] font-bold mb-1" style={{ color: (product.current_stock || 0) <= 5 ? '#CF6679' : 'rgba(255,255,255,0.4)' }}>Retail</p>
+                            <p className="text-xl font-light" style={{ color: (product.current_stock || 0) <= 5 ? '#CF6679' : 'rgba(255,255,255,0.7)' }}>{product.current_stock || 0}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] uppercase tracking-[0.1em] font-bold mb-1" style={{ color: (product.salon_current_stock || 0) <= 5 ? '#CF6679' : 'rgba(255,255,255,0.4)' }}>Salon</p>
+                            <p className="text-xl font-light" style={{ color: (product.salon_current_stock || 0) <= 5 ? '#CF6679' : 'rgba(255,255,255,0.7)' }}>{product.salon_current_stock || 0}</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -592,15 +599,27 @@ export default function Dashboard() {
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <label className="text-xs font-bold tracking-widest uppercase mb-2 block" style={{ color: 'rgba(212,175,55,0.5)' }}>Current Stock</label>
-                  <input
-                    type="number"
-                    required
-                    className="glass-input w-full text-xl p-3 bg-black/40 text-white"
-                    value={editingProduct.current_stock}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, current_stock: parseInt(e.target.value) || 0 })}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold tracking-widest uppercase mb-2 block" style={{ color: 'rgba(212,175,55,0.5)' }}>Retail Stock</label>
+                    <input
+                      type="number"
+                      required
+                      className="glass-input w-full text-xl p-3 bg-black/40 text-white"
+                      value={editingProduct.current_stock}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, current_stock: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold tracking-widest uppercase mb-2 block" style={{ color: 'rgba(212,175,55,0.5)' }}>Salon Stock</label>
+                    <input
+                      type="number"
+                      required
+                      className="glass-input w-full text-xl p-3 bg-black/40 text-white"
+                      value={editingProduct.salon_current_stock || 0}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, salon_current_stock: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="text-xs font-bold tracking-widest uppercase mb-2 block" style={{ color: 'rgba(212,175,55,0.5)' }}>Low Stock Threshold</label>
