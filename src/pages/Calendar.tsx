@@ -51,7 +51,7 @@ export default function CalendarView() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, fetchAll)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, []);
+  }, [isUnlocked]);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);

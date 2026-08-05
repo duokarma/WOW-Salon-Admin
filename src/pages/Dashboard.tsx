@@ -135,7 +135,7 @@ export default function Dashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [isUnlocked]);
 
   // --- Birthdays Today ---
   const today = new Date();
